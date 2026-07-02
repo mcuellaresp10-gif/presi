@@ -1,0 +1,121 @@
+export { calculateRosterCost, calculateRemainingBudget } from "./budget";
+export {
+  applyGameweekToTitulars,
+  canRenewContract,
+  getInitialContract,
+  getInitialContractFields,
+  getJornadasTotal,
+  getReleaseRefund,
+  getRenewalContractFields,
+  getRenewalCost,
+  isContractExpired,
+  isContractExpiringSoon,
+  MAX_RENEWALS,
+} from "./contracts";
+export type { InitialContractResult, PlayerContract } from "./contracts";
+export {
+  generateAcademyPlayer,
+  isAcademyPackReady,
+} from "./academy";
+export {
+  applySigningDiscount,
+  calculatePassiveIncome,
+  getAcademyDurationHours,
+  getAcademyDurationMs,
+  getEstimatedWeeklyPassiveIncome,
+  getFacilityNivel,
+  getGymLeagueBonusPct,
+  getHinchasWeeklyIncome,
+  getHinchasWildCardBonusPct,
+  getMedicalPenaltyReduction,
+  getNextAcademyDeadline,
+  getNextIncomeTickAt,
+  getOfficeSigningDiscount,
+  getOfficeWeeklyIncome,
+  getPassiveIncomeIntervalHours,
+  getPassiveIncomeTickAmount,
+  getWeeklyPassiveIncome,
+} from "./facility-effects";
+export {
+  canStartUpgrade,
+  formatRemainingTime,
+  getActiveUpgrades,
+  getRemainingMs,
+  getUpgradeCost,
+  getUpgradeDurationMs,
+  isMaxFacilityLevel,
+  MAX_CONCURRENT_UPGRADES,
+} from "./facilities";
+export {
+  MAX_FACILITY_LEVEL,
+  clampFacilityLevel,
+  getLevelTimerHours,
+} from "./facility-progression";
+export {
+  getFormationSlots,
+  validateFormation,
+  VALID_FORMATIONS,
+} from "./formation";
+export { generatePackOptions } from "./pack-generator";
+export { createMathRng, createSeededRng } from "./rng";
+export {
+  BENCH_COUNT,
+  MAX_SQUAD,
+  STARTER_COUNT,
+  SQUAD_POSITION_CAPS,
+  validateLineupDraft,
+  canAddPlayerToSquad,
+} from "./squad-limits";
+export {
+  calculatePlayerPoints,
+  calculatePlayerPointsWithBreakdown,
+  calculateClubGameweekPoints,
+  aggregateGameweekStats,
+  emptyMatchStatLine,
+} from "./scoring";
+export type {
+  MatchStatLine,
+  PlayerPointsBreakdown,
+  ScoringBreakdownLine,
+} from "./scoring";
+export { computeEffectiveLineup } from "./effective-lineup";
+export {
+  canAddPlayer,
+  canFormValidEleven,
+  countPositions,
+  groupByPosition,
+  MAX_SQUAD as ROSTER_MAX_SQUAD,
+} from "./roster";
+export { assignStarterRoster } from "./starter-roster";
+export {
+  generateScoutingPlayer,
+  getNextScoutingDeadline,
+  getScoutingDurationHours,
+  getScoutingDurationMs,
+  getScoutingPremiumRarityPct,
+  getScoutingRarityWeights,
+  isScoutingPackReady,
+  normalizeScoutingPackDeadline,
+} from "./scouting";
+export type { ScoutingEstado, ScoutingPackState } from "./scouting";
+export {
+  WILD_CARD_CATALOG,
+  WILD_CARD_TYPES,
+  MAX_WILD_CARD_INVENTORY,
+  canActivateWildCard,
+  canClaimWildCard,
+  effectsFromActiveCards,
+  generateScoutingReward,
+  getWildCardChance,
+  getWildCardDefinition,
+  rollScoutingRewardKind,
+  rollWildCardType,
+} from "./wild-cards";
+export type {
+  GameweekWildCardEffects,
+  ScoutingReward,
+  WildCardDefinition,
+  WildCardKind,
+  WildCardType,
+} from "./wild-cards";
+export * from "./types";

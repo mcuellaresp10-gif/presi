@@ -1,0 +1,17 @@
+-- Schedule facility upgrade cron (run after deploying edge function)
+-- Replace YOUR_PROJECT_REF and YOUR_SERVICE_ROLE_KEY
+
+-- select cron.schedule(
+--   'facility-upgrade-cron',
+--   '* * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/facility-upgrade-cron',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'Authorization', 'Bearer YOUR_SERVICE_ROLE_KEY'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );

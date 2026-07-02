@@ -1,0 +1,8 @@
+# Supabase local config (optional)
+project_id = "presi"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
