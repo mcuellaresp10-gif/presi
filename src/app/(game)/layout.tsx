@@ -21,19 +21,19 @@ export default async function GameLayout({
   const profile = await getProfileSummary();
 
   return (
-    <div className="flex min-h-screen flex-col bg-andes-cream">
-      <header className="sticky top-0 z-50 bg-andes-deep text-white shadow-md">
+    <div className="flex min-h-screen flex-col bg-presi-bg">
+      <header className="sticky top-0 z-50 border-b border-presi-cyan/15 bg-presi-elevated text-white shadow-lg shadow-black/30">
         {profile ? (
           <GameHeader profile={profile} />
         ) : (
-          <div className="mx-auto max-w-4xl px-4 py-2.5 text-sm font-bold">
+          <div className="mx-auto max-w-4xl px-4 py-2.5 text-display text-lg text-presi-gold">
             PRESI
           </div>
         )}
         <GameNav />
       </header>
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-4">
+      <main className="relative mx-auto w-full max-w-4xl flex-1 px-4 py-4">
         {children}
       </main>
     </div>

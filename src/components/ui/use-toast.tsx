@@ -27,6 +27,10 @@ export function ToastContextProvider({
 }) {
   const [toasts, setToasts] = React.useState<ToastMessage[]>([]);
 
+  const dismiss = React.useCallback((id: string) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  }, []);
+
   const toast = React.useCallback((message: Omit<ToastMessage, "id">) => {
     setToasts((current) => [
       ...current,
@@ -39,8 +43,14 @@ export function ToastContextProvider({
       <ToastProvider>
         {children}
         {toasts.map((item) => (
-          <Toast key={item.id} open onOpenChange={() => {}}>
-            <div className="grid gap-1">
+          <Toast
+            key={item.id}
+            duration={6000}
+            onOpenChange={(open) => {
+              if (!open) dismiss(item.id);
+            }}
+          >
+            <div className="grid gap-1 pr-6">
               <ToastTitle>{item.title}</ToastTitle>
               {item.description ? (
                 <ToastDescription>{item.description}</ToastDescription>

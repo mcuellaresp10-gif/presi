@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculatePassiveGems,
   calculatePassiveIncome,
   getAcademyDurationHours,
   getEstimatedWeeklyPassiveIncome,
@@ -8,7 +9,9 @@ import {
   getHinchasWildCardBonusPct,
   getMedicalPenaltyReduction,
   getOfficeSigningDiscount,
+  getPassiveGemTickAmount,
   getPassiveIncomeTickAmount,
+  getWeeklyPassiveGems,
 } from "../facility-effects";
 import type { Facility } from "../types";
 
@@ -85,5 +88,24 @@ describe("facility-effects", () => {
 
   it("hinchas weekly estimate increases with level", () => {
     expect(getHinchasWeeklyIncome(5)).toBeGreaterThan(getHinchasWeeklyIncome(1));
+  });
+
+  it("passive gems share ticks with money income", () => {
+    const last = new Date("2026-01-01T00:00:00Z");
+    const now = new Date(last.getTime() + 12 * 60 * 60 * 1000 * 2);
+    const facilities = makeFacilities(2, 1);
+    const money = calculatePassiveIncome(facilities, last, now);
+    const gems = calculatePassiveGems(facilities, last, now);
+    expect(gems.ticks).toBe(money.ticks);
+    expect(gems.amount).toBe(gems.tickAmount * gems.ticks);
+  });
+
+  it("gem tick amount grows with facility level", () => {
+    expect(getPassiveGemTickAmount(5, 5)).toBeGreaterThan(
+      getPassiveGemTickAmount(1, 1)
+    );
+    expect(getWeeklyPassiveGems(makeFacilities(5, 5))).toBeGreaterThan(
+      getWeeklyPassiveGems(makeFacilities(1, 1))
+    );
   });
 });

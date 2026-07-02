@@ -70,7 +70,7 @@ export function ProfilePanel({
         onClick={onClose}
       />
 
-      <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-[#0a1628] text-white shadow-2xl">
+      <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-presi-surface text-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
             Perfil
@@ -93,11 +93,11 @@ export function ProfilePanel({
                 <Shield className="h-8 w-8 text-white/40" />
               </div>
             )}
-            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-andes-accent ring-2 ring-[#0a1628]">
-              <User className="h-3.5 w-3.5 text-andes-deep" />
+            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-presi-cyan ring-2 ring-presi-surface">
+              <User className="h-3.5 w-3.5 text-presi-bg" />
             </span>
           </div>
-          <p className="text-lg font-black uppercase tracking-wide">
+          <p className="text-lg font-black uppercase tracking-wide text-display text-presi-gold">
             {profile.club?.nombre ?? "Sin club"}
           </p>
           <p className="mt-0.5 text-sm font-medium text-white/60">
@@ -106,25 +106,25 @@ export function ProfilePanel({
           <p className="mt-1 truncate text-xs text-white/40">{profile.email}</p>
         </div>
 
-        <div className="bg-cyan-500 px-4 py-2 text-center text-xs font-black uppercase tracking-wider text-andes-deep">
+        <div className="bg-presi-gold px-4 py-2 text-center text-xs font-black uppercase tracking-wider text-presi-bg">
           Liga BetPlay · Temporada {new Date().getFullYear()}
         </div>
 
         <div className="grid grid-cols-3 gap-px bg-white/10 px-4 py-4">
           <div className="rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-lg font-black text-cyan-300">
+            <p className="text-lg font-black text-presi-cyan">
               {profile.seasonPoints.toLocaleString("es-CO")}
             </p>
             <p className="text-[9px] uppercase text-white/50">Temporada</p>
           </div>
           <div className="rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-lg font-black text-cyan-300">
+            <p className="text-lg font-black text-presi-cyan">
               {profile.globalRank ? `#${profile.globalRank}` : "—"}
             </p>
             <p className="text-[9px] uppercase text-white/50">Ranking</p>
           </div>
           <div className="rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-lg font-black text-cyan-300">
+            <p className="text-lg font-black text-presi-cyan">
               {profile.leaguesCount}
             </p>
             <p className="text-[9px] uppercase text-white/50">Ligas</p>
@@ -171,7 +171,7 @@ export function ProfilePanel({
             <Copy className="h-4 w-4 text-white/40" />
           </button>
           {copied && (
-            <p className="mt-1 text-[10px] text-emerald-400">Copiado</p>
+            <p className="mt-1 text-[10px] text-presi-cyan">Copiado</p>
           )}
         </div>
       </aside>
@@ -202,7 +202,7 @@ export function GameHeader({ profile }: { profile: ProfileSummary }) {
             <p className="truncate text-sm font-bold leading-tight">
               {profile.club?.nombre ?? "PRESI"}
             </p>
-            <p className="text-[10px] text-andes-gold/80">Liga BetPlay</p>
+            <p className="text-[10px] text-presi-gold/80">Liga BetPlay</p>
           </div>
         </Link>
 

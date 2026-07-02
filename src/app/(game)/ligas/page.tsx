@@ -9,8 +9,8 @@ export default async function LigasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-andes-deep">Ligas</h1>
-        <p className="text-sm text-andes-deep/70">
+        <h1 className="text-2xl font-bold text-white">Ligas</h1>
+        <p className="text-sm text-white/70">
           Crea una liga privada e invita amigos
         </p>
       </div>
@@ -18,11 +18,11 @@ export default async function LigasPage() {
       <CreateLeagueForm />
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-andes-deep">
+        <h2 className="mb-3 text-lg font-semibold text-white">
           Mis ligas
         </h2>
         {leagues.length === 0 ? (
-          <p className="text-sm text-andes-deep/50">
+          <p className="text-sm text-white/50">
             Aún no estás en ninguna liga privada.
           </p>
         ) : (
@@ -39,10 +39,10 @@ export default async function LigasPage() {
               return (
                 <li
                   key={l.id}
-                  className="rounded-lg border border-andes-deep/10 bg-white/80 p-4"
+                  className="rounded-lg border border-white/10 bg-white/80 p-4"
                 >
-                  <p className="font-medium text-andes-deep">{l.nombre}</p>
-                  <p className="text-xs text-andes-deep/60">
+                  <p className="font-medium text-white">{l.nombre}</p>
+                  <p className="text-xs text-white/60">
                     {l.tipo === "privada" ? "Privada" : "Global"}
                     {l.codigo_invitacion
                       ? ` · Código: ${l.codigo_invitacion}`

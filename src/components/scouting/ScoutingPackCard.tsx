@@ -111,7 +111,7 @@ export function ScoutingPackCard({
   return (
     <Card
       id="scouting"
-      className={compact ? "border-andes-accent/30 bg-andes-accent/5" : ""}
+      className={compact ? "border-presi-cyan/30 bg-presi-cyan/5" : ""}
     >
       <CardHeader className={compact ? "pb-2" : undefined}>
         <CardTitle className="flex items-center justify-between text-base">
@@ -119,18 +119,18 @@ export function ScoutingPackCard({
             <span>🔍</span>
             Centro de scouting
           </span>
-          <span className="rounded-full bg-andes-gold/15 px-2 py-0.5 text-xs font-medium text-andes-gold">
+          <span className="rounded-full bg-presi-gold/15 px-2 py-0.5 text-xs font-medium text-presi-gold">
             Nv. {state.scoutingNivel}
           </span>
         </CardTitle>
-        <p className="text-xs text-andes-deep/60">
+        <p className="text-xs text-white/60">
           Timer ~{durationHours}h · ~{premiumPct}% oro/leyenda · ~{wildCardPct}% Wild Card
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {isWildCardReady && state.wildCardType ? (
           <>
-            <p className="text-center text-sm font-medium text-andes-deep">
+            <p className="text-center text-sm font-medium text-white">
               ¡Suerte! Wild Card en el sobre
             </p>
             <WildCardRewardCard cardType={state.wildCardType} />
@@ -154,7 +154,7 @@ export function ScoutingPackCard({
           </>
         ) : isPlayerReady && state.player ? (
           <>
-            <p className="text-center text-sm font-medium text-andes-deep">
+            <p className="text-center text-sm font-medium text-white">
               ¡Sobre listo! Ficha o rechaza al jugador
             </p>
             <PlayerCard player={state.player} />
@@ -177,9 +177,9 @@ export function ScoutingPackCard({
             </div>
           </>
         ) : (
-          <div className="rounded-lg bg-andes-accent/10 p-4 text-center">
-            <p className="text-xs text-andes-deep/70">Próximo sobre en</p>
-            <p className="font-mono text-2xl font-bold text-andes-accent">
+          <div className="rounded-lg bg-presi-cyan/10 p-4 text-center">
+            <p className="text-xs text-white/70">Próximo sobre en</p>
+            <p className="font-mono text-2xl font-bold text-presi-cyan">
               {formatRemainingTime(remainingMs)}
             </p>
           </div>
@@ -188,23 +188,23 @@ export function ScoutingPackCard({
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {showUpgrade && (
-          <div className="border-t border-andes-deep/10 pt-3">
+          <div className="border-t border-white/10 pt-3">
             {isUpgrading ? (
-              <div className="rounded-lg bg-andes-deep/5 p-3 text-center">
-                <p className="text-xs text-andes-deep/70">
+              <div className="rounded-lg bg-white/5 p-3 text-center">
+                <p className="text-xs text-white/70">
                   Mejorando instalación...
                 </p>
-                <p className="font-mono text-lg font-bold text-andes-accent">
+                <p className="font-mono text-lg font-bold text-presi-cyan">
                   {formatRemainingTime(upgradeRemaining)}
                 </p>
               </div>
             ) : isMaxLevel ? (
-              <p className="rounded-lg bg-andes-gold/10 p-3 text-center text-xs text-andes-deep/70">
+              <p className="rounded-lg bg-presi-gold/10 p-3 text-center text-xs text-white/70">
                 Nivel máximo (10)
               </p>
             ) : (
               <div className="space-y-2">
-                <p className="text-center text-[10px] text-andes-deep/50">
+                <p className="text-center text-[10px] text-white/50">
                   Costo {formatCompactMoney(upgradeCost)} · ~{Math.round(upgradeBuildHours)}h construcción
                 </p>
                 <Button

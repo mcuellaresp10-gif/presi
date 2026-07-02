@@ -42,7 +42,7 @@ export function CrearClubClient() {
       <Card>
         <CardHeader>
           <CardTitle>Funda tu club</CardTitle>
-          <p className="text-sm text-andes-deep/70">
+          <p className="text-sm text-white/70">
             Elige nombre, escudo y ciudad ficticia
           </p>
         </CardHeader>

@@ -38,12 +38,26 @@ export function buildEmptyStarterSlotMap(
   return map;
 }
 
+export function normalizeStarterSlotMap(
+  formation: string,
+  map: Record<string, string | null> | null | undefined
+): Record<string, string | null> {
+  const base = buildEmptyStarterSlotMap(formation);
+  if (!map) return base;
+  for (const key of Object.keys(base)) {
+    base[key] = map[key] ?? null;
+  }
+  return base;
+}
+
 export function buildStarterSlotMapFromIds(
   formation: string,
   starterIds: string[],
-  playersById: Map<string, Player>
+  playersById: Map<string, Player> | null | undefined
 ): Record<string, string | null> {
   const map = buildEmptyStarterSlotMap(formation);
+  if (!playersById) return map;
+
   const starters = starterIds
     .map((id) => playersById.get(id))
     .filter((p): p is Player => !!p);

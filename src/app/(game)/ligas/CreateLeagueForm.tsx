@@ -67,11 +67,11 @@ export function CreateLeagueForm() {
         </form>
 
         {inviteCode && (
-          <div className="mt-4 rounded-lg bg-andes-gold/10 p-4">
-            <p className="text-sm font-medium text-andes-deep">
+          <div className="mt-4 rounded-lg bg-presi-gold/10 p-4">
+            <p className="text-sm font-medium text-white">
               Código: {inviteCode}
             </p>
-            <p className="mt-1 break-all text-xs text-andes-deep/70">
+            <p className="mt-1 break-all text-xs text-white/70">
               Link: {inviteLink}
             </p>
           </div>

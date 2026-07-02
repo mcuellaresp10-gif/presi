@@ -2,8 +2,10 @@ import type { Facility } from "./types";
 import {
   calculatePassiveIncomeTicks,
   clampFacilityLevel,
+  getEstimatedWeeklyPassiveGems,
   getEstimatedWeeklyPassiveIncome,
   getLevelTimerMs,
+  getPassiveGemTickAmount,
   HOUR_MS,
 } from "./facility-progression";
 
@@ -88,6 +90,40 @@ export function calculatePassiveIncome(
   );
 }
 
+export function calculatePassiveGems(
+  facilities: Facility[],
+  lastIncomeAt: string | Date,
+  now: Date = new Date()
+): {
+  ticks: number;
+  amount: number;
+  tickAmount: number;
+  intervalMs: number;
+} {
+  const hinchasNivel = getFacilityNivel(facilities, "hinchas");
+  const oficinaNivel = getFacilityNivel(facilities, "oficina");
+  const income = calculatePassiveIncomeTicks(
+    hinchasNivel,
+    oficinaNivel,
+    lastIncomeAt,
+    now
+  );
+  const tickAmount = getPassiveGemTickAmount(hinchasNivel, oficinaNivel);
+
+  return {
+    ticks: income.ticks,
+    amount: income.ticks * tickAmount,
+    tickAmount,
+    intervalMs: income.intervalMs,
+  };
+}
+
+export function getWeeklyPassiveGems(facilities: Facility[]): number {
+  const hinchasNivel = getFacilityNivel(facilities, "hinchas");
+  const oficinaNivel = getFacilityNivel(facilities, "oficina");
+  return getEstimatedWeeklyPassiveGems(hinchasNivel, oficinaNivel);
+}
+
 export function getFacilityNivel(
   facilities: Facility[],
   tipo: Facility["tipo"]
@@ -97,8 +133,10 @@ export function getFacilityNivel(
 
 export {
   getEstimatedWeeklyPassiveIncome,
+  getEstimatedWeeklyPassiveGems,
   getPassiveIncomeIntervalHours,
   getPassiveIncomeTickAmount,
+  getPassiveGemTickAmount,
   getHinchasTickAmount,
   getOfficeTickAmount,
   getNextIncomeTickAt,

@@ -25,16 +25,16 @@ export function PackOpenAnimation({
             setPhase("opening");
             setTimeout(() => setPhase("open"), 600);
           }}
-          className="pack-closed relative h-48 w-36 cursor-pointer rounded-lg bg-gradient-to-br from-andes-deep to-andes-accent shadow-xl transition-transform hover:scale-105"
+          className="pack-closed relative h-48 w-36 cursor-pointer rounded-lg bg-gradient-to-br from-presi-navy to-presi-cyan shadow-xl transition-transform hover:scale-105"
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-4xl">📦</span>
           </div>
-          <p className="absolute bottom-3 left-0 right-0 text-center text-xs font-bold text-andes-gold">
+          <p className="absolute bottom-3 left-0 right-0 text-center text-xs font-bold text-presi-gold">
             SOBRE {packNumber}/4
           </p>
         </button>
-        <p className="text-sm text-andes-deep/70">Toca para abrir el sobre</p>
+        <p className="text-sm text-white/70">Toca para abrir el sobre</p>
       </div>
     );
   }
@@ -42,14 +42,14 @@ export function PackOpenAnimation({
   if (phase === "opening") {
     return (
       <div className="flex justify-center py-12">
-        <div className="pack-opening h-48 w-36 rounded-lg bg-gradient-to-br from-andes-deep to-andes-accent shadow-xl" />
+        <div className="pack-opening h-48 w-36 rounded-lg bg-gradient-to-br from-presi-navy to-presi-cyan shadow-xl" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6 py-4">
-      <p className="text-center text-sm font-medium text-andes-deep">
+      <p className="text-center text-sm font-medium text-white">
         Elige 1 jugador de este sobre
       </p>
       {options.length === 0 ? (
@@ -79,7 +79,7 @@ export function PackOpenAnimation({
 export function PackCompleteMessage() {
   return (
     <div className="py-12 text-center">
-      <p className="text-lg font-semibold text-andes-deep">
+      <p className="text-lg font-semibold text-white">
         ¡Sobres de bienvenida completados!
       </p>
       <Button asChild className="mt-4">

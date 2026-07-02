@@ -26,4 +26,12 @@ describe("budget", () => {
     const players = [mockPlayer({ costo_base: 10_000_000 })];
     expect(calculateRemainingBudget(50_000_000, players)).toBe(40_000_000);
   });
+
+  it("excludes loan players from roster cost", () => {
+    const players = [
+      mockPlayer({ costo_base: 10_000_000 }),
+      { ...mockPlayer({ id: "loan", costo_base: 8_000_000 }), es_prestamo: true },
+    ];
+    expect(calculateRosterCost(players)).toBe(10_000_000);
+  });
 });

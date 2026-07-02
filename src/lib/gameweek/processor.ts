@@ -4,6 +4,7 @@ import {
   matchStatLineFromRow,
 } from "@/lib/game/effective-lineup";
 import { effectsFromActiveCards } from "@/lib/game/wild-cards";
+import { tickLoanPlayersForGameweek } from "@/lib/actions/loans";
 import {
   getActiveGameweekWildCardsForClub,
   markFinishedGameweekWildCards,
@@ -252,10 +253,12 @@ export async function processGameweekPointsAndContracts(
 
       const { data: rosterRow } = await supabase
         .from("club_roster")
-        .select("jornadas_restantes")
+        .select("jornadas_restantes, es_prestamo")
         .eq("club_id", snap.club_id)
         .eq("player_id", playerId)
         .maybeSingle();
+
+      if (rosterRow?.es_prestamo) continue;
 
       if (rosterRow) {
         await supabase
@@ -281,6 +284,7 @@ export async function processGameweekPointsAndContracts(
       .from("club_roster")
       .select("player_id")
       .eq("club_id", snap.club_id)
+      .eq("es_prestamo", false)
       .lte("jornadas_restantes", 0);
 
     for (const row of expiredRows ?? []) {
@@ -290,6 +294,8 @@ export async function processGameweekPointsAndContracts(
         .eq("club_id", snap.club_id)
         .eq("player_id", row.player_id);
     }
+
+    await tickLoanPlayersForGameweek(supabase, snap.club_id);
 
     clubsProcessed += 1;
   }

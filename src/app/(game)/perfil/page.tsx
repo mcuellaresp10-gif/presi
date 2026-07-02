@@ -28,7 +28,7 @@ export default async function PerfilPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-andes-accent via-teal-600 to-andes-deep text-white shadow-lg">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-presi-cyan via-teal-600 to-presi-bg text-white shadow-lg">
         <div className="px-5 pb-6 pt-5">
           <div className="flex items-start gap-4">
             <EscudoRenderer
@@ -87,7 +87,7 @@ export default async function PerfilPage() {
       </div>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-andes-deep/60">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/60">
           Resumen del club
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -127,7 +127,7 @@ export default async function PerfilPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-andes-deep/60">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/60">
           Wild Cards ({wildCards.length})
         </h2>
         <WildCardInventory
@@ -137,14 +137,14 @@ export default async function PerfilPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-andes-deep/60">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/60">
           Mis ligas
         </h2>
-        <div className="overflow-hidden rounded-xl border border-andes-deep/10 bg-white/80">
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-white/80">
           {leagues.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-andes-deep/50">
+            <p className="px-4 py-6 text-sm text-white/50">
               Aún no estás en ninguna liga privada.{" "}
-              <Link href="/ligas" className="font-medium text-andes-accent">
+              <Link href="/ligas" className="font-medium text-presi-cyan">
                 Crear o unirse
               </Link>
             </p>
@@ -157,17 +157,17 @@ export default async function PerfilPage() {
                 return (
                   <li
                     key={l.id}
-                    className="flex items-center justify-between border-t border-andes-deep/5 px-4 py-3 first:border-t-0"
+                    className="flex items-center justify-between border-t border-white/5 px-4 py-3 first:border-t-0"
                   >
                     <div>
-                      <p className="font-semibold text-andes-deep">{l.nombre}</p>
-                      <p className="text-xs capitalize text-andes-deep/50">
+                      <p className="font-semibold text-white">{l.nombre}</p>
+                      <p className="text-xs capitalize text-white/50">
                         {l.tipo}
                       </p>
                     </div>
                     <Link
                       href="/ligas"
-                      className="text-xs font-medium text-andes-accent"
+                      className="text-xs font-medium text-presi-cyan"
                     >
                       Ver
                     </Link>
@@ -179,11 +179,11 @@ export default async function PerfilPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-andes-deep/10 bg-white/60 px-4 py-3">
-        <p className="text-[10px] uppercase tracking-wider text-andes-deep/40">
+      <section className="rounded-xl border border-white/10 bg-white/60 px-4 py-3">
+        <p className="text-[10px] uppercase tracking-wider text-white/40">
           ID de soporte
         </p>
-        <p className="font-mono text-sm text-andes-deep">{profile.userId}</p>
+        <p className="font-mono text-sm text-white">{profile.userId}</p>
       </section>
     </div>
   );
@@ -225,17 +225,17 @@ function OverviewCard({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-xl border border-andes-deep/10 bg-white/80 p-4 transition hover:border-andes-accent/30 hover:shadow-sm"
+      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/80 p-4 transition hover:border-presi-cyan/30 hover:shadow-sm"
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-andes-deep/5">
-        <Icon className="h-5 w-5 text-andes-accent" />
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5">
+        <Icon className="h-5 w-5 text-presi-cyan" />
       </div>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-andes-deep/50">
+        <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
           {title}
         </p>
-        <p className="font-bold text-andes-deep">{value}</p>
-        <p className="text-xs text-andes-deep/50">{description}</p>
+        <p className="font-bold text-white">{value}</p>
+        <p className="text-xs text-white/50">{description}</p>
       </div>
     </Link>
   );

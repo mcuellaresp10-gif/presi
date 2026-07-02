@@ -6,7 +6,7 @@ import {
   validateLineupDraft,
 } from "@/lib/game/squad-limits";
 import type { Player } from "@/lib/game/types";
-import { getCurrentGameweek } from "@/lib/actions/gameweek";
+import { getEditableGameweek, isGameweekEditable } from "@/lib/actions/gameweek";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,29 +18,18 @@ export async function saveLineupDraft(
   const club = await getUserClub();
   if (!club) return { error: "No tienes club." };
 
-  const gameweek = await getCurrentGameweek();
+  const gameweek = await getEditableGameweek();
   if (!gameweek) {
-    return { error: "No hay jornada activa. Ejecuta el sync de jornadas." };
+    return { error: "No hay jornada abierta para editar. La actual ya comenzó." };
   }
 
-  if (Date.now() >= new Date(gameweek.firstKickoffAt).getTime()) {
+  if (!(await isGameweekEditable(gameweek, club.id))) {
     return {
       error: "La jornada ya comenzó. No puedes cambiar la alineación.",
     };
   }
 
   const supabase = await createClient();
-
-  const { data: snapshot } = await supabase
-    .from("lineup_snapshots")
-    .select("club_id")
-    .eq("club_id", club.id)
-    .eq("gameweek_id", gameweek.id)
-    .maybeSingle();
-
-  if (snapshot) {
-    return { error: "La alineación de esta jornada ya está bloqueada." };
-  }
 
   const { data: rosterRows } = await supabase
     .from("club_roster")

@@ -37,7 +37,7 @@ export const WILD_CARD_CATALOG: Record<WildCardType, WildCardDefinition> = {
     description:
       "Ficha 1 jugador del pool sin costo de presupuesto (respeta caps de plantilla).",
     kind: "instant",
-    color: "from-emerald-500 to-teal-700",
+    color: "from-presi-cyan to-presi-navy",
     icon: "📝",
     weight: 20,
   },

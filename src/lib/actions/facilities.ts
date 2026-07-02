@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   canStartUpgrade,
+  calculatePassiveGems,
   calculatePassiveIncome,
   getActiveUpgrades,
   getFacilityNivel,
@@ -14,9 +15,11 @@ import {
   getNextIncomeTickAt,
   getOfficeSigningDiscount,
   getOfficeWeeklyIncome,
+  getPassiveGemTickAmount,
   getPassiveIncomeIntervalHours,
   getPassiveIncomeTickAmount,
   getUpgradeDurationMs,
+  getWeeklyPassiveGems,
   getWeeklyPassiveIncome,
 } from "@/lib/game";
 import {
@@ -54,6 +57,7 @@ export async function getFacilitiesOverview() {
     (club as { ultimo_ingreso_en?: string }).ultimo_ingreso_en ??
     new Date().toISOString();
   const pending = calculatePassiveIncome(facilityList, lastIncomeAt);
+  const pendingGems = calculatePassiveGems(facilityList, lastIncomeAt);
   const activeUpgrades = getActiveUpgrades(facilityList);
 
   const hinchasNivel = getFacilityNivel(facilityList, "hinchas");
@@ -66,6 +70,7 @@ export async function getFacilitiesOverview() {
     oficinaNivel
   );
   const incomePerTick = getPassiveIncomeTickAmount(hinchasNivel, oficinaNivel);
+  const gemsPerTick = getPassiveGemTickAmount(hinchasNivel, oficinaNivel);
   const nextIncomeTickAt = getNextIncomeTickAt(
     hinchasNivel,
     oficinaNivel,
@@ -96,10 +101,14 @@ export async function getFacilitiesOverview() {
     presupuesto,
     pendingIncome: pending.amount,
     pendingTicks: pending.ticks,
+    pendingGems: pendingGems.amount,
     incomePerTick,
+    gemsPerTick,
     incomeIntervalHours,
     nextIncomeTickAt,
     weeklyIncome: getWeeklyPassiveIncome(facilityList),
+    weeklyGems: getWeeklyPassiveGems(facilityList),
+    gemas: Number((club as { gemas?: number }).gemas ?? 150),
     activeUpgradesCount: activeUpgrades.length,
     upgradeInfo,
     bonuses: {
@@ -158,17 +167,23 @@ export async function collectPassiveIncome() {
     (club as { ultimo_ingreso_en?: string }).ultimo_ingreso_en ??
     new Date().toISOString();
   const pending = calculatePassiveIncome(facilityList, lastIncomeAt);
+  const pendingGems = calculatePassiveGems(facilityList, lastIncomeAt);
 
-  if (pending.amount <= 0) {
+  if (pending.amount <= 0 && pendingGems.amount <= 0) {
     return { error: "No hay ingresos pendientes." };
   }
 
   const newBudget = Number(club.presupuesto) + pending.amount;
+  const newGemas =
+    Number((club as { gemas?: number }).gemas ?? 0) + pendingGems.amount;
   const newLastIncome = new Date(
     new Date(lastIncomeAt).getTime() + pending.ticks * pending.intervalMs
   );
 
-  const updatePayload: Record<string, unknown> = { presupuesto: newBudget };
+  const updatePayload: Record<string, unknown> = {
+    presupuesto: newBudget,
+    gemas: newGemas,
+  };
   if ("ultimo_ingreso_en" in club) {
     updatePayload.ultimo_ingreso_en = newLastIncome.toISOString();
   }
@@ -182,10 +197,12 @@ export async function collectPassiveIncome() {
 
   revalidatePath("/instalaciones");
   revalidatePath("/inicio");
+  revalidatePath("/tienda");
 
   return {
     success: true,
     amount: pending.amount,
+    gems: pendingGems.amount,
     ticks: pending.ticks,
   };
 }

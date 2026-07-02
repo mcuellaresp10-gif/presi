@@ -52,7 +52,7 @@ export function WildCardTile({
   const card = getWildCardDefinition(cardType);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-andes-deep/10 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-white shadow-sm">
       <div
         className={cn(
           "bg-gradient-to-br px-3 py-4 text-white",
@@ -63,9 +63,9 @@ export function WildCardTile({
         <p className="mt-1 text-sm font-black uppercase">{card.name}</p>
       </div>
       <div className="space-y-2 p-3">
-        <p className="text-xs text-andes-deep/70">{card.description}</p>
+        <p className="text-xs text-white/70">{card.description}</p>
         {status === "active" ? (
-          <p className="rounded-md bg-emerald-100 px-2 py-1 text-center text-xs font-semibold text-emerald-800">
+          <p className="rounded-md bg-presi-cyan/20 px-2 py-1 text-center text-xs font-semibold text-presi-cyan">
             Activa esta jornada
           </p>
         ) : onActivate ? (
@@ -73,7 +73,7 @@ export function WildCardTile({
             type="button"
             onClick={onActivate}
             disabled={loading}
-            className="w-full rounded-md bg-andes-accent px-3 py-2 text-xs font-bold text-white hover:bg-andes-accent/90 disabled:opacity-50"
+            className="w-full rounded-md bg-presi-cyan px-3 py-2 text-xs font-bold text-white hover:bg-presi-cyan/90 disabled:opacity-50"
           >
             {loading ? "..." : "Activar"}
           </button>

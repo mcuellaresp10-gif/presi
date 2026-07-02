@@ -16,10 +16,10 @@ export const POSITION_SHORT: Record<Position, string> = {
 };
 
 export const POSITION_PITCH_COLOR: Record<Position, string> = {
-  GK: "bg-amber-400 text-andes-deep",
+  GK: "bg-amber-400 text-white",
   DEF: "bg-violet-400 text-white",
-  MED: "bg-sky-400 text-andes-deep",
-  DEL: "bg-emerald-400 text-andes-deep",
+  MED: "bg-sky-400 text-white",
+  DEL: "bg-presi-cyan text-white",
 };
 
 export function getPlayerRating(player: Player): number {

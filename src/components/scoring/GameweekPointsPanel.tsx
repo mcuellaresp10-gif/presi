@@ -47,7 +47,7 @@ export function GameweekPointsPanel({
         type="button"
         onClick={openPanel}
         disabled={!gameweekId || pending}
-        className="mt-2 w-full border-t border-andes-deep/20 pt-2 text-center text-xs font-semibold transition hover:opacity-80 disabled:opacity-60"
+        className="mt-2 w-full border-t border-white/20 pt-2 text-center text-xs font-semibold transition hover:opacity-80 disabled:opacity-60"
       >
         Jornada {gameweekRound}:{" "}
         <span className="font-black">
@@ -69,8 +69,8 @@ export function GameweekPointsPanel({
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <div className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0a1020] shadow-2xl">
-            <div className="sticky top-0 border-b border-white/10 bg-[#0a1020] px-4 py-3">
+          <div className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-presi-surface shadow-2xl">
+            <div className="sticky top-0 border-b border-white/10 bg-presi-surface px-4 py-3">
               <h2 className="text-lg font-bold text-white">
                 Puntos jornada {gameweekRound}
               </h2>
@@ -110,14 +110,14 @@ export function GameweekPointsPanel({
                             {row.player?.nombre ?? row.playerId}
                           </p>
                           {row.isCaptain && (
-                            <Crown className="h-3.5 w-3.5 text-andes-gold" />
+                            <Crown className="h-3.5 w-3.5 text-presi-gold" />
                           )}
                         </div>
                         <p className="text-[10px] text-white/50">
                           {SOURCE_LABEL[row.source]} · {row.minutes}&apos;
                         </p>
                       </div>
-                      <span className="text-base font-black text-emerald-400">
+                      <span className="text-base font-black text-presi-cyan">
                         {row.points > 0 ? "+" : ""}
                         {row.points}
                       </span>

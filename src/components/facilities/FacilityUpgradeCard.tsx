@@ -43,14 +43,14 @@ export function FacilityUpgradeCard({
   const buildHours = getFacilityUpgradeBuildHours(facility.nivel);
 
   return (
-    <Card className="border-white/10 bg-[#0c1424] text-white">
+    <Card className="border-white/10 bg-presi-surface text-white">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-2">
             <span>{getFacilityIcon(tipo)}</span>
             {getFacilityLabel(tipo)}
           </span>
-          <span className="rounded-full bg-andes-gold/20 px-2 py-0.5 text-xs font-medium text-andes-gold">
+          <span className="rounded-full bg-presi-gold/20 px-2 py-0.5 text-xs font-medium text-presi-gold">
             Nv. {facility.nivel}
             {atMax ? " · MAX" : ""}
           </span>
@@ -61,7 +61,7 @@ export function FacilityUpgradeCard({
           {getFacilityEffectDescription(tipo, facility.nivel)}
         </p>
         {!atMax && (
-          <p className="text-[10px] text-cyan-300/80">
+          <p className="text-[10px] text-presi-cyan/80">
             Siguiente: {getFacilityNextEffectDescription(tipo, facility.nivel + 1)}
           </p>
         )}
@@ -69,12 +69,12 @@ export function FacilityUpgradeCard({
         {isUpgrading ? (
           <div className="rounded-lg bg-cyan-500/10 p-3 text-center">
             <p className="text-xs text-white/60">Mejorando...</p>
-            <p className="font-mono text-lg font-bold text-cyan-300">
+            <p className="font-mono text-lg font-bold text-presi-cyan">
               {formatRemainingTime(remaining)}
             </p>
           </div>
         ) : atMax ? (
-          <p className="rounded-lg bg-andes-gold/10 p-3 text-center text-xs text-andes-gold">
+          <p className="rounded-lg bg-presi-gold/10 p-3 text-center text-xs text-presi-gold">
             Nivel máximo alcanzado
           </p>
         ) : (

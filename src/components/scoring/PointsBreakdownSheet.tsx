@@ -69,12 +69,12 @@ export function PointsBreakdownSheet({
         onClick={onClose}
       />
 
-      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[#0a1020] shadow-2xl">
-        <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0a1020]/95 px-4 py-3 backdrop-blur">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-presi-surface shadow-2xl">
+        <div className="sticky top-0 z-10 border-b border-white/10 bg-presi-surface/95 px-4 py-3 backdrop-blur">
           <button
             type="button"
             onClick={onBack}
-            className="mb-2 flex items-center gap-1 text-xs font-semibold text-cyan-300"
+            className="mb-2 flex items-center gap-1 text-xs font-semibold text-presi-cyan"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Volver
@@ -102,14 +102,14 @@ export function PointsBreakdownSheet({
                   {player?.nombre ?? "Jugador"}
                 </h2>
                 {playerBreakdown.isCaptain && (
-                  <Crown className="h-4 w-4 shrink-0 text-andes-gold" />
+                  <Crown className="h-4 w-4 shrink-0 text-presi-gold" />
                 )}
               </div>
               <p className="text-xs text-white/60">
                 {player ? POSITION_LABEL[player.posicion] : ""}
                 {player?.equipo_real ? ` · ${player.equipo_real}` : ""}
               </p>
-              <p className="text-[10px] text-cyan-300/80">
+              <p className="text-[10px] text-presi-cyan/80">
                 {SOURCE_LABEL[playerBreakdown.source]} · {playerBreakdown.minutes}&apos;
               </p>
             </div>
@@ -117,7 +117,7 @@ export function PointsBreakdownSheet({
         </div>
 
         <div className="px-4 py-4">
-          <div className="rounded-xl bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 p-4 text-center">
+          <div className="rounded-xl bg-gradient-to-r from-presi-cyan/20 to-presi-gold/20 p-4 text-center">
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">
               Total puntos
             </p>
@@ -150,7 +150,7 @@ export function PointsBreakdownSheet({
                     className={cn(
                       "text-sm font-bold tabular-nums",
                       line.points > 0
-                        ? "text-emerald-400"
+                        ? "text-presi-cyan"
                         : line.points < 0
                           ? "text-red-400"
                           : "text-white/40"

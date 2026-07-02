@@ -10,6 +10,7 @@ import {
   getNextScoutingDeadline,
   INITIAL_BUDGET,
 } from "@/lib/game";
+import { getNextLoanRefresh } from "@/lib/game/loan-market";
 import type { EscudoConfig } from "@/lib/game/types";
 import { UPGRADE_FACILITY_TYPES } from "@/lib/game/types";
 import { createClient } from "@/lib/supabase/server";
@@ -77,6 +78,7 @@ export async function createClub(formData: {
       escudo_config: formData.escudo_config,
       ciudad_ficticia: formData.ciudad_ficticia ?? null,
       presupuesto: INITIAL_BUDGET - starterCost,
+      gemas: 150,
       onboarding_completado: false,
       sobres_restantes: 4,
     })
@@ -139,6 +141,13 @@ export async function createClub(formData: {
   if (academyError) {
     return { error: academyError.message };
   }
+
+  const loanRefreshEn = getNextLoanRefresh().toISOString();
+  await supabase.from("loan_market_state").insert({
+    club_id: club.id,
+    refresh_en: loanRefreshEn,
+    offers: [],
+  });
 
   revalidatePath("/");
   redirect("/onboarding/sobres");

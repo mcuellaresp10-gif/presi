@@ -42,7 +42,7 @@ export default function UnirseLigaPage() {
       <Card>
         <CardHeader>
           <CardTitle>Unirse a liga privada</CardTitle>
-          <p className="text-sm text-andes-deep/70">
+          <p className="text-sm text-white/70">
             Ingresa el código de invitación
           </p>
         </CardHeader>

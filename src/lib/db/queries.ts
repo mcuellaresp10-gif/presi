@@ -5,6 +5,7 @@ import {
 } from "@/lib/game";
 import type { RosterPlayer } from "@/lib/game/types";
 import { expireRosterContracts } from "@/lib/actions/contracts";
+import { expireLoanPlayers } from "@/lib/actions/loans";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,12 +14,15 @@ export async function getClubRoster() {
   if (!club) return null;
 
   await expireRosterContracts(club.id);
+  await expireLoanPlayers(club.id);
 
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("club_roster")
-    .select("player_id, es_titular, squad_role, players_master(*)")
+    .select(
+      "player_id, es_titular, squad_role, jornadas_restantes, renovaciones, es_prestamo, prestamo_jornadas_restantes, players_master(*)"
+    )
     .eq("club_id", club.id);
 
   if (error) {
@@ -35,8 +39,10 @@ export async function getClubRoster() {
   const players: RosterPlayer[] = (data ?? []).map((row) => ({
     ...(row.players_master as unknown as RosterPlayer),
     es_titular: row.es_titular,
-    jornadas_restantes: 3,
-    renovaciones: 0,
+    jornadas_restantes: row.jornadas_restantes ?? 0,
+    renovaciones: row.renovaciones ?? 0,
+    es_prestamo: row.es_prestamo ?? false,
+    prestamo_jornadas_restantes: row.prestamo_jornadas_restantes,
   }));
 
   return {

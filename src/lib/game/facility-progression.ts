@@ -5,6 +5,8 @@ export const HOUR_MS = 60 * 60 * 1000;
 
 export const HINCHAS_TICK_BASE = 80_000;
 export const OFFICE_TICK_BASE = 50_000;
+export const HINCHAS_GEM_TICK_BASE = 1;
+export const OFFICE_GEM_TICK_BASE = 1;
 
 export type TimerProfile = "scouting" | "academia" | "income" | "build";
 
@@ -107,6 +109,50 @@ export function getPassiveIncomeTickAmount(
     getHinchasTickAmount(hinchasNivel, intervalHours) +
     getOfficeTickAmount(oficinaNivel, intervalHours)
   );
+}
+
+export function getHinchasGemTickAmount(
+  hinchasNivel: number,
+  intervalHours: number
+): number {
+  const n = clampFacilityLevel(hinchasNivel);
+  return Math.max(
+    1,
+    Math.round(HINCHAS_GEM_TICK_BASE * n * tickSpeedMultiplier(intervalHours))
+  );
+}
+
+export function getOfficeGemTickAmount(
+  oficinaNivel: number,
+  intervalHours: number
+): number {
+  const n = clampFacilityLevel(oficinaNivel);
+  return Math.max(
+    1,
+    Math.round(OFFICE_GEM_TICK_BASE * n * tickSpeedMultiplier(intervalHours))
+  );
+}
+
+export function getPassiveGemTickAmount(
+  hinchasNivel: number,
+  oficinaNivel: number
+): number {
+  const intervalHours = getPassiveIncomeIntervalHours(hinchasNivel, oficinaNivel);
+  return (
+    getHinchasGemTickAmount(hinchasNivel, intervalHours) +
+    getOfficeGemTickAmount(oficinaNivel, intervalHours)
+  );
+}
+
+export function getEstimatedWeeklyPassiveGems(
+  hinchasNivel: number,
+  oficinaNivel: number
+): number {
+  const intervalMs = getPassiveIncomeIntervalMs(hinchasNivel, oficinaNivel);
+  const tickAmount = getPassiveGemTickAmount(hinchasNivel, oficinaNivel);
+  const weekMs = 7 * 24 * HOUR_MS;
+  const ticksPerWeek = weekMs / intervalMs;
+  return Math.round(ticksPerWeek * tickAmount);
 }
 
 export function getNextIncomeTickAt(

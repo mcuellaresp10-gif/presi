@@ -11,15 +11,26 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        presi: {
+          bg: "#070B18",
+          surface: "#0C1424",
+          elevated: "#111B2E",
+          navy: "#1A1040",
+          "navy-deep": "#142238",
+          gold: "#F5C518",
+          cyan: "#22D3EE",
+          red: "#FF3355",
+        },
         andes: {
-          deep: "#1B2A4A",
-          gold: "#C9A227",
-          cream: "#F4EFE4",
-          accent: "#2E86AB",
+          deep: "#111B2E",
+          gold: "#F5C518",
+          cream: "#070B18",
+          accent: "#22D3EE",
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       keyframes: {
         peel: {

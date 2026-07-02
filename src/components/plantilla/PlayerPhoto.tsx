@@ -17,20 +17,22 @@ export function PlayerPhoto({
 }) {
   if (photoUrl) {
     return (
-      <Image
-        src={photoUrl}
-        alt={nombre}
-        fill
-        sizes={sizes}
-        className={cn("object-cover object-[center_12%]", className)}
-      />
+      <div className="player-photo-duotone relative h-full w-full overflow-hidden">
+        <Image
+          src={photoUrl}
+          alt={nombre}
+          fill
+          sizes={sizes}
+          className={cn("object-cover object-[center_12%]", className)}
+        />
+      </div>
     );
   }
 
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center bg-gradient-to-br from-andes-accent/80 to-andes-deep",
+        "flex h-full w-full items-center justify-center bg-gradient-to-br from-presi-cyan/80 to-presi-bg",
         initialsClassName
       )}
     >

@@ -195,6 +195,49 @@ export async function syncLiveStatsFromApi(supabase: SupabaseClient) {
   return { mode: "api" as const };
 }
 
+async function hasOpenGameweek(supabase: SupabaseClient): Promise<boolean> {
+  const now = Date.now();
+  const { data: rows } = await supabase.from("gameweeks").select("first_kickoff_at");
+  return (rows ?? []).some(
+    (row) => new Date(row.first_kickoff_at).getTime() > now
+  );
+}
+
+/** Garantiza al menos una jornada con primer partido en el futuro. */
+async function ensureOpenGameweek(supabase: SupabaseClient) {
+  if (await hasOpenGameweek(supabase)) return;
+
+  if (isApiFootballConfigured()) {
+    await syncFixturesFromApi(supabase);
+    await tickGameweekStatuses(supabase);
+    if (await hasOpenGameweek(supabase)) return;
+  }
+
+  const { data: latest } = await supabase
+    .from("gameweeks")
+    .select("*")
+    .order("round", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!latest) {
+    await ensureDevGameweek(supabase);
+    return;
+  }
+
+  const firstKickoff = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const lastKickoff = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+  await supabase
+    .from("gameweeks")
+    .update({
+      first_kickoff_at: firstKickoff.toISOString(),
+      last_kickoff_at: lastKickoff.toISOString(),
+      status: "upcoming",
+    })
+    .eq("id", latest.id);
+}
+
 async function ensureDevGameweek(supabase: SupabaseClient) {
   const season = DEFAULT_SEASON;
   const firstKickoff = new Date(Date.now() + 2 * 60 * 60 * 1000);
@@ -394,6 +437,7 @@ export async function runPageLoadGameweekTick(supabase: SupabaseClient) {
     await ensureDevGameweek(supabase);
   }
 
+  await ensureOpenGameweek(supabase);
   await runGameweekStatusTick(supabase);
 
   if (!(await hasLiveGameweek(supabase))) {

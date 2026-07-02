@@ -20,6 +20,7 @@ export {
 export {
   applySigningDiscount,
   calculatePassiveIncome,
+  calculatePassiveGems,
   getAcademyDurationHours,
   getAcademyDurationMs,
   getEstimatedWeeklyPassiveIncome,
@@ -34,7 +35,9 @@ export {
   getOfficeWeeklyIncome,
   getPassiveIncomeIntervalHours,
   getPassiveIncomeTickAmount,
+  getPassiveGemTickAmount,
   getWeeklyPassiveIncome,
+  getWeeklyPassiveGems,
 } from "./facility-effects";
 export {
   canStartUpgrade,
@@ -98,6 +101,24 @@ export {
   normalizeScoutingPackDeadline,
 } from "./scouting";
 export type { ScoutingEstado, ScoutingPackState } from "./scouting";
+export {
+  DEFAULT_LOAN_JORNADAS,
+  generateLoanOffers,
+  getLoanGemCost,
+  getNextLoanRefresh,
+  isLoanMarketReady,
+  LOAN_MARKET_REFRESH_MS,
+  LOAN_OFFER_COUNT,
+  MAX_ACTIVE_LOANS,
+  parseLoanOffers,
+} from "./loan-market";
+export type { LoanOffer } from "./loan-market";
+export {
+  getWildCardPackTier,
+  rollWildCardFromPack,
+  WILD_CARD_PACK_TIERS,
+} from "./wild-card-packs";
+export type { WildCardPackTierId } from "./wild-card-packs";
 export {
   WILD_CARD_CATALOG,
   WILD_CARD_TYPES,

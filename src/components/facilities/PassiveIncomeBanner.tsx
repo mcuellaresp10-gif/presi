@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { collectPassiveIncome } from "@/lib/actions/facilities";
 import { formatRemainingTime } from "@/lib/game";
@@ -9,18 +10,24 @@ import { formatCompactMoney } from "@/lib/utils";
 
 export function PassiveIncomeBanner({
   pendingAmount,
+  pendingGems,
   pendingTicks,
   incomePerTick,
+  gemsPerTick,
   incomeIntervalHours,
   nextIncomeTickAt,
   weeklyIncome,
+  weeklyGems,
 }: {
   pendingAmount: number;
+  pendingGems: number;
   pendingTicks: number;
   incomePerTick: number;
+  gemsPerTick: number;
   incomeIntervalHours: number;
   nextIncomeTickAt?: string | null;
   weeklyIncome: number;
+  weeklyGems: number;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -36,13 +43,20 @@ export function PassiveIncomeBanner({
     ? Math.max(0, new Date(nextIncomeTickAt).getTime() - now)
     : null;
 
-  if (pendingAmount <= 0) {
+  const hasPending = pendingAmount > 0 || pendingGems > 0;
+
+  if (!hasPending) {
     return (
       <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60">
         <p>
           Ingreso por cobro:{" "}
-          <span className="font-semibold text-cyan-300">
+          <span className="font-semibold text-presi-cyan">
             {formatCompactMoney(incomePerTick)}
+          </span>{" "}
+          +{" "}
+          <span className="inline-flex items-center gap-0.5 font-semibold text-violet-300">
+            <Gem className="h-3.5 w-3.5" />
+            {gemsPerTick} gemas
           </span>{" "}
           cada ~{Math.round(incomeIntervalHours)}h (Hinchas + Oficina)
         </p>
@@ -52,7 +66,7 @@ export function PassiveIncomeBanner({
           </p>
         )}
         <p className="mt-1 text-[10px] text-white/35">
-          Est. semanal: {formatCompactMoney(weeklyIncome)}
+          Est. semanal: {formatCompactMoney(weeklyIncome)} + {weeklyGems} gemas
         </p>
       </div>
     );
@@ -78,16 +92,27 @@ export function PassiveIncomeBanner({
             Ingresos pendientes · {pendingTicks} cobro
             {pendingTicks !== 1 ? "s" : ""}
           </p>
-          <p className="text-lg font-bold text-cyan-300">
-            {formatCompactMoney(pendingAmount)}
-          </p>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            {pendingAmount > 0 && (
+              <p className="text-lg font-bold text-presi-cyan">
+                {formatCompactMoney(pendingAmount)}
+              </p>
+            )}
+            {pendingGems > 0 && (
+              <p className="inline-flex items-center gap-1 text-lg font-bold text-violet-200">
+                <Gem className="h-4 w-4 text-violet-300" />
+                {pendingGems} gemas
+              </p>
+            )}
+          </div>
           <p className="text-[10px] text-cyan-200/60">
-            {formatCompactMoney(incomePerTick)}/cobro · ~{Math.round(incomeIntervalHours)}h
+            {formatCompactMoney(incomePerTick)}/cobro + {gemsPerTick} gemas · ~
+            {Math.round(incomeIntervalHours)}h
           </p>
         </div>
         <Button
           size="sm"
-          className="bg-cyan-500 font-bold text-andes-deep hover:bg-cyan-400"
+          className="bg-presi-gold font-bold text-white hover:bg-presi-gold/90"
           disabled={loading}
           onClick={handleCollect}
         >

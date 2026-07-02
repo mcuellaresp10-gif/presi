@@ -53,11 +53,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center paper-texture p-4">
-      <Card className="w-full max-w-md">
+    <main className="poster-bg poster-shards relative flex min-h-screen items-center justify-center p-4">
+      <Card className="relative z-10 w-full max-w-md border-presi-cyan/20">
         <CardHeader>
-          <CardTitle className="text-2xl">Crear cuenta</CardTitle>
-          <p className="text-sm text-andes-deep/70">
+          <CardTitle className="text-3xl tracking-wider">Crear cuenta</CardTitle>
+          <p className="text-sm text-white/70">
             Únete a PRESI y funda tu club
           </p>
         </CardHeader>
@@ -84,18 +84,16 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
+            {error && <p className="text-sm text-presi-red">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creando..." : "Registrarse"}
             </Button>
           </form>
 
           <div className="my-4 flex items-center gap-2">
-            <div className="h-px flex-1 bg-andes-deep/10" />
-            <span className="text-xs text-andes-deep/50">o</span>
-            <div className="h-px flex-1 bg-andes-deep/10" />
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-xs text-white/50">o</span>
+            <div className="h-px flex-1 bg-white/10" />
           </div>
 
           <Button
@@ -107,9 +105,9 @@ export default function RegisterPage() {
             Registrarse con Google
           </Button>
 
-          <p className="mt-4 text-center text-sm text-andes-deep/70">
+          <p className="mt-4 text-center text-sm text-white/70">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/login" className="font-medium text-andes-accent">
+            <Link href="/login" className="font-medium text-presi-cyan">
               Inicia sesión
             </Link>
           </p>

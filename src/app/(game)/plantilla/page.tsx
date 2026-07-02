@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { PlantillaClient } from "./PlantillaClient";
 import {
-  getClubGameweekSummary,
   getLineupDraftForClub,
-  getCurrentGameweek,
+  getPlantillaLineupState,
   triggerGameweekSync,
 } from "@/lib/actions/gameweek";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
@@ -24,10 +23,9 @@ export default async function PlantillaPage() {
     redirect("/onboarding/crear-club");
   }
 
-  const gameweek = await getCurrentGameweek();
-  const summary = await getClubGameweekSummary();
-  const draft = gameweek
-    ? await getLineupDraftForClub(gameweek.id)
+  const lineupState = await getPlantillaLineupState();
+  const draft = lineupState?.editingGameweek
+    ? await getLineupDraftForClub(lineupState.editingGameweek.id)
     : null;
 
   return (
@@ -36,9 +34,10 @@ export default async function PlantillaPage() {
       usedBudget={data.usedBudget}
       totalBudget={data.totalBudget}
       remainingBudget={data.remainingBudget}
-      gameweekRound={gameweek?.round ?? null}
-      deadlineAt={gameweek?.firstKickoffAt ?? null}
-      isLineupLocked={summary?.isLineupLocked ?? false}
+      gameweekRound={lineupState?.displayRound ?? null}
+      editingGameweekRound={lineupState?.editingRound ?? null}
+      deadlineAt={lineupState?.deadlineAt ?? null}
+      isLineupLocked={lineupState?.isLineupLocked ?? true}
       initialStarterIds={draft?.starterIds ?? []}
       initialBenchIds={draft?.benchIds ?? []}
       initialCaptainId={draft?.captainId ?? null}

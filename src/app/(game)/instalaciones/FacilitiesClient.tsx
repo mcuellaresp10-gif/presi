@@ -28,11 +28,14 @@ export function FacilitiesClient({
   academyState,
   presupuesto,
   pendingIncome,
+  pendingGems,
   pendingTicks,
   incomePerTick,
+  gemsPerTick,
   incomeIntervalHours,
   nextIncomeTickAt,
   weeklyIncome,
+  weeklyGems,
   activeUpgradesCount,
   upgradeInfo,
   wildCards = [],
@@ -43,11 +46,14 @@ export function FacilitiesClient({
   academyState: AcademyUIState;
   presupuesto: number;
   pendingIncome: number;
+  pendingGems: number;
   pendingTicks: number;
   incomePerTick: number;
+  gemsPerTick: number;
   incomeIntervalHours: number;
   nextIncomeTickAt: string;
   weeklyIncome: number;
+  weeklyGems: number;
   activeUpgradesCount: number;
   upgradeInfo: Partial<Record<FacilityType, UpgradeInfo>>;
   wildCards?: import("@/lib/actions/wild-cards").WildCardInventoryItem[];
@@ -164,9 +170,9 @@ export function FacilitiesClient({
 
   return (
     <>
-      <div className="-mx-4 -mt-4 min-h-[calc(100vh-8rem)] bg-[#070d18] px-3 pb-6 pt-3 text-white">
+      <div className="-mx-4 -mt-4 min-h-[calc(100vh-8rem)] bg-presi-bg px-3 pb-6 pt-3 text-white">
         <div className="mb-3">
-          <h1 className="text-base font-black uppercase tracking-[0.2em] text-cyan-300">
+          <h1 className="text-base font-black uppercase tracking-[0.2em] text-presi-cyan">
             Construye tu club
           </h1>
           <p className="text-[10px] text-white/50">
@@ -180,11 +186,14 @@ export function FacilitiesClient({
         <div className="mb-3">
           <PassiveIncomeBanner
             pendingAmount={pendingIncome}
+            pendingGems={pendingGems}
             pendingTicks={pendingTicks}
             incomePerTick={incomePerTick}
+            gemsPerTick={gemsPerTick}
             incomeIntervalHours={incomeIntervalHours}
             nextIncomeTickAt={nextIncomeTickAt}
             weeklyIncome={weeklyIncome}
+            weeklyGems={weeklyGems}
           />
         </div>
 

@@ -8,9 +8,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Excluir assets estáticos y HMR — si el middleware los toca,
-     * la página carga sin CSS (HTML crudo).
+     * No ejecutar middleware en assets de Next ni estáticos.
+     * Si el middleware los toca, la página carga sin CSS (HTML crudo).
      */
-    "/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|manifest.json|sw.js|workbox-|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|woff2?)$).*)",
+    "/((?!_next|favicon.ico|manifest.json|sw.js|workbox-|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
   ],
 };

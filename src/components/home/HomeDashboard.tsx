@@ -25,11 +25,14 @@ export function HomeDashboard({
   hasValidDraft,
   scoutingState,
   pendingIncome,
+  pendingGems,
   pendingTicks,
   incomePerTick,
+  gemsPerTick,
   incomeIntervalHours,
   nextIncomeTickAt,
   weeklyIncome,
+  weeklyGems,
   gymBonusPct,
   contractsExpiringSoon,
 }: {
@@ -46,50 +49,61 @@ export function HomeDashboard({
   hasValidDraft: boolean;
   scoutingState: ScoutingUIState;
   pendingIncome: number;
+  pendingGems: number;
   pendingTicks: number;
   incomePerTick: number;
+  gemsPerTick: number;
   incomeIntervalHours: number;
   nextIncomeTickAt: string | null;
   weeklyIncome: number;
+  weeklyGems: number;
   gymBonusPct: number;
   contractsExpiringSoon: number;
 }) {
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
+    setNow(Date.now());
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const deadlineMs = deadlineAt
-    ? Math.max(0, new Date(deadlineAt).getTime() - now)
-    : null;
+  const deadlineMs =
+    now !== null && deadlineAt
+      ? Math.max(0, new Date(deadlineAt).getTime() - now)
+      : null;
+  const deadlineCountdown =
+    deadlineMs !== null ? formatRemainingTime(deadlineMs) : "—";
 
   const scoutingWildCardReady =
     scoutingState.estado === "listo" && !!scoutingState.wildCardType;
   const scoutingPlayerReady =
     scoutingState.estado === "listo" && !!scoutingState.player;
   const scoutingReady = scoutingWildCardReady || scoutingPlayerReady;
-  const scoutingRemainingMs = Math.max(
-    0,
-    new Date(scoutingState.generaEn).getTime() - now
-  );
+  const scoutingRemainingMs =
+    now !== null
+      ? Math.max(0, new Date(scoutingState.generaEn).getTime() - now)
+      : null;
+  const scoutingCountdown =
+    scoutingRemainingMs !== null
+      ? formatRemainingTime(scoutingRemainingMs)
+      : "—";
 
   return (
     <div className="relative -mx-4 -mt-6 min-h-[calc(100vh-8rem)] overflow-hidden md:mx-0 md:mt-0 md:min-h-[calc(100vh-10rem)] md:rounded-xl">
       {/* Stadium background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-andes-deep via-emerald-950 to-andes-deep">
+      <div className="absolute inset-0 bg-gradient-to-b from-presi-navy via-presi-bg to-presi-bg">
         <div
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-40"
           style={{
             backgroundImage: `
-              radial-gradient(ellipse 80% 50% at 50% 60%, rgba(46,134,171,0.4) 0%, transparent 60%),
-              radial-gradient(circle at 15% 20%, rgba(201,162,39,0.25) 0%, transparent 35%),
-              radial-gradient(circle at 85% 25%, rgba(139,92,246,0.2) 0%, transparent 35%)
+              radial-gradient(ellipse 80% 50% at 50% 60%, rgba(34,211,238,0.25) 0%, transparent 60%),
+              radial-gradient(circle at 15% 20%, rgba(245,197,24,0.2) 0%, transparent 35%),
+              radial-gradient(circle at 85% 25%, rgba(255,51,85,0.12) 0%, transparent 35%)
             `,
           }}
         />
-        <div className="absolute inset-x-8 bottom-1/4 top-1/3 rounded-[50%] border-2 border-white/10 bg-emerald-800/40 shadow-inner" />
+        <div className="absolute inset-x-8 bottom-1/4 top-1/3 rounded-[50%] border-2 border-presi-cyan/20 bg-presi-navy/50 shadow-inner" />
         <div className="absolute left-1/2 top-[42%] h-1 w-1/3 -translate-x-1/2 border-t border-white/20" />
         <div className="absolute left-1/2 top-[42%] h-16 w-24 -translate-x-1/2 rounded border border-white/15" />
       </div>
@@ -99,7 +113,7 @@ export function HomeDashboard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex gap-2">
             <div className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
-              <span className="text-andes-gold">●</span>
+              <span className="text-presi-gold">●</span>
               {formatCOP(presupuesto).replace("COP", "").trim()}
             </div>
             <div className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
@@ -109,22 +123,32 @@ export function HomeDashboard({
           </div>
         </div>
 
-        {(pendingIncome > 0 || incomePerTick > 0 || gymBonusPct > 0) && (
+        {(pendingIncome > 0 ||
+          pendingGems > 0 ||
+          incomePerTick > 0 ||
+          gemsPerTick > 0 ||
+          gymBonusPct > 0) && (
           <div className="mt-3 space-y-2">
-            {(pendingIncome > 0 || incomePerTick > 0) && (
+            {(pendingIncome > 0 ||
+              pendingGems > 0 ||
+              incomePerTick > 0 ||
+              gemsPerTick > 0) && (
               <PassiveIncomeBanner
                 pendingAmount={pendingIncome}
+                pendingGems={pendingGems}
                 pendingTicks={pendingTicks}
                 incomePerTick={incomePerTick}
+                gemsPerTick={gemsPerTick}
                 incomeIntervalHours={incomeIntervalHours}
                 nextIncomeTickAt={nextIncomeTickAt}
                 weeklyIncome={weeklyIncome}
+                weeklyGems={weeklyGems}
               />
             )}
             {gymBonusPct > 0 && (
               <p className="rounded-lg bg-black/40 px-3 py-2 text-center text-[10px] text-white/80 backdrop-blur">
                 Bonus gimnasio activo:{" "}
-                <span className="font-bold text-cyan-300">
+                <span className="font-bold text-presi-cyan">
                   +{gymBonusPct}%
                 </span>{" "}
                 en puntos de liga
@@ -134,7 +158,7 @@ export function HomeDashboard({
         )}
 
         {/* Puntos del club */}
-        <div className="mt-4 rounded-xl bg-cyan-400/90 p-4 text-andes-deep backdrop-blur">
+        <div className="mt-4 rounded-xl border border-presi-gold/30 bg-presi-surface/90 p-4 text-white backdrop-blur">
           <div className="flex items-center gap-3">
             <EscudoRenderer config={escudoConfig} size={40} />
             <div className="min-w-0 flex-1">
@@ -143,7 +167,7 @@ export function HomeDashboard({
                 Temporada
               </p>
             </div>
-            <p className="text-4xl font-black">{seasonPoints.toLocaleString("es-CO")}</p>
+            <p className="text-4xl font-black text-display text-presi-gold">{seasonPoints.toLocaleString("es-CO")}</p>
           </div>
           {gameweekRound ? (
             <GameweekPointsPanel
@@ -160,13 +184,13 @@ export function HomeDashboard({
             <span
               className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
                 gameweekStatus === "live"
-                  ? "bg-emerald-500"
-                  : "bg-andes-gold text-andes-deep"
+                  ? "bg-presi-cyan text-presi-bg"
+                  : "bg-presi-gold text-white"
               }`}
             >
               {gameweekStatus === "live" ? "En vivo" : "Jornada"}
             </span>
-            <Clock className="h-3.5 w-3.5 text-andes-gold" />
+            <Clock className="h-3.5 w-3.5 text-presi-gold" />
             <span>
               {gameweekRound
                 ? gameweekStatus === "live"
@@ -175,8 +199,8 @@ export function HomeDashboard({
                     ? "Alineación bloqueada"
                     : "Arma tu alineación"
                 : "Sin jornada activa"}
-              {!isLineupLocked && deadlineMs !== null && (
-                <> · cierra en {formatRemainingTime(deadlineMs)}</>
+              {!isLineupLocked && deadlineAt && (
+                <> · cierra en {deadlineCountdown}</>
               )}
             </span>
           </div>
@@ -200,7 +224,7 @@ export function HomeDashboard({
         {/* Center pin */}
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-1">
-            <div className="rounded-full bg-andes-accent/90 p-3 shadow-lg ring-4 ring-white/20">
+            <div className="rounded-full bg-presi-cyan/90 p-3 shadow-lg ring-4 ring-white/20">
               <EscudoRenderer config={escudoConfig} size={48} />
             </div>
             <span className="rounded-full bg-black/50 px-3 py-1 text-[10px] font-medium text-white backdrop-blur">
@@ -245,8 +269,8 @@ export function HomeDashboard({
                   <p className="text-sm font-semibold text-white">
                     Próximo fichaje
                   </p>
-                  <p className="font-mono text-xs text-andes-gold">
-                    {formatRemainingTime(scoutingRemainingMs)}
+                  <p className="font-mono text-xs text-presi-gold">
+                    {scoutingCountdown}
                   </p>
                 </>
               )}
@@ -255,7 +279,7 @@ export function HomeDashboard({
               href="/instalaciones#scouting"
               className={`rounded-xl px-5 py-4 text-center text-sm font-black shadow-lg transition ${
                 scoutingReady
-                  ? "bg-lime-400 text-andes-deep hover:bg-lime-300"
+                  ? "bg-lime-400 text-white hover:bg-lime-300"
                   : "bg-white/20 text-white hover:bg-white/30"
               }`}
             >

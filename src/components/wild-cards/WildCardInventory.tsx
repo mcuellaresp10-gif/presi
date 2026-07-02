@@ -35,7 +35,7 @@ export function WildCardInventory({
 
   if (cards.length === 0) {
     return (
-      <p className="text-sm text-andes-deep/50">
+      <p className="text-sm text-white/50">
         No tienes Wild Cards. Consíguelas con suerte en scouting.
       </p>
     );
@@ -144,13 +144,13 @@ export function WildCardInventory({
       {picker && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 sm:items-center">
           <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-xl">
-            <h3 className="text-lg font-bold text-andes-deep">
+            <h3 className="text-lg font-bold text-white">
               {picker.mode === "free_sign"
                 ? "Elige jugador a fichar"
                 : "Elige jugador a renovar"}
             </h3>
             {poolLoading ? (
-              <p className="py-8 text-center text-sm text-andes-deep/60">
+              <p className="py-8 text-center text-sm text-white/60">
                 Cargando...
               </p>
             ) : (

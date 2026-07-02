@@ -76,12 +76,12 @@ export function FacilityDetailSheet({
       <div
         className={cn(
           "relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl",
-          "border border-white/10 bg-[#0c1424] shadow-2xl"
+          "border border-white/10 bg-presi-surface shadow-2xl"
         )}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0c1424] px-4 py-3">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-presi-surface px-4 py-3">
           <div>
-            <p className="text-xs uppercase tracking-widest text-cyan-300/70">
+            <p className="text-xs uppercase tracking-widest text-presi-cyan/70">
               {config?.label ?? tipo}
             </p>
             <h2 className="text-lg font-bold text-white">

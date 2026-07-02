@@ -19,6 +19,7 @@ export function PitchPlayerCard({
   isCaptain = false,
   draggable = false,
   onDragStart,
+  onDragEnd,
   isDragging = false,
 }: {
   player: RosterPlayer;
@@ -27,13 +28,15 @@ export function PitchPlayerCard({
   isCaptain?: boolean;
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
   isDragging?: boolean;
 }) {
   const rating = getPlayerRating(player);
   const surname = getPlayerSurname(player.nombre);
   const pos = player.posicion as Position;
   const jornadas = player.jornadas_restantes ?? 99;
-  const expiringSoon = isContractExpiringSoon(jornadas);
+  const expiringSoon = !player.es_prestamo && isContractExpiringSoon(jornadas);
+  const loanJornadas = player.prestamo_jornadas_restantes ?? 0;
   const cardWidth = size === "sm" ? "w-[4.5rem]" : "w-[5rem]";
   const cardHeight = size === "sm" ? "h-[7rem]" : "h-[7.5rem]";
 
@@ -41,84 +44,103 @@ export function PitchPlayerCard({
     <div
       draggable={draggable && !isDragging}
       onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       className={cn(
-        "group flex flex-col items-center text-center transition-transform",
-        draggable && "cursor-grab active:cursor-grabbing",
+        "group flex flex-col items-center text-center transition-transform outline-none",
+        draggable && "cursor-grab touch-manipulation active:cursor-grabbing",
+        onClick && "cursor-pointer",
         isDragging && "scale-95 opacity-50",
         cardWidth
       )}
     >
-      <button
-        type="button"
-        onClick={onClick}
-        className="flex w-full flex-col items-center text-center active:scale-95"
+      <div
+        className={cn(
+          "relative w-full overflow-hidden rounded-sm border border-white/15 shadow-lg geo-card",
+          cardHeight,
+          draggable && "ring-0 ring-presi-cyan/0 group-hover:ring-2 group-hover:ring-presi-cyan/40"
+        )}
       >
+        <div className="absolute inset-0">
+          <div className="relative h-full w-full">
+            <PlayerPhoto
+              nombre={player.nombre}
+              photoUrl={player.photo_url}
+              sizes={size === "sm" ? "72px" : "80px"}
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
+        </div>
+
         <div
           className={cn(
-            "relative w-full overflow-hidden rounded-lg border border-white/15 shadow-lg",
-            cardHeight,
-            draggable && "ring-0 ring-cyan-400/0 group-hover:ring-2 group-hover:ring-cyan-400/40"
+            "relative z-10 flex items-start justify-between px-1.5 py-1",
+            POSITION_PITCH_COLOR[pos]
           )}
         >
-          <div className="absolute inset-0">
-            <div className="relative h-full w-full">
-              <PlayerPhoto
-                nombre={player.nombre}
-                photoUrl={player.photo_url}
-                sizes={size === "sm" ? "72px" : "80px"}
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
-          </div>
-
-          <div
-            className={cn(
-              "relative z-10 flex items-start justify-between px-1.5 py-1",
-              POSITION_PITCH_COLOR[pos]
-            )}
-          >
-            <span className="text-sm font-black leading-none drop-shadow">
-              {rating}
-            </span>
-            <div className="flex items-center gap-0.5">
-              {isCaptain && (
-                <span
-                  className="rounded bg-amber-400 px-1 text-[8px] font-black leading-none text-amber-950 ring-1 ring-amber-200"
-                  title="Capitán — puntos dobles"
-                >
-                  C
-                </span>
-              )}
-              {expiringSoon && (
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-300 ring-1 ring-amber-100" />
-              )}
-              <span className="text-[9px] font-bold leading-none">
-                {POSITION_SHORT[pos]}
+          <span className="text-sm font-black leading-none drop-shadow">
+            {rating}
+          </span>
+          <div className="flex items-center gap-0.5">
+            {player.es_prestamo && (
+              <span
+                className="rounded bg-cyan-400/90 px-1 text-[7px] font-black leading-none text-cyan-950"
+                title="Jugador en préstamo"
+              >
+                P
               </span>
-            </div>
-          </div>
-
-          <div className="absolute bottom-0 left-0 right-0 z-10 px-1 pb-1 pt-6">
-            <p className="truncate text-[9px] font-bold uppercase tracking-wide text-white drop-shadow">
-              {surname}
-            </p>
+            )}
+            {isCaptain && (
+              <span
+                className="rounded bg-amber-400 px-1 text-[8px] font-black leading-none text-amber-950 ring-1 ring-amber-200"
+                title="Capitán — puntos dobles"
+              >
+                C
+              </span>
+            )}
+            {expiringSoon && (
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-300 ring-1 ring-amber-100" />
+            )}
+            <span className="text-[9px] font-bold leading-none">
+              {POSITION_SHORT[pos]}
+            </span>
           </div>
         </div>
 
-        <span className="mt-1 max-w-full truncate rounded-full bg-white/10 px-1.5 py-0.5 text-[8px] font-medium uppercase text-white/60">
-          {player.equipo_real.split(" ").slice(0, 2).join(" ")}
-        </span>
-      </button>
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-1 pb-1 pt-6">
+          <p className="truncate text-[9px] font-bold uppercase tracking-wide text-white drop-shadow">
+            {surname}
+          </p>
+        </div>
+      </div>
+
+      <span className="mt-1 max-w-full truncate rounded-full bg-white/10 px-1.5 py-0.5 text-[8px] font-medium uppercase text-white/60">
+        {player.es_prestamo
+          ? `Préstamo ${loanJornadas}J`
+          : (player.equipo_real ?? "—").split(" ").slice(0, 2).join(" ")}
+      </span>
     </div>
   );
 }
 
 export function PitchEmptySlot({
   position,
-  onClick,
   slotKey,
   isDropTarget = false,
   isDragOver = false,
+  isValidDrop = true,
   onDragOver,
   onDragLeave,
   onDrop,
@@ -128,6 +150,7 @@ export function PitchEmptySlot({
   slotKey?: string;
   isDropTarget?: boolean;
   isDragOver?: boolean;
+  isValidDrop?: boolean;
   onDragOver?: (e: React.DragEvent) => void;
   onDragLeave?: () => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -140,35 +163,42 @@ export function PitchEmptySlot({
       onDrop={onDrop}
       className={cn(
         "flex w-[5rem] flex-col items-center rounded-lg transition-colors",
-        isDropTarget && isDragOver && "bg-cyan-400/20 ring-2 ring-cyan-400/60"
+        isDropTarget &&
+          isDragOver &&
+          isValidDrop &&
+          "bg-presi-cyan/20 ring-2 ring-presi-cyan/60",
+        isDropTarget &&
+          isDragOver &&
+          !isValidDrop &&
+          "bg-presi-red/15 ring-2 ring-presi-red/50"
       )}
     >
-      <button
-        type="button"
-        onClick={onClick}
-        className="flex w-full flex-col items-center"
-      >
-        <div
-          className={cn(
-            "flex h-[7.5rem] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white/5",
-            isDropTarget && isDragOver
-              ? "border-cyan-400/70"
+      <div
+        className={cn(
+          "flex h-[7.5rem] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white/5",
+          isDropTarget && isDragOver && isValidDrop
+            ? "border-presi-cyan/70"
+            : isDropTarget && isDragOver && !isValidDrop
+              ? "border-presi-red/60"
               : "border-white/25"
+        )}
+      >
+        <span
+          className={cn(
+            "mb-1 rounded px-1.5 py-0.5 text-[9px] font-bold",
+            POSITION_PITCH_COLOR[position]
           )}
         >
-          <span
-            className={cn(
-              "mb-1 rounded px-1.5 py-0.5 text-[9px] font-bold",
-              POSITION_PITCH_COLOR[position]
-            )}
-          >
-            {POSITION_SHORT[position]}
-          </span>
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-white/40">
-            {isDropTarget && isDragOver ? "Soltar" : "Vacío"}
-          </span>
-        </div>
-      </button>
+          {POSITION_SHORT[position]}
+        </span>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-white/40">
+          {isDropTarget && isDragOver
+            ? isValidDrop
+              ? "Soltar"
+              : "No encaja"
+            : "Vacío"}
+        </span>
+      </div>
     </div>
   );
 }

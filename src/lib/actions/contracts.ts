@@ -9,8 +9,21 @@ import {
   isContractExpired,
 } from "@/lib/game";
 import type { Player, Rarity } from "@/lib/game/types";
+import { getCurrentGameweek } from "@/lib/actions/gameweek";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
+
+async function deleteRosterPlayer(clubId: string, playerId: string) {
+  const admin = createServiceRoleClient();
+  const { data, error } = await admin
+    .from("club_roster")
+    .delete()
+    .eq("club_id", clubId)
+    .eq("player_id", playerId)
+    .select("player_id");
+  return { deleted: data ?? [], error };
+}
 
 async function getOficinaNivel(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -28,8 +41,10 @@ async function getOficinaNivel(
 export async function expireRosterContracts(clubId?: string) {
   const supabase = await createClient();
 
-  let targetClubId = clubId;
-  if (!targetClubId) {
+  let targetClubId: string;
+  if (clubId) {
+    targetClubId = clubId;
+  } else {
     const c = await getUserClub();
     if (!c) return { expired: [] as string[] };
     targetClubId = c.id;
@@ -37,7 +52,7 @@ export async function expireRosterContracts(clubId?: string) {
 
   const { data: rows, error } = await supabase
     .from("club_roster")
-    .select("player_id, jornadas_restantes")
+    .select("player_id, jornadas_restantes, es_prestamo")
     .eq("club_id", targetClubId);
 
   if (error?.message?.includes("jornadas_restantes")) {
@@ -47,17 +62,15 @@ export async function expireRosterContracts(clubId?: string) {
   if (!rows?.length) return { expired: [] as string[] };
 
   const expiredIds = rows
-    .filter((row) => isContractExpired(row.jornadas_restantes))
+    .filter(
+      (row) => !row.es_prestamo && isContractExpired(row.jornadas_restantes)
+    )
     .map((row) => row.player_id);
 
   if (expiredIds.length === 0) return { expired: [] as string[] };
 
   for (const playerId of expiredIds) {
-    await supabase
-      .from("club_roster")
-      .delete()
-      .eq("club_id", targetClubId)
-      .eq("player_id", playerId);
+    await deleteRosterPlayer(targetClubId, playerId);
   }
 
   revalidatePath("/plantilla");
@@ -139,13 +152,35 @@ export async function releasePlayer(playerId: string) {
   const oficinaNivel = await getOficinaNivel(supabase, club.id);
   const refund = getReleaseRefund(Number(player.costo_base), oficinaNivel);
 
-  const { error } = await supabase
-    .from("club_roster")
-    .delete()
-    .eq("club_id", club.id)
-    .eq("player_id", playerId);
+  const { deleted, error } = await deleteRosterPlayer(club.id, playerId);
 
   if (error) return { error: error.message };
+  if (!deleted.length) {
+    return { error: "No se pudo liberar al jugador." };
+  }
+
+  const gameweek = await getCurrentGameweek();
+  if (gameweek) {
+    const { data: draft } = await supabase
+      .from("lineup_drafts")
+      .select("starter_ids, bench_ids")
+      .eq("club_id", club.id)
+      .eq("gameweek_id", gameweek.id)
+      .maybeSingle();
+
+    const inDraft =
+      draft &&
+      (draft.starter_ids?.includes(playerId) ||
+        draft.bench_ids?.includes(playerId));
+
+    if (inDraft) {
+      await supabase
+        .from("lineup_drafts")
+        .delete()
+        .eq("club_id", club.id)
+        .eq("gameweek_id", gameweek.id);
+    }
+  }
 
   if (refund > 0) {
     await supabase

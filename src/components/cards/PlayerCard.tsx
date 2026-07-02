@@ -6,25 +6,25 @@ const RARITY_STYLES: Record<
   { border: string; badge: string; label: string }
 > = {
   bronce: {
-    border: "border-[#CD7F32] shadow-[0_0_12px_rgba(205,127,50,0.4)]",
+    border: "border-[#CD7F32] shadow-[0_0_12px_rgba(205,127,50,0.35)]",
     badge: "bg-[#CD7F32] text-white",
     label: "Bronce",
   },
   plata: {
     border:
-      "border-transparent bg-gradient-to-br from-gray-200 via-white to-gray-400 shadow-[0_0_12px_rgba(192,192,192,0.5)]",
-    badge: "bg-gradient-to-r from-gray-300 to-gray-500 text-white",
+      "border-transparent bg-gradient-to-br from-gray-300 via-white to-gray-500 shadow-[0_0_12px_rgba(192,192,192,0.4)]",
+    badge: "bg-gradient-to-r from-gray-300 to-gray-500 text-presi-bg",
     label: "Plata",
   },
   oro: {
     border:
-      "border-transparent bg-gradient-to-br from-[#C9A227] via-[#F4E4A6] to-[#8B6914] shadow-[0_0_16px_rgba(201,162,39,0.5)]",
-    badge: "bg-[#C9A227] text-andes-deep",
+      "border-transparent bg-gradient-to-br from-presi-gold via-yellow-200 to-amber-700 shadow-[0_0_16px_rgba(245,197,24,0.45)]",
+    badge: "bg-presi-gold text-presi-bg",
     label: "Oro",
   },
   leyenda: {
     border: "border-2 border-transparent legend-holo",
-    badge: "bg-andes-deep text-andes-gold",
+    badge: "bg-presi-navy text-presi-gold",
     label: "Leyenda",
   },
 };
@@ -47,16 +47,16 @@ export function PlayerCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative w-full rounded-xl border-2 p-3 text-left transition-transform paper-texture",
+        "geo-card relative w-full border-2 bg-presi-surface p-3 text-left transition-transform",
         style.border,
-        selected && "ring-2 ring-andes-gold scale-[1.02]",
+        selected && "scale-[1.02] ring-2 ring-presi-gold",
         onClick && "cursor-pointer hover:scale-[1.02]",
         compact ? "p-2" : "p-3"
       )}
     >
       <span
         className={cn(
-          "absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+          "absolute right-2 top-2 rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase",
           style.badge
         )}
       >
@@ -64,16 +64,14 @@ export function PlayerCard({
       </span>
 
       <div className="mt-4">
-        <p className="text-xs uppercase tracking-wide text-andes-deep/60">
-          {player.posicion}
-        </p>
-        <p className={cn("font-bold text-andes-deep", compact ? "text-sm" : "text-base")}>
+        <p className="text-display text-xs text-presi-cyan">{player.posicion}</p>
+        <p className={cn("font-bold text-white", compact ? "text-sm" : "text-base")}>
           {player.nombre}
         </p>
-        <p className="text-xs text-andes-deep/70">{player.equipo_real}</p>
+        <p className="text-xs text-white/70">{player.equipo_real}</p>
       </div>
 
-      <p className="mt-2 text-sm font-semibold text-andes-accent">
+      <p className="mt-2 text-sm font-semibold text-presi-gold">
         {formatCOP(player.costo_base)}
       </p>
     </button>

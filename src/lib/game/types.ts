@@ -23,6 +23,8 @@ export type RosterPlayer = Player & {
   es_titular?: boolean;
   jornadas_restantes?: number;
   renovaciones?: number;
+  es_prestamo?: boolean;
+  prestamo_jornadas_restantes?: number | null;
 };
 
 export interface PositionCounts {

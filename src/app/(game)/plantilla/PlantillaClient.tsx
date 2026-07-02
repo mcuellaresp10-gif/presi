@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlayerDetailPanel } from "@/components/plantilla/PlayerDetailPanel";
+import { PlayerDetailPanel, type PlayerSquadStatus } from "@/components/plantilla/PlayerDetailPanel";
 import {
   makeDragSource,
   PitchPlayerCard,
@@ -20,26 +20,28 @@ import { SquadPitch } from "@/components/plantilla/SquadPitch";
 import { useLineupDrag } from "@/components/plantilla/useLineupDrag";
 import { saveLineupDraft } from "@/lib/actions/lineup";
 import {
+  formatRemainingTime,
+  getFormationSlots,
+  VALID_FORMATIONS,
+  validateFormation,
+} from "@/lib/game";
+import { getStarterSlotKeys } from "@/lib/game/lineup-slots";
+import {
   BENCH_COUNT,
   MAX_SQUAD,
   STARTER_COUNT,
 } from "@/lib/game/squad-limits";
-import {
-  getFormationSlots,
-  VALID_FORMATIONS,
-  validateFormation,
-  formatRemainingTime,
-} from "@/lib/game";
 import type { Player, RosterPlayer } from "@/lib/game/types";
 import { formatCompactMoney, cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
 export function PlantillaClient({
-  players,
+  players = [],
   usedBudget,
   totalBudget,
   remainingBudget,
   gameweekRound,
+  editingGameweekRound,
   deadlineAt,
   isLineupLocked,
   initialStarterIds,
@@ -51,6 +53,7 @@ export function PlantillaClient({
   totalBudget: number;
   remainingBudget: number;
   gameweekRound: number | null;
+  editingGameweekRound?: number | null;
   deadlineAt: string | null;
   isLineupLocked: boolean;
   initialStarterIds: string[];
@@ -75,7 +78,7 @@ export function PlantillaClient({
   });
   const [saving, setSaving] = useState(false);
   const [detailPlayer, setDetailPlayer] = useState<RosterPlayer | null>(null);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState<number | null>(null);
   const [dragOverBench, setDragOverBench] = useState<number | null>(null);
   const [dragOverReserve, setDragOverReserve] = useState(false);
 
@@ -92,9 +95,11 @@ export function PlantillaClient({
     selectedIds,
     benchIds,
     assignedIds,
+    draggingPlayerId,
     applyLineupMove,
     handleDrop,
     handleDragStart,
+    handleDragEnd,
     handleDragOver,
   } = useLineupDrag({
     formation,
@@ -111,6 +116,7 @@ export function PlantillaClient({
   );
 
   useEffect(() => {
+    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -126,9 +132,17 @@ export function PlantillaClient({
   }, [selectedIds, captainId]);
 
   const slots = getFormationSlots(formation);
-  const deadlineMs = deadlineAt
-    ? Math.max(0, new Date(deadlineAt).getTime() - now)
-    : null;
+  const deadlineMs =
+    now !== null && deadlineAt
+      ? Math.max(0, new Date(deadlineAt).getTime() - now)
+      : null;
+  const deadlineCountdown =
+    deadlineMs !== null ? formatRemainingTime(deadlineMs) : "—";
+  const preparingNextRound =
+    !isLineupLocked &&
+    gameweekRound != null &&
+    editingGameweekRound != null &&
+    editingGameweekRound > gameweekRound;
 
   const selectedPlayers = useMemo(
     () =>
@@ -154,10 +168,19 @@ export function PlantillaClient({
   }, [selectedPlayers]);
 
   function findEmptyStarterSlot(posicion: Player["posicion"]) {
-    const slotCounts = getFormationSlots(formation);
-    for (let i = 0; i < slotCounts[posicion]; i++) {
-      const key = `${posicion}-${i}`;
+    for (const { key, position } of getStarterSlotKeys(formation)) {
+      if (position !== posicion) continue;
       if (!starterSlotMap[key]) return key;
+    }
+    return null;
+  }
+
+  function findStarterSlotForSwap(posicion: Player["posicion"]) {
+    const empty = findEmptyStarterSlot(posicion);
+    if (empty) return empty;
+    for (const { key, position } of getStarterSlotKeys(formation)) {
+      if (position !== posicion) continue;
+      if (starterSlotMap[key]) return key;
     }
     return null;
   }
@@ -166,82 +189,87 @@ export function PlantillaClient({
     return benchSlots.findIndex((id) => !id);
   }
 
-  function toggleStarter(player: RosterPlayer) {
+  function findBenchSlotForPromote() {
+    const empty = findEmptyBenchSlot();
+    if (empty >= 0) return empty;
+    return 0;
+  }
+
+  function getPlayerLineupSource(player: RosterPlayer) {
+    const starterKey = Object.entries(starterSlotMap).find(
+      ([, id]) => id === player.id
+    )?.[0];
+    if (starterKey) return { zone: "starter" as const, slotKey: starterKey };
+    const benchIdx = benchSlots.findIndex((id) => id === player.id);
+    if (benchIdx >= 0) return { zone: "bench" as const, index: benchIdx };
+    return { zone: "reserve" as const };
+  }
+
+  function getPlayerSquadStatus(player: RosterPlayer): PlayerSquadStatus {
+    if (selectedIds.includes(player.id)) return "starter";
+    if (benchIds.includes(player.id)) return "bench";
+    return "reserve";
+  }
+
+  function setPlayerSquadStatus(player: RosterPlayer, status: PlayerSquadStatus) {
     if (isLineupLocked) {
-      toast({ title: "Jornada bloqueada", description: "No puedes editar la alineación." });
-      return;
-    }
-
-    if (selectedIds.includes(player.id)) {
-      const slotKey = Object.entries(starterSlotMap).find(
-        ([, id]) => id === player.id
-      )?.[0];
-      if (slotKey) {
-        applyLineupMove(
-          player.id,
-          { zone: "starter", slotKey },
-          { zone: "reserve" }
-        );
-      }
-      if (captainId === player.id) setCaptainId(null);
-      return;
-    }
-
-    if (selectedIds.length >= STARTER_COUNT) {
-      toast({ title: "11 completo", description: "Quita un titular primero." });
-      return;
-    }
-
-    const maxForPosition = slots[player.posicion as keyof typeof slots];
-    if (counts[player.posicion] >= maxForPosition) {
       toast({
-        title: "Posición llena",
-        description: `Máximo ${maxForPosition} ${player.posicion} en esta formación.`,
+        title: "Jornada bloqueada",
+        description: "No puedes editar la alineación.",
       });
       return;
     }
 
-    const slotKey = findEmptyStarterSlot(player.posicion);
-    if (!slotKey) return;
+    const current = getPlayerSquadStatus(player);
+    if (current === status) return;
 
-    const benchIdx = benchSlots.findIndex((id) => id === player.id);
-    const source =
-      benchIdx >= 0
-        ? { zone: "bench" as const, index: benchIdx }
-        : { zone: "reserve" as const };
+    const source = getPlayerLineupSource(player);
+
+    if (status === "reserve") {
+      if (current === "starter" && captainId === player.id) {
+        setCaptainId(null);
+      }
+      applyLineupMove(player.id, source, { zone: "reserve" });
+      return;
+    }
+
+    if (status === "bench") {
+      const benchIdx = findBenchSlotForPromote();
+      const isSwap = findEmptyBenchSlot() < 0;
+      applyLineupMove(player.id, source, { zone: "bench", index: benchIdx });
+      if (isSwap) {
+        toast({
+          title: "Banca actualizada",
+          description: `${player.nombre} entra a la banca; el suplente #${benchIdx + 1} pasa a reserva.`,
+        });
+      }
+      return;
+    }
+
+    const slotKey = findStarterSlotForSwap(player.posicion);
+    if (!slotKey) {
+      toast({
+        title: "Sin hueco",
+        description: `No hay lugar para un ${player.posicion} en esta formación.`,
+      });
+      return;
+    }
+
+    const isSwap =
+      selectedIds.length >= STARTER_COUNT && !!starterSlotMap[slotKey];
 
     applyLineupMove(player.id, source, {
       zone: "starter",
       slotKey,
       position: player.posicion,
     });
-  }
 
-  function addToBench(player: RosterPlayer) {
-    if (isLineupLocked) return;
-    if (benchIds.includes(player.id)) return;
-
-    const emptyIdx = findEmptyBenchSlot();
-    if (emptyIdx < 0) {
-      toast({ title: "Banca llena", description: "Máximo 5 suplentes." });
-      return;
+    if (isSwap) {
+      toast({
+        title: "Intercambio hecho",
+        description: `${player.nombre} entra al 11; el titular anterior sale.`,
+      });
     }
-
-    const starterKey = Object.entries(starterSlotMap).find(
-      ([, id]) => id === player.id
-    )?.[0];
-    const source = starterKey
-      ? { zone: "starter" as const, slotKey: starterKey }
-      : { zone: "reserve" as const };
-
-    applyLineupMove(player.id, source, { zone: "bench", index: emptyIdx });
-  }
-
-  function removeFromBench(playerId: string) {
-    if (isLineupLocked) return;
-    const idx = benchSlots.findIndex((id) => id === playerId);
-    if (idx < 0) return;
-    applyLineupMove(playerId, { zone: "bench", index: idx }, { zone: "reserve" });
   }
 
   async function handleSave() {
@@ -297,11 +325,11 @@ export function PlantillaClient({
 
   return (
     <>
-      <div className="-mx-4 -mt-4 min-h-[calc(100vh-8rem)] bg-[#070d18] text-white">
-        <div className="border-b border-cyan-500/20 bg-[#0a1220]/95 px-4 py-3 backdrop-blur">
+      <div className="-mx-4 -mt-4 min-h-[calc(100vh-8rem)] bg-presi-bg text-white">
+        <div className="border-b border-presi-cyan/20 bg-presi-elevated/95 px-4 py-3 backdrop-blur">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h1 className="text-lg font-black uppercase tracking-wider text-cyan-300">
+              <h1 className="text-display text-xl text-presi-gold">
                 Mi plantilla
               </h1>
               <p className="text-xs text-white/50">
@@ -309,39 +337,52 @@ export function PlantillaClient({
                 {BENCH_COUNT} banca · {players.length}/{MAX_SQUAD}
               </p>
               {!isLineupLocked && (
-                <p className="mt-0.5 text-[10px] text-white/40">
-                  Arrastra jugadores al campo, banca o reserva
+                <p className="mt-0.5 text-[10px] leading-snug text-white/45">
+                  Arrastra al hueco de su posición (DEF→DEF, MED→MED). Si el 11
+                  está lleno, suelta sobre un titular de la misma posición para
+                  cambiar. También puedes tocar un jugador y usar &quot;Subir al
+                  11&quot;.
                 </p>
               )}
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-right">
               <p className="text-[10px] uppercase text-white/50">Disponible</p>
-              <p className="text-sm font-bold text-cyan-300">
+              <p className="text-sm font-bold text-presi-cyan">
                 {formatCompactMoney(remainingBudget)}
               </p>
             </div>
           </div>
 
-          {gameweekRound && (
+          {(gameweekRound || editingGameweekRound) && (
             <div
               className={`mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
                 isLineupLocked
                   ? "bg-amber-500/15 text-amber-200"
-                  : "bg-emerald-500/15 text-emerald-200"
+                  : "bg-presi-cyan/15 text-presi-cyan"
               }`}
             >
               <Clock className="h-3.5 w-3.5 shrink-0" />
               {isLineupLocked ? (
                 <span>
-                  Jornada {gameweekRound} en curso — alineación bloqueada
+                  Jornada {gameweekRound ?? editingGameweekRound} en curso —
+                  alineación bloqueada hasta la próxima jornada
                 </span>
-              ) : deadlineMs !== null ? (
+              ) : preparingNextRound ? (
                 <span>
-                  Jornada {gameweekRound} — cierra en{" "}
-                  {formatRemainingTime(deadlineMs)}
+                  Jornada {gameweekRound} en curso · preparando jornada{" "}
+                  {editingGameweekRound}
+                  {deadlineAt ? ` — cierra en ${deadlineCountdown}` : ""}
+                </span>
+              ) : deadlineAt ? (
+                <span>
+                  Jornada {editingGameweekRound ?? gameweekRound} — cierra en{" "}
+                  {deadlineCountdown}
                 </span>
               ) : (
-                <span>Jornada {gameweekRound} — guarda 11 + banca + capitán antes del primer partido</span>
+                <span>
+                  Jornada {editingGameweekRound ?? gameweekRound} — guarda 11 +
+                  banca + capitán antes del primer partido
+                </span>
               )}
             </div>
           )}
@@ -356,15 +397,15 @@ export function PlantillaClient({
 
         <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
           <div className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1.5">
-            <Shirt className="h-3.5 w-3.5 text-cyan-400" />
+            <Shirt className="h-3.5 w-3.5 text-presi-cyan" />
             <span className="text-xs font-semibold">
               {players.length}
               <span className="text-white/40">/{MAX_SQUAD}</span>
             </span>
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg bg-andes-accent/20 px-2.5 py-1.5">
-            <Wallet className="h-3.5 w-3.5 shrink-0 text-cyan-300" />
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg bg-presi-cyan/20 px-2.5 py-1.5">
+            <Wallet className="h-3.5 w-3.5 shrink-0 text-presi-cyan" />
             <span className="truncate text-xs font-semibold">
               {formatCompactMoney(usedBudget)}
               <span className="text-white/50">
@@ -398,8 +439,10 @@ export function PlantillaClient({
             playersById={playersById}
             captainId={captainId}
             lineupLocked={isLineupLocked}
+            draggingPlayerId={draggingPlayerId}
             onPlayerClick={setDetailPlayer}
             onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
             onDragOver={handleDragOver}
             onDropOnSlot={(e, slotKey, position) =>
               handleDrop(e, { zone: "starter", slotKey, position })
@@ -408,7 +451,7 @@ export function PlantillaClient({
         </div>
 
         <div ref={subsRef} className="border-t border-white/10 px-3 pb-28 pt-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-cyan-300/80">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-presi-cyan/80">
             Banca ({benchIds.length}/{BENCH_COUNT}) — orden de sustitución
           </p>
           <div className="flex gap-2 overflow-x-auto pb-3">
@@ -422,7 +465,7 @@ export function PlantillaClient({
                   key={i}
                   className={cn(
                     "flex w-[5rem] shrink-0 flex-col items-center gap-1 rounded-lg transition-colors",
-                    dragOverBench === i && "bg-cyan-400/15 ring-2 ring-cyan-400/50"
+                    dragOverBench === i && "bg-presi-cyan/15 ring-2 ring-presi-cyan/50"
                   )}
                   onDragOver={(e) => {
                     if (isLineupLocked) return;
@@ -452,6 +495,7 @@ export function PlantillaClient({
                           makeDragSource("bench", undefined, i)
                         )
                       }
+                      onDragEnd={handleDragEnd}
                       onClick={() => setDetailPlayer(player)}
                     />
                   ) : (
@@ -470,7 +514,7 @@ export function PlantillaClient({
           <div
             className={cn(
               "min-h-[6rem] rounded-xl border border-dashed border-white/10 p-2 transition-colors",
-              dragOverReserve && "border-cyan-400/50 bg-cyan-400/10"
+              dragOverReserve && "border-presi-cyan/50 bg-presi-cyan/10"
             )}
             onDragOver={(e) => {
               if (isLineupLocked) return;
@@ -504,6 +548,7 @@ export function PlantillaClient({
                         makeDragSource("reserve")
                       )
                     }
+                    onDragEnd={handleDragEnd}
                     onClick={() => setDetailPlayer(player)}
                   />
                 ))}
@@ -512,14 +557,14 @@ export function PlantillaClient({
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-[#0a1220]/95 p-3 backdrop-blur">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-presi-elevated/95 p-3 backdrop-blur">
           <div className="mx-auto flex max-w-4xl gap-2">
             <div className="flex flex-1 items-center justify-center rounded-lg bg-white/5 px-3 text-xs font-medium text-white/70">
               GK {counts.GK}/{slots.GK} · DEF {counts.DEF}/{slots.DEF} · MED{" "}
               {counts.MED}/{slots.MED} · DEL {counts.DEL}/{slots.DEL}
             </div>
             <Button
-              className="shrink-0 bg-cyan-500 px-6 font-bold text-andes-deep hover:bg-cyan-400"
+              className="shrink-0 bg-presi-gold px-6 font-bold text-presi-bg hover:bg-presi-gold/90"
               onClick={handleSave}
               disabled={saving || !canSave}
             >
@@ -536,9 +581,18 @@ export function PlantillaClient({
         isCaptain={detailPlayer ? detailPlayer.id === captainId : false}
         open={!!detailPlayer}
         onClose={() => setDetailPlayer(null)}
-        onToggleStarter={() => {
+        onStatusChange={(status) => {
           if (!detailPlayer) return;
-          toggleStarter(detailPlayer);
+          setPlayerSquadStatus(detailPlayer, status);
+        }}
+        onLockedStatusClick={() => {
+          toast({
+            title: "Alineación bloqueada",
+            description:
+              deadlineAt && Date.now() >= new Date(deadlineAt).getTime()
+                ? `El primer partido de esta jornada fue el ${new Date(deadlineAt).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })}.`
+                : "No hay jornada abierta para editar en este momento.",
+          });
         }}
         onSetCaptain={() => {
           if (!detailPlayer || !selectedIds.includes(detailPlayer.id)) return;
@@ -547,17 +601,6 @@ export function PlantillaClient({
             title: "Capitán elegido",
             description: `${detailPlayer.nombre} sumará puntos dobles.`,
           });
-          setDetailPlayer(null);
-        }}
-        onAddToBench={() => {
-          if (!detailPlayer) return;
-          addToBench(detailPlayer);
-          setDetailPlayer(null);
-        }}
-        onRemoveFromBench={() => {
-          if (!detailPlayer) return;
-          removeFromBench(detailPlayer.id);
-          setDetailPlayer(null);
         }}
         lineupLocked={isLineupLocked}
         budgetUsed={usedBudget}

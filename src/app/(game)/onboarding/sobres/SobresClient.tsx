@@ -77,7 +77,7 @@ export function SobresClient({ sobresRestantes }: { sobresRestantes: number }) {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-andes-deep/70">
+      <div className="py-12 text-center text-white/70">
         Preparando sobre...
       </div>
     );
@@ -89,10 +89,10 @@ export function SobresClient({ sobresRestantes }: { sobresRestantes: number }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Card className="paper-texture">
+      <Card className="poster-bg poster-shards">
         <CardHeader>
           <CardTitle>Sobres de bienvenida</CardTitle>
-          <p className="text-sm text-andes-deep/70">
+          <p className="text-sm text-white/70">
             Te quedan {sobresRestantes} sobres · elige 1 de 3 jugadores por sobre
           </p>
         </CardHeader>
@@ -109,7 +109,7 @@ export function SobresClient({ sobresRestantes }: { sobresRestantes: number }) {
             />
           ) : (
             !error && (
-              <p className="text-center text-andes-deep/70">
+              <p className="text-center text-white/70">
                 {selecting ? "Fichando jugador..." : "Cargando..."}
               </p>
             )

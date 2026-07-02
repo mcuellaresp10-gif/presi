@@ -63,11 +63,14 @@ export default async function InstalacionesPage() {
       academyState={academyState}
       presupuesto={overview.presupuesto}
       pendingIncome={overview.pendingIncome}
+      pendingGems={overview.pendingGems}
       pendingTicks={overview.pendingTicks}
       incomePerTick={overview.incomePerTick}
+      gemsPerTick={overview.gemsPerTick}
       incomeIntervalHours={overview.incomeIntervalHours}
       nextIncomeTickAt={overview.nextIncomeTickAt}
       weeklyIncome={overview.weeklyIncome}
+      weeklyGems={overview.weeklyGems}
       activeUpgradesCount={overview.activeUpgradesCount}
       upgradeInfo={overview.upgradeInfo}
       wildCards={wildCards}

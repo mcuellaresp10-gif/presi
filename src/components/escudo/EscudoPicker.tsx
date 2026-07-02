@@ -32,8 +32,8 @@ export function EscudoPicker({
             onClick={() => onChange({ ...value, templateId: template.id })}
             className={`rounded-lg border p-2 text-xs transition ${
               value.templateId === template.id
-                ? "border-andes-gold bg-andes-gold/10"
-                : "border-andes-deep/10 hover:border-andes-gold/50"
+                ? "border-presi-gold bg-presi-gold/10"
+                : "border-white/10 hover:border-presi-gold/50"
             }`}
           >
             <EscudoRenderer

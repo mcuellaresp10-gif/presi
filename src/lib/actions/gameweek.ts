@@ -70,6 +70,64 @@ function mapGameweek(row: {
   };
 }
 
+export async function getEditableGameweek(): Promise<GameweekPublic | null> {
+  const supabase = await createClient();
+  const now = Date.now();
+
+  const { data: rows } = await supabase
+    .from("gameweeks")
+    .select("*")
+    .order("first_kickoff_at", { ascending: true });
+
+  for (const row of rows ?? []) {
+    const kickoffMs = new Date(row.first_kickoff_at).getTime();
+    if (now < kickoffMs) {
+      return mapGameweek(row);
+    }
+  }
+
+  return null;
+}
+
+export async function isGameweekEditable(
+  gameweek: GameweekPublic,
+  clubId: string
+): Promise<boolean> {
+  void clubId;
+  const kickoffMs = new Date(gameweek.firstKickoffAt).getTime();
+  return Date.now() < kickoffMs;
+}
+
+export async function getPlantillaLineupState() {
+  const club = await getUserClub();
+  if (!club) return null;
+
+  const currentGameweek = await getCurrentGameweek();
+  const editingGameweek = await getEditableGameweek();
+
+  if (!editingGameweek) {
+    return {
+      currentGameweek,
+      editingGameweek: currentGameweek,
+      isLineupLocked: true,
+      deadlineAt: currentGameweek?.firstKickoffAt ?? null,
+      displayRound: currentGameweek?.round ?? null,
+      editingRound: currentGameweek?.round ?? null,
+    };
+  }
+
+  const isLineupLocked = !(await isGameweekEditable(editingGameweek, club.id));
+
+  return {
+    currentGameweek,
+    editingGameweek,
+    isLineupLocked,
+    deadlineAt: editingGameweek.firstKickoffAt,
+    displayRound: currentGameweek?.round ?? editingGameweek.round,
+    editingRound: editingGameweek.round,
+  };
+}
+
 export async function getClubGameweekSummary() {
   const club = await getUserClub();
   if (!club) return null;
@@ -87,21 +145,21 @@ export async function getClubGameweekSummary() {
   }
 
   const supabase = await createClient();
-  const now = Date.now();
-  const lockedByTime = now >= new Date(gameweek.firstKickoffAt).getTime();
+  const editableGameweek = await getEditableGameweek();
+  const draftGameweekId = editableGameweek?.id ?? gameweek.id;
 
   const { data: snapshot } = await supabase
     .from("lineup_snapshots")
     .select("is_valid")
     .eq("club_id", club.id)
-    .eq("gameweek_id", gameweek.id)
+    .eq("gameweek_id", draftGameweekId)
     .maybeSingle();
 
   const { data: draft } = await supabase
     .from("lineup_drafts")
     .select("starter_ids, bench_ids")
     .eq("club_id", club.id)
-    .eq("gameweek_id", gameweek.id)
+    .eq("gameweek_id", draftGameweekId)
     .maybeSingle();
 
   const { data: gwPoints } = await supabase
@@ -118,11 +176,15 @@ export async function getClubGameweekSummary() {
     .eq("season", gameweek.season)
     .maybeSingle();
 
+  const isLineupLocked = editableGameweek
+    ? !(await isGameweekEditable(editableGameweek, club.id))
+    : true;
+
   return {
     gameweek,
     gameweekPoints: Number(gwPoints?.points ?? 0),
     seasonPoints: Number(seasonPoints?.total_points ?? 0),
-    isLineupLocked: lockedByTime || !!snapshot,
+    isLineupLocked,
     hasValidDraft:
       !!draft &&
       draft.starter_ids?.length === 11 &&

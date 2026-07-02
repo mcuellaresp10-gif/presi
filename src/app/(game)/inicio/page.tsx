@@ -65,11 +65,14 @@ export default async function InicioPage() {
       hasValidDraft={gwSummary?.hasValidDraft ?? false}
       scoutingState={scoutingState}
       pendingIncome={overview?.pendingIncome ?? 0}
+      pendingGems={overview?.pendingGems ?? 0}
       pendingTicks={overview?.pendingTicks ?? 0}
       incomePerTick={overview?.incomePerTick ?? 0}
+      gemsPerTick={overview?.gemsPerTick ?? 2}
       incomeIntervalHours={overview?.incomeIntervalHours ?? 12}
       nextIncomeTickAt={overview?.nextIncomeTickAt ?? null}
       weeklyIncome={overview?.weeklyIncome ?? 0}
+      weeklyGems={overview?.weeklyGems ?? 0}
       gymBonusPct={overview?.bonuses?.gym?.leagueBonusPct ?? 0}
       contractsExpiringSoon={contractsSummary?.expiringSoon ?? 0}
     />

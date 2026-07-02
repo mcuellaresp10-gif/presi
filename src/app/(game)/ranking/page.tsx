@@ -10,15 +10,15 @@ export default async function RankingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-andes-deep">Ranking global</h1>
-        <p className="text-sm text-andes-deep/70">
+        <h1 className="text-2xl font-bold text-white">Ranking global</h1>
+        <p className="text-sm text-white/70">
           Top 20 clubes de la Liga Global PRESI
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-andes-deep/10 bg-white/80">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-white/80">
         <table className="w-full text-sm">
-          <thead className="bg-andes-deep text-left text-white">
+          <thead className="bg-presi-elevated text-left text-white">
             <tr>
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Club</th>
@@ -31,11 +31,11 @@ export default async function RankingPage() {
               return (
                 <tr
                   key={entry.id}
-                  className={`border-t border-andes-deep/5 ${
-                    isUserClub ? "bg-andes-gold/10" : ""
+                  className={`border-t border-white/5 ${
+                    isUserClub ? "bg-presi-gold/10" : ""
                   }`}
                 >
-                  <td className="px-4 py-3 font-bold text-andes-gold">
+                  <td className="px-4 py-3 font-bold text-presi-gold">
                     {entry.posicion}
                   </td>
                   <td className="px-4 py-3">
@@ -46,18 +46,18 @@ export default async function RankingPage() {
                       />
                       <span className="font-medium">{entry.club_nombre}</span>
                       {isUserClub && (
-                        <span className="text-xs text-andes-accent">(Tú)</span>
+                        <span className="text-xs text-presi-cyan">(Tú)</span>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right font-semibold">
                     {entry.puntos.toLocaleString("es-CO")}
                     {"gym_bonus_pct" in entry && entry.gym_bonus_pct ? (
-                      <span className="ml-1 text-[10px] text-andes-accent">
+                      <span className="ml-1 text-[10px] text-presi-cyan">
                         (+{entry.gym_bonus_pct}%)
                       </span>
                     ) : "hinchas_bonus_pct" in entry && entry.hinchas_bonus_pct ? (
-                      <span className="ml-1 text-[10px] text-andes-accent">
+                      <span className="ml-1 text-[10px] text-presi-cyan">
                         (+{entry.hinchas_bonus_pct}%)
                       </span>
                     ) : null}
