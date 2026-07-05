@@ -3,28 +3,19 @@
 import { useEffect, useState } from "react";
 import { Share, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  clearDeferredInstallPrompt,
+  getDeferredInstallPrompt,
+  getManualInstallHint,
+  isChromiumBrowser,
+  isIosSafari,
+  isStandaloneDisplay,
+  subscribeInstallPrompt,
+} from "@/lib/pwa/install-prompt";
 
 const DISMISS_KEY = "presi_install_prompt_dismissed_at";
 const DISMISS_DAYS = 14;
-
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
-function isStandalone() {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    // Safari iOS expone esta propiedad no estándar
-    (window.navigator as unknown as { standalone?: boolean }).standalone === true
-  );
-}
-
-function isIos() {
-  if (typeof window === "undefined") return false;
-  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-}
 
 function recentlyDismissed() {
   const raw = localStorage.getItem(DISMISS_KEY);
@@ -34,28 +25,29 @@ function recentlyDismissed() {
 }
 
 export function InstallPrompt() {
-  const [platform, setPlatform] = useState<"ios" | "android" | null>(null);
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const { toast } = useToast();
+  const [platform, setPlatform] = useState<"ios" | "installable" | null>(null);
   const [visible, setVisible] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   useEffect(() => {
-    if (isStandalone() || recentlyDismissed()) return;
+    if (isStandaloneDisplay() || recentlyDismissed()) return;
 
-    if (isIos()) {
+    if (isIosSafari()) {
       setPlatform("ios");
       setVisible(true);
       return;
     }
 
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setPlatform("android");
-      setVisible(true);
+    const sync = () => {
+      if (getDeferredInstallPrompt()) {
+        setPlatform("installable");
+        setVisible(true);
+      }
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+
+    sync();
+    return subscribeInstallPrompt(sync);
   }, []);
 
   if (!visible || !platform) return null;
@@ -65,17 +57,45 @@ export function InstallPrompt() {
     setVisible(false);
   };
 
-  const handleAndroidInstall = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-    setVisible(false);
+  const handleInstall = async () => {
+    const prompt = getDeferredInstallPrompt();
+    if (!prompt) {
+      toast({
+        title: "Instala manualmente",
+        description: getManualInstallHint(),
+      });
+      return;
+    }
+
+    setInstalling(true);
+    try {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      clearDeferredInstallPrompt();
+
+      if (outcome === "accepted") {
+        toast({ title: "PRESI instalado", description: "Ábrelo desde tu inicio." });
+        setVisible(false);
+      } else {
+        toast({
+          title: "Instalación cancelada",
+          description: getManualInstallHint(),
+        });
+      }
+    } catch {
+      toast({
+        title: "Usa el menú de Chrome",
+        description: getManualInstallHint(),
+      });
+    } finally {
+      setInstalling(false);
+    }
   };
 
   return (
     <div className="fixed inset-x-4 bottom-24 z-50 rounded-xl border border-presi-cyan/20 bg-presi-elevated p-4 text-white shadow-xl shadow-black/40 safe-bottom">
       <button
+        type="button"
         onClick={dismiss}
         aria-label="Cerrar"
         className="absolute right-3 top-3 text-white/50 hover:text-white"
@@ -102,10 +122,21 @@ export function InstallPrompt() {
             <p className="text-sm text-white/80">
               Ábrelo como app, sin el navegador de por medio.
             </p>
+            {isChromiumBrowser() && !getDeferredInstallPrompt() ? (
+              <p className="mt-1 text-[11px] text-white/50">
+                Si el botón no responde: {getManualInstallHint()}
+              </p>
+            ) : null}
           </div>
-          <Button onClick={handleAndroidInstall} size="sm" className="shrink-0">
+          <Button
+            type="button"
+            onClick={handleInstall}
+            size="sm"
+            className="shrink-0"
+            disabled={installing}
+          >
             <Download className="mr-1.5 h-4 w-4" />
-            Instalar
+            {installing ? "..." : "Instalar"}
           </Button>
         </div>
       )}
