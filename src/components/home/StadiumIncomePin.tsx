@@ -86,12 +86,21 @@ export function StadiumIncomePin({
         return;
       }
 
+      if (!("success" in result) || !result.success) {
+        toast({
+          title: "No se pudo cobrar",
+          description: "Respuesta inesperada del servidor.",
+        });
+        return;
+      }
+
+      const { amount, gems } = result;
       setCollected(true);
       toast({
         title: "Ingresos cobrados",
         description: [
-          result.amount > 0 ? formatCompactMoney(result.amount) : null,
-          result.gems > 0 ? `${result.gems} gemas` : null,
+          amount > 0 ? formatCompactMoney(amount) : null,
+          gems > 0 ? `${gems} gemas` : null,
         ]
           .filter(Boolean)
           .join(" + "),
