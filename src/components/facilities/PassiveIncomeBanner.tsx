@@ -54,13 +54,18 @@ export function PassiveIncomeBanner({
   async function handleCollect() {
     setLoading(true);
     setError(null);
-    const result = await collectPassiveIncome();
-    if ("error" in result && result.error) {
-      setError(result.error);
-    } else {
+    try {
+      const result = await collectPassiveIncome();
+      if ("error" in result && result.error) {
+        setError(result.error);
+        return;
+      }
       router.refresh();
+    } catch {
+      setError("Error de conexión. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   if (!showCollect) {

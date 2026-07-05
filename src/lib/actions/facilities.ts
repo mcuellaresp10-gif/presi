@@ -180,13 +180,11 @@ export async function collectPassiveIncome() {
     new Date(lastIncomeAt).getTime() + pending.ticks * pending.intervalMs
   );
 
-  const updatePayload: Record<string, unknown> = {
+  const updatePayload = {
     presupuesto: newBudget,
     gemas: newGemas,
+    ultimo_ingreso_en: newLastIncome.toISOString(),
   };
-  if ("ultimo_ingreso_en" in club) {
-    updatePayload.ultimo_ingreso_en = newLastIncome.toISOString();
-  }
 
   const { error } = await supabase
     .from("clubs")

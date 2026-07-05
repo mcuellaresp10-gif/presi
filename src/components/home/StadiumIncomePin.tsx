@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Gem } from "lucide-react";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
+import { useToast } from "@/components/ui/use-toast";
 import { collectPassiveIncome } from "@/lib/actions/facilities";
 import { formatRemainingTime } from "@/lib/game";
 import type { EscudoConfig } from "@/lib/game/types";
@@ -35,8 +36,10 @@ export function StadiumIncomePin({
   pendingTicks: number;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [now, setNow] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [collected, setCollected] = useState(false);
 
   useEffect(() => {
     setNow(Date.now());
@@ -44,8 +47,14 @@ export function StadiumIncomePin({
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (pendingAmount <= 0 && pendingGems <= 0) {
+      setCollected(false);
+    }
+  }, [pendingAmount, pendingGems]);
+
   const intervalMs = incomeIntervalHours * 60 * 60 * 1000;
-  const hasPending = pendingAmount > 0 || pendingGems > 0;
+  const hasPending = !collected && (pendingAmount > 0 || pendingGems > 0);
 
   const { progress, remainingMs } = useMemo(() => {
     if (now === null || !nextIncomeTickAt || intervalMs <= 0) {
@@ -67,11 +76,35 @@ export function StadiumIncomePin({
   async function handleCollect() {
     if (!hasPending || loading) return;
     setLoading(true);
-    const result = await collectPassiveIncome();
-    if (!("error" in result && result.error)) {
+    try {
+      const result = await collectPassiveIncome();
+      if ("error" in result && result.error) {
+        toast({
+          title: "No se pudo cobrar",
+          description: result.error,
+        });
+        return;
+      }
+
+      setCollected(true);
+      toast({
+        title: "Ingresos cobrados",
+        description: [
+          result.amount > 0 ? formatCompactMoney(result.amount) : null,
+          result.gems > 0 ? `${result.gems} gemas` : null,
+        ]
+          .filter(Boolean)
+          .join(" + "),
+      });
       router.refresh();
+    } catch {
+      toast({
+        title: "No se pudo cobrar",
+        description: "Error de conexión. Intenta de nuevo.",
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
