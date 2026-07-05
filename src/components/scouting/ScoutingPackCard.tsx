@@ -185,7 +185,7 @@ export function ScoutingPackCard({
           </div>
         )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-presi-red">{error}</p>}
 
         {showUpgrade && (
           <div className="border-t border-white/10 pt-3">

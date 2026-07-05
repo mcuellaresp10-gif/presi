@@ -53,7 +53,8 @@ describe("facility-progression", () => {
 
   it("calculatePassiveIncomeTicks accrues full ticks", () => {
     const last = new Date("2026-01-01T00:00:00Z");
-    const now = new Date(last.getTime() + 12 * 60 * 60 * 1000 * 2);
+    const intervalMs = 6 * 60 * 60 * 1000;
+    const now = new Date(last.getTime() + intervalMs * 2);
     const result = calculatePassiveIncomeTicks(1, 1, last, now);
     expect(result.ticks).toBe(2);
     expect(result.amount).toBe(result.tickAmount * 2);

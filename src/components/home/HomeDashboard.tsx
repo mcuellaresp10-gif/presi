@@ -3,62 +3,55 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
+import { LiveBadge } from "@/components/ui/live-badge";
+import { Button } from "@/components/ui/button";
 import type { EscudoConfig } from "@/lib/game/types";
-import { formatCOP } from "@/lib/utils";
-import { Clock, Zap } from "lucide-react";
-import { formatRemainingTime, getWildCardDefinition } from "@/lib/game";
-import type { ScoutingUIState } from "@/components/scouting/ScoutingPackCard";
-import { GameweekPointsPanel } from "@/components/scoring/GameweekPointsPanel";
-import { PassiveIncomeBanner } from "@/components/facilities/PassiveIncomeBanner";
+import { Clock } from "lucide-react";
+import { formatRemainingTime } from "@/lib/game";
+import { StadiumIncomePin } from "@/components/home/StadiumIncomePin";
 
 export function HomeDashboard({
   clubNombre,
   escudoConfig,
-  presupuesto,
   seasonPoints,
   gameweekPoints,
   gameweekRound,
-  gameweekId,
   gameweekStatus,
   deadlineAt,
   isLineupLocked,
   hasValidDraft,
-  scoutingState,
+  rivalNombre,
+  rivalPoints,
+  rivalEscudo,
+  contractsExpiringSoon,
+  nextIncomeTickAt,
+  incomeIntervalHours,
+  incomePerTick,
+  gemsPerTick,
   pendingIncome,
   pendingGems,
   pendingTicks,
-  incomePerTick,
-  gemsPerTick,
-  incomeIntervalHours,
-  nextIncomeTickAt,
-  weeklyIncome,
-  weeklyGems,
-  gymBonusPct,
-  contractsExpiringSoon,
 }: {
   clubNombre: string;
   escudoConfig: EscudoConfig;
-  presupuesto: number;
   seasonPoints: number;
   gameweekPoints: number;
   gameweekRound: number | null;
-  gameweekId: string | null;
   gameweekStatus: string | null;
   deadlineAt: string | null;
   isLineupLocked: boolean;
   hasValidDraft: boolean;
-  scoutingState: ScoutingUIState;
+  rivalNombre: string | null;
+  rivalPoints: number;
+  rivalEscudo: EscudoConfig | null;
+  contractsExpiringSoon: number;
+  nextIncomeTickAt: string | null;
+  incomeIntervalHours: number;
+  incomePerTick: number;
+  gemsPerTick: number;
   pendingIncome: number;
   pendingGems: number;
   pendingTicks: number;
-  incomePerTick: number;
-  gemsPerTick: number;
-  incomeIntervalHours: number;
-  nextIncomeTickAt: string | null;
-  weeklyIncome: number;
-  weeklyGems: number;
-  gymBonusPct: number;
-  contractsExpiringSoon: number;
 }) {
   const [now, setNow] = useState<number | null>(null);
 
@@ -75,250 +68,116 @@ export function HomeDashboard({
   const deadlineCountdown =
     deadlineMs !== null ? formatRemainingTime(deadlineMs) : "—";
 
-  const scoutingWildCardReady =
-    scoutingState.estado === "listo" && !!scoutingState.wildCardType;
-  const scoutingPlayerReady =
-    scoutingState.estado === "listo" && !!scoutingState.player;
-  const scoutingReady = scoutingWildCardReady || scoutingPlayerReady;
-  const scoutingRemainingMs =
-    now !== null
-      ? Math.max(0, new Date(scoutingState.generaEn).getTime() - now)
-      : null;
-  const scoutingCountdown =
-    scoutingRemainingMs !== null
-      ? formatRemainingTime(scoutingRemainingMs)
-      : "—";
+  const needsLineup = !hasValidDraft && !isLineupLocked && !!gameweekRound;
+  const live = gameweekStatus === "live";
 
   return (
-    <div className="relative -mx-4 -mt-6 min-h-[calc(100vh-8rem)] overflow-hidden md:mx-0 md:mt-0 md:min-h-[calc(100vh-10rem)] md:rounded-xl">
-      {/* Stadium background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-presi-navy via-presi-bg to-presi-bg">
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `
-              radial-gradient(ellipse 80% 50% at 50% 60%, rgba(34,211,238,0.25) 0%, transparent 60%),
-              radial-gradient(circle at 15% 20%, rgba(245,197,24,0.2) 0%, transparent 35%),
-              radial-gradient(circle at 85% 25%, rgba(255,51,85,0.12) 0%, transparent 35%)
-            `,
-          }}
-        />
-        <div className="absolute inset-x-8 bottom-1/4 top-1/3 rounded-[50%] border-2 border-presi-cyan/20 bg-presi-navy/50 shadow-inner" />
-        <div className="absolute left-1/2 top-[42%] h-1 w-1/3 -translate-x-1/2 border-t border-white/20" />
-        <div className="absolute left-1/2 top-[42%] h-16 w-24 -translate-x-1/2 rounded border border-white/15" />
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-presi-navy via-presi-bg to-presi-bg">
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              backgroundImage: `
+                radial-gradient(ellipse 80% 50% at 50% 55%, rgba(34,211,238,0.2) 0%, transparent 60%),
+                radial-gradient(circle at 12% 18%, rgba(245,197,24,0.18) 0%, transparent 35%),
+                radial-gradient(circle at 88% 22%, rgba(255,51,85,0.1) 0%, transparent 35%)
+              `,
+            }}
+          />
+          <div className="absolute inset-x-6 bottom-[28%] top-[32%] rounded-[50%] border-2 border-presi-cyan/25 bg-presi-navy/40 shadow-inner" />
+          <div className="absolute left-1/2 top-[44%] h-1 w-2/5 -translate-x-1/2 border-t border-white/20" />
+          <div className="absolute left-1/2 top-[44%] h-14 w-20 -translate-x-1/2 rounded border border-white/15" />
+        </div>
       </div>
 
-      <div className="relative z-10 flex min-h-[calc(100vh-8rem)] flex-col p-4">
-        {/* Resource pills */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex gap-2">
-            <div className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
-              <span className="text-presi-gold">●</span>
-              {formatCOP(presupuesto).replace("COP", "").trim()}
-            </div>
-            <div className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
-              <span className="text-purple-400">◆</span>
-              {seasonPoints.toLocaleString("es-CO")} pts
-            </div>
-          </div>
-        </div>
-
-        {(pendingIncome > 0 ||
-          pendingGems > 0 ||
-          incomePerTick > 0 ||
-          gemsPerTick > 0 ||
-          gymBonusPct > 0) && (
-          <div className="mt-3 space-y-2">
-            {(pendingIncome > 0 ||
-              pendingGems > 0 ||
-              incomePerTick > 0 ||
-              gemsPerTick > 0) && (
-              <PassiveIncomeBanner
-                pendingAmount={pendingIncome}
-                pendingGems={pendingGems}
-                pendingTicks={pendingTicks}
-                incomePerTick={incomePerTick}
-                gemsPerTick={gemsPerTick}
-                incomeIntervalHours={incomeIntervalHours}
-                nextIncomeTickAt={nextIncomeTickAt}
-                weeklyIncome={weeklyIncome}
-                weeklyGems={weeklyGems}
-              />
-            )}
-            {gymBonusPct > 0 && (
-              <p className="rounded-lg bg-black/40 px-3 py-2 text-center text-[10px] text-white/80 backdrop-blur">
-                Bonus gimnasio activo:{" "}
-                <span className="font-bold text-presi-cyan">
-                  +{gymBonusPct}%
-                </span>{" "}
-                en puntos de liga
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pt-2">
+        <div className="rounded-xl border border-white/10 bg-black/40 p-3 backdrop-blur-md">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div className="flex flex-col items-center gap-1 text-center">
+              <EscudoRenderer config={escudoConfig} size={36} />
+              <p className="max-w-[7rem] truncate text-[10px] font-bold uppercase">
+                {clubNombre}
               </p>
-            )}
-          </div>
-        )}
-
-        {/* Puntos del club */}
-        <div className="mt-4 rounded-xl border border-presi-gold/30 bg-presi-surface/90 p-4 text-white backdrop-blur">
-          <div className="flex items-center gap-3">
-            <EscudoRenderer config={escudoConfig} size={40} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold uppercase">{clubNombre}</p>
-              <p className="text-[10px] font-medium uppercase tracking-wide opacity-70">
-                Temporada
+              <p className="text-2xl font-black text-display text-presi-gold">
+                {gameweekPoints}
               </p>
+              <p className="text-[9px] text-white/40">Jornada</p>
             </div>
-            <p className="text-4xl font-black text-display text-presi-gold">{seasonPoints.toLocaleString("es-CO")}</p>
-          </div>
-          {gameweekRound ? (
-            <GameweekPointsPanel
-              gameweekId={gameweekId}
-              gameweekRound={gameweekRound}
-              gameweekPoints={gameweekPoints}
-            />
-          ) : null}
-        </div>
 
-        {/* Estado jornada */}
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-center gap-2 rounded-lg bg-black/50 px-3 py-2 text-xs text-white backdrop-blur">
-            <span
-              className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
-                gameweekStatus === "live"
-                  ? "bg-presi-cyan text-presi-bg"
-                  : "bg-presi-gold text-white"
-              }`}
-            >
-              {gameweekStatus === "live" ? "En vivo" : "Jornada"}
-            </span>
+            <div className="px-2 text-center">
+              <p className="text-display text-lg text-white/30">VS</p>
+              {gameweekRound ? (
+                <p className="text-[9px] text-white/50">J{gameweekRound}</p>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col items-center gap-1 text-center">
+              {rivalEscudo ? (
+                <EscudoRenderer config={rivalEscudo} size={36} />
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs">
+                  ?
+                </div>
+              )}
+              <p className="max-w-[7rem] truncate text-[10px] font-bold uppercase">
+                {rivalNombre ?? "Rival"}
+              </p>
+              <p className="text-2xl font-black text-display text-white/80">
+                {rivalPoints}
+              </p>
+              <p className="text-[9px] text-white/40">Temporada</p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-black/30 px-3 py-2 text-xs">
+            <LiveBadge live={live} label={live ? "En vivo" : "Jornada"} />
             <Clock className="h-3.5 w-3.5 text-presi-gold" />
-            <span>
+            <span className="text-white/80">
               {gameweekRound
-                ? gameweekStatus === "live"
+                ? live
                   ? "Partidos en curso"
                   : isLineupLocked
                     ? "Alineación bloqueada"
-                    : "Arma tu alineación"
+                    : `Cierra en ${deadlineCountdown}`
                 : "Sin jornada activa"}
-              {!isLineupLocked && deadlineAt && (
-                <> · cierra en {deadlineCountdown}</>
-              )}
             </span>
           </div>
-          {!hasValidDraft && !isLineupLocked && gameweekRound && (
-            <Link
-              href="/plantilla"
-              className="block rounded-lg bg-red-500/20 px-3 py-2 text-center text-[10px] text-red-200 hover:bg-red-500/30"
-            >
-              Guarda 11 inicial + banca antes del primer partido o no sumarás puntos
-            </Link>
-          )}
-          {contractsExpiringSoon > 0 && (
-            <p className="rounded-lg bg-amber-500/20 px-3 py-2 text-center text-[10px] text-amber-200">
+        </div>
+
+        <p className="mt-2 text-center text-[10px] text-white/40">
+          Temporada:{" "}
+          <span className="font-bold text-presi-cyan">
+            {seasonPoints.toLocaleString("es-CO")} pts
+          </span>
+        </p>
+
+        <div className="flex flex-1 items-center justify-center py-6">
+          <StadiumIncomePin
+            escudoConfig={escudoConfig}
+            nextIncomeTickAt={nextIncomeTickAt}
+            incomeIntervalHours={incomeIntervalHours}
+            incomePerTick={incomePerTick}
+            gemsPerTick={gemsPerTick}
+            pendingAmount={pendingIncome}
+            pendingGems={pendingGems}
+            pendingTicks={pendingTicks}
+          />
+        </div>
+
+        <div className="space-y-2">
+          {needsLineup ? (
+            <Button asChild variant="cta" className="w-full">
+              <Link href="/plantilla">Armar alineación</Link>
+            </Button>
+          ) : null}
+
+          {contractsExpiringSoon > 0 ? (
+            <p className="rounded-lg bg-presi-warning/10 px-3 py-2 text-center text-[10px] text-presi-warning">
               {contractsExpiringSoon} jugador
-              {contractsExpiringSoon !== 1 ? "es" : ""} con 1 partido o menos de
-              contrato
+              {contractsExpiringSoon !== 1 ? "es" : ""} con contrato por vencer
             </p>
-          )}
-        </div>
-
-        {/* Center pin */}
-        <div className="flex flex-1 items-center justify-center">
-          <div className="flex flex-col items-center gap-1">
-            <div className="rounded-full bg-presi-cyan/90 p-3 shadow-lg ring-4 ring-white/20">
-              <EscudoRenderer config={escudoConfig} size={48} />
-            </div>
-            <span className="rounded-full bg-black/50 px-3 py-1 text-[10px] font-medium text-white backdrop-blur">
-              Tu estadio
-            </span>
-          </div>
-        </div>
-
-        {/* Bottom actions */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Link
-              href="/instalaciones"
-              className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600"
-            >
-              <Zap className="h-4 w-4" />
-              MEJORAR
-            </Link>
-            <div className="rounded-full bg-black/50 px-3 py-2 text-xs text-white backdrop-blur">
-              Próx. mejora: 4h
-            </div>
-          </div>
-
-          <div className="flex items-end justify-between gap-3">
-            <div className="flex-1 rounded-xl bg-black/60 p-3 backdrop-blur">
-              <p className="text-[10px] uppercase tracking-wide text-white/60">
-                Centro de scouting · Nv.{scoutingState.scoutingNivel}
-              </p>
-              {scoutingReady ? (
-                <>
-                  <p className="text-sm font-semibold text-lime-300">
-                    {scoutingWildCardReady ? "¡Wild Card!" : "¡Sobre listo!"}
-                  </p>
-                  <p className="text-xs text-white/70">
-                    {scoutingWildCardReady && scoutingState.wildCardType
-                      ? getWildCardDefinition(scoutingState.wildCardType).name
-                      : scoutingState.player?.nombre}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-semibold text-white">
-                    Próximo fichaje
-                  </p>
-                  <p className="font-mono text-xs text-presi-gold">
-                    {scoutingCountdown}
-                  </p>
-                </>
-              )}
-            </div>
-            <Link
-              href="/instalaciones#scouting"
-              className={`rounded-xl px-5 py-4 text-center text-sm font-black shadow-lg transition ${
-                scoutingReady
-                  ? "bg-lime-400 text-white hover:bg-lime-300"
-                  : "bg-white/20 text-white hover:bg-white/30"
-              }`}
-            >
-              {scoutingReady ? (
-                <>
-                  {scoutingWildCardReady ? "WILD" : "ABRIR"}
-                  <br />
-                  {scoutingWildCardReady ? "CARD" : "SOBRE"}
-                </>
-              ) : (
-                <>
-                  VER
-                  <br />
-                  SCOUTING
-                </>
-              )}
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <Link
-              href="/plantilla"
-              className="rounded-lg bg-white/10 py-2.5 text-center text-xs font-medium text-white backdrop-blur hover:bg-white/20"
-            >
-              Plantilla
-            </Link>
-            <Link
-              href="/ligas"
-              className="rounded-lg bg-white/10 py-2.5 text-center text-xs font-medium text-white backdrop-blur hover:bg-white/20"
-            >
-              Ligas
-            </Link>
-            <Link
-              href="/ranking"
-              className="rounded-lg bg-white/10 py-2.5 text-center text-xs font-medium text-white backdrop-blur hover:bg-white/20"
-            >
-              Ranking
-            </Link>
-          </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -60,7 +60,7 @@ export function CreateLeagueForm() {
               required
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-presi-red">{error}</p>}
           <Button type="submit" disabled={loading}>
             {loading ? "Creando..." : "Crear liga"}
           </Button>

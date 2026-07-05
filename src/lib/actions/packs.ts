@@ -10,6 +10,7 @@ import {
 } from "@/lib/game";
 import type { Player } from "@/lib/game/types";
 import { getUserClub } from "@/lib/actions/club";
+import { getAvailableApiPlayerPool } from "@/lib/db/player-pool";
 import { createClient } from "@/lib/supabase/server";
 
 export async function openWelcomePack() {
@@ -63,10 +64,9 @@ export async function openWelcomePack() {
     (row) => row.players_master as unknown as Player
   );
 
-  const { data: allPlayers } = await supabase.from("players_master").select("*");
-  const rosterIds = new Set(rosterPlayers.map((p) => p.id));
-  const availablePool = (allPlayers as Player[]).filter(
-    (p) => !rosterIds.has(p.id)
+  const availablePool = await getAvailableApiPlayerPool(
+    supabase,
+    rosterPlayers
   );
 
   const options = generatePackOptions(

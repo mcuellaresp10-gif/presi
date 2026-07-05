@@ -3,9 +3,9 @@ import type { FacilityType } from "./types";
 export const MAX_FACILITY_LEVEL = 10;
 export const HOUR_MS = 60 * 60 * 1000;
 
-export const HINCHAS_TICK_BASE = 80_000;
-export const OFFICE_TICK_BASE = 50_000;
-export const HINCHAS_GEM_TICK_BASE = 1;
+export const HINCHAS_TICK_BASE = 150_000;
+export const OFFICE_TICK_BASE = 100_000;
+export const HINCHAS_GEM_TICK_BASE = 2;
 export const OFFICE_GEM_TICK_BASE = 1;
 
 export type TimerProfile = "scouting" | "academia" | "income" | "build";
@@ -15,7 +15,7 @@ const TIMER_PROFILES: Record<
   { maxHours: number; minHours: number }
 > = {
   scouting: { maxHours: 12, minHours: 4 },
-  income: { maxHours: 12, minHours: 4 },
+  income: { maxHours: 6, minHours: 2 },
   academia: { maxHours: 48, minHours: 16 },
   build: { maxHours: 24, minHours: 8 },
 };

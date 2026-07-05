@@ -10,13 +10,18 @@ import { assignStarterRoster } from "../starter-roster";
 import type { Player } from "../types";
 import { INITIAL_BUDGET } from "../types";
 
-/** Mirrors supabase/seed.sql player costs */
+/** Mirrors tier cost ranges after player-rarity sync */
 function buildSeedPool(): Player[] {
+  const bronceCosts = [500_000, 600_000, 700_000, 800_000, 900_000, 1_000_000];
+  const plataCosts = [1_200_000, 1_400_000, 1_600_000];
+  const oroCosts = [2_000_000];
+  const leyendaCosts = [4_500_000];
+
   const costs = {
-    GK: [2500000, 2800000, 3000000, 3200000, 3500000, 3800000, 5500000, 6500000, 7500000, 12000000],
-    DEF: [2500000, 2800000, 3000000, 3200000, 3500000, 3800000, 5500000, 6500000, 7500000, 13000000],
-    MED: [2500000, 2800000, 3000000, 3200000, 3500000, 3800000, 5500000, 6500000, 7500000, 14000000],
-    DEL: [2500000, 2800000, 3000000, 3200000, 3500000, 3800000, 5500000, 6500000, 15000000, 25000000],
+    GK: [...bronceCosts, ...plataCosts, ...oroCosts],
+    DEF: [...bronceCosts, ...plataCosts, ...oroCosts],
+    MED: [...bronceCosts, ...plataCosts, ...oroCosts],
+    DEL: [...bronceCosts, ...plataCosts, ...oroCosts, ...leyendaCosts],
   };
 
   const rarities: Player["rareza"][][] = [
@@ -36,7 +41,7 @@ function buildSeedPool(): Player[] {
         id: `seed-${id++}`,
         api_football_id: null,
         nombre: `${pos} ${i}`,
-        equipo_real: "Liga BetPlay",
+        equipo_real: "Liga Colombiana",
         posicion: pos,
         rareza: rarities[posIndex][i],
         costo_base: costo,
@@ -59,7 +64,7 @@ describe("welcome pack budget guarantee", () => {
   it("starter roster stays within budget cap", () => {
     const starter = assignStarterRoster(pool);
     expect(starter).toHaveLength(11);
-    expect(calculateRosterCost(starter)).toBeLessThanOrEqual(35_000_000);
+    expect(calculateRosterCost(starter)).toBeLessThanOrEqual(15_000_000);
   });
 
   it("for 1000 simulated clubs, cheapest affordable pick per pack stays within budget", () => {

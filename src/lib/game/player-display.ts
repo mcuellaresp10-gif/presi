@@ -1,4 +1,5 @@
-import type { Player, Position, Rarity } from "./types";
+import type { Player, Rarity } from "./types";
+import { getOvrForScore } from "./player-rarity";
 import { getFormationSlots } from "./formation";
 
 const RARITY_OVR: Record<Rarity, [number, number]> = {
@@ -8,23 +9,29 @@ const RARITY_OVR: Record<Rarity, [number, number]> = {
   leyenda: [87, 92],
 };
 
-export const POSITION_SHORT: Record<Position, string> = {
+export const POSITION_SHORT: Record<Player["posicion"], string> = {
   GK: "GK",
   DEF: "DF",
   MED: "MF",
   DEL: "FW",
 };
 
-export const POSITION_PITCH_COLOR: Record<Position, string> = {
-  GK: "bg-amber-400 text-white",
-  DEF: "bg-violet-400 text-white",
-  MED: "bg-sky-400 text-white",
-  DEL: "bg-presi-cyan text-white",
+export const POSITION_PITCH_COLOR: Record<Player["posicion"], string> = {
+  GK: "bg-presi-warning text-presi-bg",
+  DEF: "bg-presi-navy text-white",
+  MED: "bg-presi-cyan/80 text-presi-bg",
+  DEL: "bg-presi-gold text-presi-bg",
 };
 
 export function getPlayerRating(player: Player): number {
+  if (player.performance_score != null && player.performance_score > 0) {
+    return getOvrForScore(player.rareza, player.performance_score);
+  }
+
   const [min, max] = RARITY_OVR[player.rareza];
-  const hash = player.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = player.id
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return min + (hash % (max - min + 1));
 }
 
@@ -44,9 +51,9 @@ export function getPlayerInitials(nombre: string): string {
 export function assignPlayersToPitchSlots(
   players: Player[],
   formationLabel: string
-): Record<Position, (Player | null)[]> {
+): Record<Player["posicion"], (Player | null)[]> {
   const slots = getFormationSlots(formationLabel);
-  const byPos: Record<Position, Player[]> = {
+  const byPos: Record<Player["posicion"], Player[]> = {
     GK: [],
     DEF: [],
     MED: [],
@@ -57,7 +64,7 @@ export function assignPlayersToPitchSlots(
     byPos[player.posicion].push(player);
   }
 
-  for (const pos of Object.keys(byPos) as Position[]) {
+  for (const pos of Object.keys(byPos) as Player["posicion"][]) {
     byPos[pos].sort((a, b) => a.nombre.localeCompare(b.nombre));
   }
 

@@ -1,0 +1,60 @@
+"use client";
+
+import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { BottomNav } from "@/components/layout/BottomNav";
+import { MoreMenu } from "@/components/layout/MoreMenu";
+import { ResourceBar } from "@/components/layout/ResourceBar";
+import { InstallPrompt } from "@/components/layout/InstallPrompt";
+import type { ProfileSummary } from "@/lib/actions/profile";
+
+export function GameShell({
+  profile,
+  children,
+}: {
+  profile: ProfileSummary | null;
+  children: React.ReactNode;
+}) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const pathname = usePathname();
+  const isInicio = pathname === "/inicio";
+  const immersive =
+    isInicio ||
+    pathname === "/" ||
+    pathname.startsWith("/plantilla") ||
+    pathname.startsWith("/onboarding");
+  const hideNav = pathname.startsWith("/onboarding");
+
+  return (
+    <div className="flex min-h-screen flex-col bg-presi-bg">
+      <header className="sticky top-0 z-40 border-b border-presi-cyan/15 bg-presi-elevated/95 backdrop-blur-md">
+        {profile ? <ResourceBar profile={profile} /> : null}
+      </header>
+
+      <main
+        className={
+          immersive
+            ? `relative mx-auto flex w-full max-w-lg flex-1 flex-col pb-24${
+                isInicio ? " min-h-0" : ""
+              }`
+            : "relative mx-auto w-full max-w-lg flex-1 px-4 py-4 pb-24"
+        }
+      >
+        {children}
+      </main>
+
+      {profile && !hideNav ? (
+        <>
+          <BottomNav onMoreClick={() => setMoreOpen(true)} />
+          <MoreMenu
+            profile={profile}
+            open={moreOpen}
+            onClose={() => setMoreOpen(false)}
+          />
+        </>
+      ) : null}
+
+      <InstallPrompt />
+    </div>
+  );
+}

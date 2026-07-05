@@ -170,18 +170,16 @@ export function FacilitiesClient({
 
   return (
     <>
-      <div className="-mx-4 -mt-4 min-h-[calc(100vh-8rem)] bg-presi-bg px-3 pb-6 pt-3 text-white">
-        <div className="mb-3">
-          <h1 className="text-base font-black uppercase tracking-[0.2em] text-presi-cyan">
-            Construye tu club
-          </h1>
-          <p className="text-[10px] text-white/50">
+      <div className="-mx-4 min-h-[calc(100vh-8rem)] bg-presi-bg px-3 pb-6 pt-2 text-white">
+        <div className="mb-4">
+          <h1 className="text-display text-xl text-presi-gold">Instalaciones</h1>
+          <p className="text-xs text-white/50">
             Toca un edificio · Mejoras {activeUpgradesCount}/
-            {MAX_CONCURRENT_UPGRADES} · Nivel máx. 10
+            {MAX_CONCURRENT_UPGRADES}
           </p>
         </div>
 
-        {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
+        {error ? <p className="mb-2 text-sm text-presi-red">{error}</p> : null}
 
         <div className="mb-3">
           <PassiveIncomeBanner

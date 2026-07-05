@@ -1,6 +1,6 @@
 # PRESI
 
-Fantasy ownership game for Liga BetPlay (Colombia). Sprint 1 — mock data loop.
+Fantasy ownership game for Liga Colombiana (Colombia). Sprint 1 — mock data loop.
 
 ## Setup rápido
 

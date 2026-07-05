@@ -16,10 +16,10 @@ export interface LoanOffer {
 }
 
 const GEM_COST_BY_RARITY: Record<Rarity, [number, number]> = {
-  bronce: [15, 25],
-  plata: [35, 50],
-  oro: [70, 100],
-  leyenda: [120, 150],
+  bronce: [5, 10],
+  plata: [12, 18],
+  oro: [22, 32],
+  leyenda: [35, 45],
 };
 
 export function loanMarketWindowStart(now = Date.now()): number {

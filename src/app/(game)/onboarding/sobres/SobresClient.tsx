@@ -6,7 +6,8 @@ import {
   PackCompleteMessage,
   PackOpenAnimation,
 } from "@/components/packs/PackOpenAnimation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OnboardingStepper } from "@/components/onboarding/OnboardingStepper";
+import { Skeleton } from "@/components/ui/skeleton";
 import { openWelcomePack, selectPackPlayer } from "@/lib/actions/packs";
 import type { Player } from "@/lib/game/types";
 
@@ -77,45 +78,59 @@ export function SobresClient({ sobresRestantes }: { sobresRestantes: number }) {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-white/70">
-        Preparando sobre...
+      <div className="space-y-4 px-2">
+        <OnboardingStepper current={3} />
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-8 w-48 mx-auto" />
       </div>
     );
   }
 
   if (completed) {
-    return <PackCompleteMessage />;
+    return (
+      <div className="space-y-4">
+        <OnboardingStepper current={3} />
+        <PackCompleteMessage />
+      </div>
+    );
   }
 
-  return (
-    <div className="mx-auto max-w-3xl">
-      <Card className="poster-bg poster-shards">
-        <CardHeader>
-          <CardTitle>Sobres de bienvenida</CardTitle>
-          <p className="text-sm text-white/70">
-            Te quedan {sobresRestantes} sobres · elige 1 de 3 jugadores por sobre
-          </p>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <p className="mb-4 text-center text-sm text-red-600">{error}</p>
-          )}
+  const totalPacks = 4;
+  const currentPack = Math.min(packNumber, totalPacks);
 
-          {options.length > 0 && sessionId ? (
-            <PackOpenAnimation
-              options={options}
-              packNumber={packNumber}
-              onSelect={handleSelect}
-            />
-          ) : (
-            !error && (
-              <p className="text-center text-white/70">
-                {selecting ? "Fichando jugador..." : "Cargando..."}
-              </p>
-            )
-          )}
-        </CardContent>
-      </Card>
+  return (
+    <div className="fixed inset-0 top-[52px] z-30 flex flex-col bg-presi-bg pb-8">
+      <div className="px-4 pt-4">
+        <OnboardingStepper current={3} />
+        <div className="mt-4 text-center">
+          <p className="text-display text-2xl text-presi-gold">
+            Sobre {currentPack} de {totalPacks}
+          </p>
+          <p className="mt-1 text-sm text-white/50">
+            Elige 1 de 3 jugadores · {sobresRestantes} restantes
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-center px-2">
+        {error ? (
+          <p className="mb-4 text-center text-sm text-presi-red">{error}</p>
+        ) : null}
+
+        {options.length > 0 && sessionId ? (
+          <PackOpenAnimation
+            options={options}
+            packNumber={packNumber}
+            onSelect={handleSelect}
+          />
+        ) : (
+          !error && (
+            <p className="text-center text-white/60">
+              {selecting ? "Fichando jugador..." : "Cargando..."}
+            </p>
+          )
+        )}
+      </div>
     </div>
   );
 }

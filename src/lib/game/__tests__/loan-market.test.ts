@@ -65,10 +65,10 @@ describe("loan-market", () => {
       createSeededRng(loanMarketSeed("club", 1))
     );
 
-    expect(bronce).toBeGreaterThanOrEqual(15);
-    expect(bronce).toBeLessThanOrEqual(25);
-    expect(leyenda).toBeGreaterThanOrEqual(120);
-    expect(leyenda).toBeLessThanOrEqual(150);
+    expect(bronce).toBeGreaterThanOrEqual(5);
+    expect(bronce).toBeLessThanOrEqual(10);
+    expect(leyenda).toBeGreaterThanOrEqual(35);
+    expect(leyenda).toBeLessThanOrEqual(45);
   });
 
   it("defaults loan duration to 3 jornadas", () => {

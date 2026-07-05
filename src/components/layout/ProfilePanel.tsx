@@ -107,7 +107,7 @@ export function ProfilePanel({
         </div>
 
         <div className="bg-presi-gold px-4 py-2 text-center text-xs font-black uppercase tracking-wider text-presi-bg">
-          Liga BetPlay · Temporada {new Date().getFullYear()}
+          Liga Colombiana · Temporada {new Date().getFullYear()}
         </div>
 
         <div className="grid grid-cols-3 gap-px bg-white/10 px-4 py-4">
@@ -202,7 +202,7 @@ export function GameHeader({ profile }: { profile: ProfileSummary }) {
             <p className="truncate text-sm font-bold leading-tight">
               {profile.club?.nombre ?? "PRESI"}
             </p>
-            <p className="text-[10px] text-presi-gold/80">Liga BetPlay</p>
+            <p className="text-[10px] text-presi-gold/80">Liga Colombiana</p>
           </div>
         </Link>
 

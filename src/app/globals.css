@@ -5,9 +5,15 @@
 :root {
   --background: #070b18;
   --foreground: #f8fafc;
+  --surface: #0c1424;
+  --surface-elevated: #111b2e;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --text-muted: rgba(255, 255, 255, 0.6);
   --presi-gold: #f5c518;
   --presi-cyan: #22d3ee;
   --presi-red: #ff3355;
+  --presi-success: #34d399;
+  --presi-warning: #fbbf24;
 }
 
 body {
@@ -163,5 +169,20 @@ body {
     );
     mix-blend-mode: overlay;
     pointer-events: none;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .nav-glow {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
+  }
+
+  .card-poster {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(135deg, rgba(245, 197, 24, 0.3), rgba(34, 211, 238, 0.2)) border-box;
   }
 }

@@ -42,7 +42,9 @@ if (existsSync(nextDir)) {
 console.log("🚀 Iniciando next dev en http://localhost:3000\n");
 console.log("   Si el navegador sigue sin estilos: Ctrl+Shift+R\n");
 
-const child = spawn("npx", ["next", "dev"], {
+const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+
+const child = spawn(npx, ["next", "dev"], {
   cwd: root,
   stdio: "inherit",
   shell: true,

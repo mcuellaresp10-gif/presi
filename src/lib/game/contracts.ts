@@ -5,13 +5,7 @@ export const RENEWAL_COST_RATE = 0.4;
 export const OFFICE_RENEWAL_DISCOUNT_PER_LEVEL = 0.02;
 export const RELEASE_REFUND_RATE = 0.25;
 export const OFFICE_RELEASE_REFUND_MIN_LEVEL = 3;
-
-const JORNADAS_BY_RARITY: Record<Rarity, number> = {
-  bronce: 5,
-  plata: 4,
-  oro: 3,
-  leyenda: 2,
-};
+export const CONTRACT_JORNADAS = 3;
 
 export interface PlayerContract {
   jornadas_restantes: number;
@@ -23,9 +17,10 @@ export interface InitialContractResult {
   jornadasTotal: number;
 }
 
-export function getContractJornadas(rareza: Rarity, isStarter = false): number {
-  const base = JORNADAS_BY_RARITY[rareza];
-  return isStarter ? base * 2 : base;
+export function getContractJornadas(_rareza: Rarity, _isStarter = false): number {
+  void _rareza;
+  void _isStarter;
+  return CONTRACT_JORNADAS;
 }
 
 export function getInitialContract(

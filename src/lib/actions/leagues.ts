@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
 import { getGymLeagueBonusForClub } from "@/lib/actions/facilities";
@@ -95,7 +96,7 @@ export async function getMyLeagues() {
   return (data ?? []).map((row) => row.leagues);
 }
 
-export async function getGlobalRanking() {
+export const getGlobalRanking = cache(async function getGlobalRanking() {
   const supabase = await createClient();
   const club = await getUserClub();
   const season = new Date().getFullYear();
@@ -110,42 +111,42 @@ export async function getGlobalRanking() {
     const bonusPct = club ? await getGymLeagueBonusForClub(club.id) : 0;
     const multiplier = 1 + bonusPct / 100;
 
-    return realRows.map((row, index) => {
-      const clubData = row.clubs as unknown as {
-        id: string;
-        nombre: string;
-        escudo_config: unknown;
-      };
-      const isUser = club && clubData.nombre === club.nombre;
-      const basePoints = Number(row.total_points);
-      return {
-        id: clubData.id,
-        club_nombre: clubData.nombre,
-        escudo_config: clubData.escudo_config,
-        puntos: isUser ? Math.round(basePoints * multiplier) : basePoints,
-        posicion: index + 1,
-        gym_bonus_pct: isUser ? bonusPct : 0,
-      };
-    });
+    const validRows = realRows.filter((row) => row.clubs != null);
+
+    if (validRows.length > 0) {
+      return validRows.map((row, index) => {
+        const clubData = row.clubs as unknown as {
+          id: string;
+          nombre: string;
+          escudo_config: unknown;
+        };
+        const isUser = club && clubData.nombre === club.nombre;
+        const basePoints = Number(row.total_points);
+        return {
+          id: clubData.id,
+          club_nombre: clubData.nombre,
+          escudo_config: clubData.escudo_config,
+          puntos: isUser ? Math.round(basePoints * multiplier) : basePoints,
+          posicion: index + 1,
+          gym_bonus_pct: isUser ? bonusPct : 0,
+        };
+      });
+    }
   }
 
-  const { data } = await supabase
-    .from("ranking_mock")
-    .select("*")
-    .order("posicion", { ascending: true });
+  const { data: clubs } = await supabase
+    .from("clubs")
+    .select("id, nombre, escudo_config")
+    .order("nombre", { ascending: true });
 
-  const rows = data ?? [];
-  if (!club) return rows;
+  const bonusPct = club ? await getGymLeagueBonusForClub(club.id) : 0;
 
-  const bonusPct = await getGymLeagueBonusForClub(club.id);
-  const multiplier = 1 + bonusPct / 100;
-
-  return rows.map((row) => {
-    if (row.club_nombre !== club.nombre) return row;
-    return {
-      ...row,
-      puntos: Math.round(Number(row.puntos) * multiplier),
-      gym_bonus_pct: bonusPct,
-    };
-  });
-}
+  return (clubs ?? []).map((row, index) => ({
+    id: row.id,
+    club_nombre: row.nombre,
+    escudo_config: row.escudo_config,
+    puntos: 0,
+    posicion: index + 1,
+    gym_bonus_pct: row.nombre === club?.nombre ? bonusPct : 0,
+  }));
+});

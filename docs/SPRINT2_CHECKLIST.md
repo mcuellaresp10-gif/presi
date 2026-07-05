@@ -15,7 +15,7 @@
 ## Variables `.env.local`
 
 - [ ] `API_FOOTBALL_KEY`
-- [ ] `API_FOOTBALL_LEAGUE_ID=239` (Liga BetPlay)
+- [ ] `API_FOOTBALL_LEAGUE_ID=239` (Liga Colombiana)
 - [ ] `API_FOOTBALL_SEASON`
 - [ ] `CRON_SECRET` — **opcional por ahora** (solo para producción)
 

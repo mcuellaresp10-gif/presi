@@ -93,20 +93,70 @@ export async function fetchLeaguePlayers(
   leagueId = DEFAULT_LEAGUE_ID,
   season = DEFAULT_SEASON,
   page = 1
-): Promise<
-  Array<{
-    player: { id: number; name: string; photo: string | null };
-    statistics: Array<{
-      games: { position: string | null };
-      team: { name: string };
-    }>;
-  }>
-> {
-  return apiFetch("/players", {
-    league: String(leagueId),
-    season: String(season),
-    page: String(page),
+): Promise<ApiLeaguePlayerRow[]> {
+  const result = await fetchLeaguePlayersPage(leagueId, season, page);
+  return result.players;
+}
+
+export type ApiLeaguePlayerRow = {
+  player: { id: number; name: string; photo: string | null };
+  statistics: Array<{
+    league?: { id?: number | null } | null;
+    games?: {
+      minutes?: number | null;
+      appearences?: number | null;
+      position?: string | null;
+    } | null;
+    goals?: {
+      total?: number | null;
+      assists?: number | null;
+      conceded?: number | null;
+      saves?: number | null;
+    } | null;
+    passes?: { key?: number | null } | null;
+    tackles?: { total?: number | null } | null;
+    duels?: { won?: number | null } | null;
+    team?: { name?: string | null } | null;
+  }>;
+};
+
+export async function fetchLeaguePlayersPage(
+  leagueId = DEFAULT_LEAGUE_ID,
+  season = DEFAULT_SEASON,
+  page = 1
+): Promise<{
+  players: ApiLeaguePlayerRow[];
+  paging: { current: number; total: number };
+}> {
+  const key = process.env.API_FOOTBALL_KEY;
+  if (!key) throw new Error("API_FOOTBALL_KEY not configured");
+
+  const url = new URL(`${BASE_URL}/players`);
+  url.searchParams.set("league", String(leagueId));
+  url.searchParams.set("season", String(season));
+  url.searchParams.set("page", String(page));
+
+  const res = await fetch(url.toString(), {
+    headers: { "x-apisports-key": key },
+    next: { revalidate: 0 },
   });
+
+  if (!res.ok) {
+    throw new Error(`API-Football error ${res.status}: /players`);
+  }
+
+  const json = (await res.json()) as {
+    response: ApiLeaguePlayerRow[];
+    paging?: { current?: number; total?: number };
+  };
+
+  return {
+    players: json.response ?? [],
+    paging: {
+      current: json.paging?.current ?? page,
+      total: json.paging?.total ?? page,
+    },
+  };
 }
 
 export function parseRoundNumber(round: string): number {

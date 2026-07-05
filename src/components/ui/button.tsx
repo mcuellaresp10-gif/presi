@@ -4,15 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-presi-cyan disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-presi-cyan disabled:pointer-events-none disabled:opacity-50 min-h-[44px]",
   {
     variants: {
       variant: {
         default: "bg-presi-gold text-presi-bg hover:bg-presi-gold/90",
+        cta: "bg-gradient-to-r from-presi-gold to-amber-400 text-presi-bg hover:from-presi-gold/90 hover:to-amber-400/90 shadow-lg shadow-presi-gold/20",
         secondary: "bg-presi-cyan text-presi-bg hover:bg-presi-cyan/90",
+        gem: "bg-presi-cyan/15 border border-presi-cyan/40 text-presi-cyan hover:bg-presi-cyan/25",
         outline:
           "border border-presi-cyan/30 bg-transparent text-white hover:bg-presi-cyan/10",
-        ghost: "text-white/80 hover:bg-white/10 hover:text-presi-cyan",
+        ghost: "text-white/80 hover:bg-white/10 hover:text-presi-cyan min-h-[44px]",
         destructive: "bg-presi-red text-white hover:bg-presi-red/90",
       },
       size: {

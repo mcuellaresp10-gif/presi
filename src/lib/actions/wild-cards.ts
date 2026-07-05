@@ -16,6 +16,7 @@ import type { Player } from "@/lib/game/types";
 import { getUserClub } from "@/lib/actions/club";
 import { getCurrentGameweek } from "@/lib/actions/gameweek";
 import { createClient } from "@/lib/supabase/server";
+import { getAvailableApiPlayerPool } from "@/lib/db/player-pool";
 
 export type WildCardInventoryItem = {
   id: string;
@@ -42,9 +43,7 @@ async function getAvailablePool(
   supabase: Awaited<ReturnType<typeof createClient>>,
   roster: Player[]
 ): Promise<Player[]> {
-  const { data: allPlayers } = await supabase.from("players_master").select("*");
-  const rosterIds = new Set(roster.map((p) => p.id));
-  return (allPlayers as Player[]).filter((p) => !rosterIds.has(p.id));
+  return getAvailableApiPlayerPool(supabase, roster);
 }
 
 export async function getWildCardInventory(): Promise<WildCardInventoryItem[]> {

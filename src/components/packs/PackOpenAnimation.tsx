@@ -53,7 +53,7 @@ export function PackOpenAnimation({
         Elige 1 jugador de este sobre
       </p>
       {options.length === 0 ? (
-        <p className="text-center text-sm text-red-600">
+        <p className="text-center text-sm text-presi-red">
           No hay jugadores disponibles en este sobre.
         </p>
       ) : (

@@ -17,6 +17,7 @@ export interface Player {
   rareza: Rarity;
   costo_base: number;
   photo_url?: string | null;
+  performance_score?: number | null;
 }
 
 export type RosterPlayer = Player & {

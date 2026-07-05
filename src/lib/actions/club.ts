@@ -14,25 +14,14 @@ import { getNextLoanRefresh } from "@/lib/game/loan-market";
 import type { EscudoConfig } from "@/lib/game/types";
 import { UPGRADE_FACILITY_TYPES } from "@/lib/game/types";
 import { createClient } from "@/lib/supabase/server";
+import { getUserClubCached } from "@/lib/queries/request-cache";
+import { fetchApiPlayersMaster } from "@/lib/db/player-pool";
 import type { Player } from "@/lib/game/types";
 
 const FACILITY_TYPES = UPGRADE_FACILITY_TYPES;
 
 export async function getUserClub() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const { data: club } = await supabase
-    .from("clubs")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  return club;
+  return getUserClubCached();
 }
 
 export async function createClub(formData: {
@@ -59,12 +48,13 @@ export async function createClub(formData: {
     return { error: "El nombre debe tener entre 3 y 30 caracteres." };
   }
 
-  const { data: allPlayers, error: playersError } = await supabase
-    .from("players_master")
-    .select("*");
+  const allPlayers = await fetchApiPlayersMaster(supabase);
 
-  if (playersError || !allPlayers?.length) {
-    return { error: "No hay jugadores disponibles. Ejecuta el seed." };
+  if (!allPlayers.length) {
+    return {
+      error:
+        "No hay jugadores reales sincronizados. Configura API_FOOTBALL_KEY y ejecuta el sync de jugadores.",
+    };
   }
 
   const starterPlayers = assignStarterRoster(allPlayers as Player[]);

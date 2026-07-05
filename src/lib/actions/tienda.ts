@@ -26,6 +26,7 @@ import {
 import type { Player } from "@/lib/game/types";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
+import { getAvailableApiPlayerPool } from "@/lib/db/player-pool";
 import type {
   TiendaLoanOffer,
   TiendaState,
@@ -50,9 +51,7 @@ async function getAvailablePool(
   supabase: Awaited<ReturnType<typeof createClient>>,
   roster: Player[]
 ): Promise<Player[]> {
-  const { data: allPlayers } = await supabase.from("players_master").select("*");
-  const rosterIds = new Set(roster.map((p) => p.id));
-  return (allPlayers as Player[]).filter((p) => !rosterIds.has(p.id));
+  return getAvailableApiPlayerPool(supabase, roster);
 }
 
 async function getActiveLoanCount(

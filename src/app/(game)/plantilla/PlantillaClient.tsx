@@ -34,6 +34,7 @@ import {
 import type { Player, RosterPlayer } from "@/lib/game/types";
 import { formatCompactMoney, cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { PlantillaCoachHint } from "@/components/plantilla/PlantillaCoachHint";
 
 export function PlantillaClient({
   players = [],
@@ -81,6 +82,7 @@ export function PlantillaClient({
   const [now, setNow] = useState<number | null>(null);
   const [dragOverBench, setDragOverBench] = useState<number | null>(null);
   const [dragOverReserve, setDragOverReserve] = useState(false);
+  const [reserveOpen, setReserveOpen] = useState(false);
 
   const onInvalidDrop = useCallback(
     (message: string) => {
@@ -325,25 +327,20 @@ export function PlantillaClient({
 
   return (
     <>
-      <div className="-mx-4 -mt-4 min-h-[calc(100vh-8rem)] bg-presi-bg text-white">
-        <div className="border-b border-presi-cyan/20 bg-presi-elevated/95 px-4 py-3 backdrop-blur">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h1 className="text-display text-xl text-presi-gold">
-                Mi plantilla
-              </h1>
+      <div className="-mx-4 min-h-[calc(100vh-8rem)] bg-presi-bg text-white">
+        <div className="sticky top-0 z-20 border-b border-presi-cyan/20 bg-presi-elevated/95 px-4 py-3 backdrop-blur">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-display text-xl text-presi-gold">
+                  Plantilla
+                </h1>
+                {!isLineupLocked ? <PlantillaCoachHint /> : null}
+              </div>
               <p className="text-xs text-white/50">
-                {selectedIds.length}/{STARTER_COUNT} inicial · {benchIds.length}/
-                {BENCH_COUNT} banca · {players.length}/{MAX_SQUAD}
+                {selectedIds.length}/{STARTER_COUNT} · Banca {benchIds.length}/
+                {BENCH_COUNT} · {players.length}/{MAX_SQUAD}
               </p>
-              {!isLineupLocked && (
-                <p className="mt-0.5 text-[10px] leading-snug text-white/45">
-                  Arrastra al hueco de su posición (DEF→DEF, MED→MED). Si el 11
-                  está lleno, suelta sobre un titular de la misma posición para
-                  cambiar. También puedes tocar un jugador y usar &quot;Subir al
-                  11&quot;.
-                </p>
-              )}
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-right">
               <p className="text-[10px] uppercase text-white/50">Disponible</p>
@@ -387,10 +384,9 @@ export function PlantillaClient({
             </div>
           )}
           {captainPlayer && !isLineupLocked && (
-            <p className="mt-2 text-[11px] text-amber-200/90">
+            <p className="mt-2 text-[11px] text-presi-gold/90">
               Capitán:{" "}
-              <span className="font-bold">{captainPlayer.nombre}</span> (puntos
-              x2)
+              <span className="font-bold">{captainPlayer.nombre}</span> (×2 pts)
             </p>
           )}
         </div>
@@ -450,7 +446,7 @@ export function PlantillaClient({
           />
         </div>
 
-        <div ref={subsRef} className="border-t border-white/10 px-3 pb-28 pt-4">
+        <div ref={subsRef} className="border-t border-white/10 px-3 pb-36 pt-4">
           <p className="mb-3 text-xs font-bold uppercase tracking-widest text-presi-cyan/80">
             Banca ({benchIds.length}/{BENCH_COUNT}) — orden de sustitución
           </p>
@@ -508,9 +504,15 @@ export function PlantillaClient({
             })}
           </div>
 
-          <p className="mb-3 mt-2 text-xs font-bold uppercase tracking-widest text-white/50">
+          <button
+            type="button"
+            onClick={() => setReserveOpen((o) => !o)}
+            className="mb-3 flex w-full items-center justify-between text-xs font-bold uppercase tracking-widest text-white/50"
+          >
             Reserva ({reservePlayers.length})
-          </p>
+            <span>{reserveOpen ? "−" : "+"}</span>
+          </button>
+          {reserveOpen ? (
           <div
             className={cn(
               "min-h-[6rem] rounded-xl border border-dashed border-white/10 p-2 transition-colors",
@@ -534,10 +536,10 @@ export function PlantillaClient({
                   : "Todos asignados al 11 o banca"}
               </p>
             ) : (
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+              <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
                 {reservePlayers.map((player) => (
+                  <div key={player.id} className="w-[5.5rem] shrink-0 snap-start">
                   <PitchPlayerCard
-                    key={player.id}
                     player={player}
                     size="sm"
                     draggable={!isLineupLocked}
@@ -551,14 +553,16 @@ export function PlantillaClient({
                     onDragEnd={handleDragEnd}
                     onClick={() => setDetailPlayer(player)}
                   />
+                  </div>
                 ))}
               </div>
             )}
           </div>
+          ) : null}
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-presi-elevated/95 p-3 backdrop-blur">
-          <div className="mx-auto flex max-w-4xl gap-2">
+        <div className="fixed bottom-[4.5rem] left-0 right-0 z-40 border-t border-white/10 bg-presi-elevated/95 p-3 backdrop-blur safe-bottom">
+          <div className="mx-auto flex max-w-lg gap-2">
             <div className="flex flex-1 items-center justify-center rounded-lg bg-white/5 px-3 text-xs font-medium text-white/70">
               GK {counts.GK}/{slots.GK} · DEF {counts.DEF}/{slots.DEF} · MED{" "}
               {counts.MED}/{slots.MED} · DEL {counts.DEL}/{slots.DEL}

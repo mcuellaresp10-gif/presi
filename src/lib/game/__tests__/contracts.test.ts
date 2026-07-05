@@ -10,18 +10,10 @@ import {
 } from "../contracts";
 
 describe("contracts", () => {
-  it("initial contract scales by rarity", () => {
-    const bronce = getInitialContract("bronce");
-    const leyenda = getInitialContract("leyenda");
-    expect(bronce.jornadas).toBe(5);
-    expect(leyenda.jornadas).toBe(2);
-    expect(bronce.jornadas).toBeGreaterThan(leyenda.jornadas);
-  });
-
-  it("starter contract doubles duration", () => {
-    const normal = getInitialContract("oro");
-    const starter = getInitialContract("oro", true);
-    expect(starter.jornadas).toBe(normal.jornadas * 2);
+  it("initial contract is always 3 jornadas", () => {
+    expect(getInitialContract("bronce").jornadas).toBe(3);
+    expect(getInitialContract("leyenda").jornadas).toBe(3);
+    expect(getInitialContract("oro", true).jornadas).toBe(3);
   });
 
   it("expiry triggers only when jornadas reach zero", () => {

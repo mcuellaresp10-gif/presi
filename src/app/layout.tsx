@@ -1,14 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
 import { Bebas_Neue, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { ToastContextProvider } from "@/components/ui/use-toast";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
 
 const displayFont = Bebas_Neue({
   weight: "400",
@@ -22,10 +15,17 @@ const bodyFont = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PRESI — Fantasy Liga BetPlay",
+  title: "PRESI — Fantasy Liga Colombiana",
   description:
     "Crea tu club, ficha jugadores y compite en ligas privadas de fantasy fútbol colombiano.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -45,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${displayFont.variable} ${bodyFont.variable} poster-bg antialiased text-white`}
+        className={`${displayFont.variable} ${bodyFont.variable} poster-bg antialiased text-white`}
       >
         <ToastContextProvider>{children}</ToastContextProvider>
       </body>

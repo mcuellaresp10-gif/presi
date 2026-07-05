@@ -1,13 +1,13 @@
 # Sprint 2 — Diseño: jornadas reales, plantilla 11+5+8 y motor automático
 
 Documento de producto y arquitectura **antes de implementación**.  
-Sprint 1 = loop mock. Sprint 2 = Liga BetPlay real con stats, puntos y contratos automáticos.
+Sprint 1 = loop mock. Sprint 2 = Liga Colombiana real con stats, puntos y contratos automáticos.
 
 ---
 
 ## Objetivo
 
-Conectar PRESI a **jornadas reales de Liga BetPlay**:
+Conectar PRESI a **jornadas reales de Liga Colombiana**:
 
 1. Jugadores reales (API-Football → `players_master`).
 2. El usuario arma **11 inicial + banca (5)** antes del primer partido; el resto es **reserva**.
@@ -170,7 +170,7 @@ Titular MED #2 → 0 min
 
 ```env
 API_FOOTBALL_KEY=...
-API_FOOTBALL_LEAGUE_ID=...   # Liga BetPlay
+API_FOOTBALL_LEAGUE_ID=...   # Liga Colombiana
 API_FOOTBALL_SEASON=...
 ```
 
@@ -305,7 +305,7 @@ alter table club_roster add column
 
 | Job | Frecuencia | Acción |
 |-----|------------|--------|
-| `sync_gameweeks_fixtures` | Diario + pre-jornada | Calendario Liga BetPlay → `gameweeks`, `fixtures` |
+| `sync_gameweeks_fixtures` | Diario + pre-jornada | Calendario Liga Colombiana → `gameweeks`, `fixtures` |
 | `lock_lineup_snapshots` | Al `first_kickoff_at` | Draft válido → snapshot; inválido → `is_valid = false` |
 | `sync_live_stats` | Cada 5–15 min si jornada `live` | API → `player_match_stats` |
 | `process_gameweek` | Tras cada sync de stats | Línea efectiva, puntos, contratos |
@@ -407,7 +407,7 @@ Tests obligatorios para auto-sub, 0 puntos sin snapshot, contrato con 1 min, res
 
 ## Checklist de cierre Sprint 2 (borrador)
 
-- [ ] API-Football sync jugadores Liga BetPlay
+- [ ] API-Football sync jugadores Liga Colombiana
 - [ ] Fixtures y jornadas en DB
 - [ ] UI plantilla 11 + banca 5 + reserva 8
 - [ ] Snapshot automático al primer pitido

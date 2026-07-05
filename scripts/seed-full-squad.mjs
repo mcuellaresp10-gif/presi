@@ -95,7 +95,7 @@ async function syncPlayersFromApi() {
     for (const row of batch) {
       const apiId = row.player.id;
       const posicion = mapApiPosition(row.statistics?.[0]?.games?.position ?? null);
-      const equipo = row.statistics?.[0]?.team?.name ?? "Liga BetPlay";
+      const equipo = row.statistics?.[0]?.team?.name ?? "Liga Colombiana";
 
       const { data: existing } = await supabase
         .from("players_master")
@@ -292,9 +292,10 @@ async function main() {
     .not("api_football_id", "is", null);
 
   if (!allPlayers?.length) {
-    console.log("Sin jugadores API — usando pool seed/mock");
-    const { data: mockPlayers } = await supabase.from("players_master").select("*");
-    allPlayers = mockPlayers ?? [];
+    console.error(
+      "No hay jugadores reales sincronizados. Configura API_FOOTBALL_KEY y vuelve a ejecutar el script."
+    );
+    process.exit(1);
   }
 
   const byPos = { GK: [], DEF: [], MED: [], DEL: [] };
@@ -307,7 +308,7 @@ async function main() {
     const picked = shuffle(byPos[pos]).slice(0, count);
     if (picked.length < count) {
       console.error(
-        `Pool insuficiente en ${pos}: ${picked.length}/${count}. Ejecuta seed.sql o revisa API key.`
+        `Pool insuficiente en ${pos}: ${picked.length}/${count}. Revisa API_FOOTBALL_KEY y sync de jugadores.`
       );
       process.exit(1);
     }

@@ -60,6 +60,32 @@ export {
   VALID_FORMATIONS,
 } from "./formation";
 export { generatePackOptions } from "./pack-generator";
+export {
+  assignTiersFromScores,
+  buildTierAssignmentsFromApiRows,
+  computePerformanceScore,
+  costForTier,
+  getOvrForScore,
+  MAX_PLAYER_COST,
+  MIN_PLAYER_COST,
+  MIN_MINUTES_FOR_PREMIUM_TIER,
+  parseApiLeaguePlayerRow,
+  TIER_COST_RANGE,
+  TIER_PERCENTILE_SHARES,
+} from "./player-rarity";
+export type {
+  PlayerSeasonStats,
+  ScoredPlayer,
+  TierAssignment,
+} from "./player-rarity";
+export {
+  assignPlayersToPitchSlots,
+  getPlayerInitials,
+  getPlayerRating,
+  getPlayerSurname,
+  POSITION_PITCH_COLOR,
+  POSITION_SHORT,
+} from "./player-display";
 export { createMathRng, createSeededRng } from "./rng";
 export {
   BENCH_COUNT,

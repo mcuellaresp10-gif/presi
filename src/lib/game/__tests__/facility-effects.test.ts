@@ -51,7 +51,7 @@ describe("facility-effects", () => {
 
   it("passive income returns zero for less than one tick", () => {
     const now = new Date("2026-01-08T00:00:00Z");
-    const last = new Date("2026-01-07T18:00:00Z");
+    const last = new Date("2026-01-07T19:00:00Z");
     const result = calculatePassiveIncome(makeFacilities(2, 1), last, now);
     expect(result.ticks).toBe(0);
     expect(result.amount).toBe(0);
@@ -59,7 +59,8 @@ describe("facility-effects", () => {
 
   it("passive income accrues multiple ticks", () => {
     const last = new Date("2026-01-01T00:00:00Z");
-    const now = new Date(last.getTime() + 12 * 60 * 60 * 1000 * 3);
+    const intervalMs = 6 * 60 * 60 * 1000;
+    const now = new Date(last.getTime() + intervalMs * 3);
     const result = calculatePassiveIncome(makeFacilities(2, 1), last, now);
     expect(result.ticks).toBe(3);
     expect(result.amount).toBe(result.tickAmount * 3);
@@ -92,7 +93,8 @@ describe("facility-effects", () => {
 
   it("passive gems share ticks with money income", () => {
     const last = new Date("2026-01-01T00:00:00Z");
-    const now = new Date(last.getTime() + 12 * 60 * 60 * 1000 * 2);
+    const intervalMs = 6 * 60 * 60 * 1000;
+    const now = new Date(last.getTime() + intervalMs * 2);
     const facilities = makeFacilities(2, 1);
     const money = calculatePassiveIncome(facilities, last, now);
     const gems = calculatePassiveGems(facilities, last, now);

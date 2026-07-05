@@ -2,6 +2,11 @@ import Image from "next/image";
 import { getPlayerInitials } from "@/lib/game/player-display";
 import { cn } from "@/lib/utils";
 
+// Desactivado temporalmente por riesgo de derechos de imagen de jugadores
+// reales. Reactivar solo después de confirmar licencia con el titular de
+// derechos.
+const USE_REAL_PHOTOS = false;
+
 export function PlayerPhoto({
   nombre,
   photoUrl,
@@ -15,7 +20,7 @@ export function PlayerPhoto({
   initialsClassName?: string;
   sizes?: string;
 }) {
-  if (photoUrl) {
+  if (USE_REAL_PHOTOS && photoUrl) {
     return (
       <div className="player-photo-duotone relative h-full w-full overflow-hidden">
         <Image

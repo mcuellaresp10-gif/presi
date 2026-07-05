@@ -20,12 +20,8 @@ const config: Config = {
           gold: "#F5C518",
           cyan: "#22D3EE",
           red: "#FF3355",
-        },
-        andes: {
-          deep: "#111B2E",
-          gold: "#F5C518",
-          cream: "#070B18",
-          accent: "#22D3EE",
+          success: "#34D399",
+          warning: "#FBBF24",
         },
       },
       fontFamily: {
