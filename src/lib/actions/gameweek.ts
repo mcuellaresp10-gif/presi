@@ -4,6 +4,7 @@ import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
 import { runPageLoadGameweekTick } from "@/lib/gameweek/sync";
+import { deriveGameweekStatus } from "@/lib/gameweek/status";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,56 +19,64 @@ export type GameweekPublic = {
 
 export async function getCurrentGameweek(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  const { data: live } = await supabase
+  const { data: rows } = await supabase
     .from("gameweeks")
     .select("*")
-    .eq("status", "live")
-    .order("round", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("round", { ascending: true });
 
-  if (live) {
-    return mapGameweek(live);
+  if (!rows?.length) return null;
+
+  const withPhase = rows.map((row) => ({
+    row,
+    phase: deriveGameweekStatus(
+      row.first_kickoff_at,
+      row.last_kickoff_at,
+      now
+    ),
+  }));
+
+  const live = withPhase.filter((item) => item.phase === "live");
+  if (live.length) {
+    return mapGameweek(live[live.length - 1]!.row, now);
   }
 
-  const { data: upcoming } = await supabase
-    .from("gameweeks")
-    .select("*")
-    .eq("status", "upcoming")
-    .gte("first_kickoff_at", now)
-    .order("first_kickoff_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const upcoming = withPhase.filter((item) => item.phase === "upcoming");
+  if (upcoming.length) {
+    return mapGameweek(upcoming[0]!.row, now);
+  }
 
-  if (upcoming) return mapGameweek(upcoming);
+  const finished = withPhase.filter((item) => item.phase === "finished");
+  if (finished.length) {
+    return mapGameweek(finished[finished.length - 1]!.row, now);
+  }
 
-  const { data: anyGw } = await supabase
-    .from("gameweeks")
-    .select("*")
-    .order("round", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return anyGw ? mapGameweek(anyGw) : null;
+  return mapGameweek(rows[rows.length - 1]!, now);
 }
 
-function mapGameweek(row: {
-  id: string;
-  season: number;
-  round: number;
-  first_kickoff_at: string;
-  last_kickoff_at: string | null;
-  status: string;
-}): GameweekPublic {
+function mapGameweek(
+  row: {
+    id: string;
+    season: number;
+    round: number;
+    first_kickoff_at: string;
+    last_kickoff_at: string | null;
+    status: string;
+  },
+  now: Date = new Date()
+): GameweekPublic {
   return {
     id: row.id,
     season: row.season,
     round: row.round,
     firstKickoffAt: row.first_kickoff_at,
     lastKickoffAt: row.last_kickoff_at,
-    status: row.status,
+    status: deriveGameweekStatus(
+      row.first_kickoff_at,
+      row.last_kickoff_at,
+      now
+    ),
   };
 }
 
@@ -158,7 +167,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
         .maybeSingle(),
       supabase
         .from("lineup_drafts")
-        .select("starter_ids, bench_ids")
+        .select("starter_ids, bench_ids, captain_id")
         .eq("club_id", club.id)
         .eq("gameweek_id", draftGameweekId)
         .maybeSingle(),
@@ -188,7 +197,8 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
     hasValidDraft:
       !!draft &&
       draft.starter_ids?.length === 11 &&
-      draft.bench_ids?.length === 5,
+      draft.bench_ids?.length === 5 &&
+      !!draft.captain_id,
     snapshotValid: snapshot?.is_valid ?? false,
     gameweekId: gameweek.id,
   };
@@ -201,6 +211,7 @@ export async function triggerGameweekSync() {
     revalidatePath("/inicio");
     revalidatePath("/plantilla");
     revalidatePath("/ranking");
+    revalidatePath("/calendario");
     return result;
   } catch (error) {
     console.error("gameweek sync skipped:", error);

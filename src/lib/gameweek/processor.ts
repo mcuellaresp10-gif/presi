@@ -15,6 +15,7 @@ import {
   type MatchStatLine,
 } from "@/lib/game/scoring";
 import { validateLineupDraft } from "@/lib/game/squad-limits";
+import { deriveGameweekStatus } from "@/lib/gameweek/status";
 import { getMedicalPenaltyReduction } from "@/lib/game/facility-effects";
 import type { Player } from "@/lib/game/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -355,15 +356,11 @@ export async function tickGameweekStatuses(
   const { data: gameweeks } = await supabase.from("gameweeks").select("*");
 
   for (const gw of gameweeks ?? []) {
-    const first = new Date(gw.first_kickoff_at).getTime();
-    const last = gw.last_kickoff_at
-      ? new Date(gw.last_kickoff_at).getTime()
-      : first;
-    let status = gw.status;
-
-    if (now.getTime() < first) status = "upcoming";
-    else if (now.getTime() <= last + 3 * 60 * 60 * 1000) status = "live";
-    else status = "finished";
+    const status = deriveGameweekStatus(
+      gw.first_kickoff_at,
+      gw.last_kickoff_at,
+      now
+    );
 
     if (status !== gw.status) {
       await supabase.from("gameweeks").update({ status }).eq("id", gw.id);
@@ -373,7 +370,7 @@ export async function tickGameweekStatuses(
       gw.status = status;
     }
 
-    if (now.getTime() >= first) {
+    if (now.getTime() >= new Date(gw.first_kickoff_at).getTime()) {
       await lockLineupSnapshots(supabase, gw, now);
     }
   }

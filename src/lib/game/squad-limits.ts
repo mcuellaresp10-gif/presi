@@ -105,6 +105,65 @@ export function validateLineupDraft(
   return { ok: true, formation: formation.formation };
 }
 
+export function sanitizeLineupDraft(
+  starterIds: string[],
+  benchIds: string[],
+  captainId: string | null,
+  rosterPlayers: Player[]
+):
+  | {
+      ok: true;
+      starterIds: string[];
+      benchIds: string[];
+      captainId: string | null;
+      formation: string | null;
+    }
+  | { ok: false; reason: string } {
+  const rosterIds = new Set(rosterPlayers.map((p) => p.id));
+  const seen = new Set<string>();
+  const cleanStarters: string[] = [];
+
+  for (const id of starterIds) {
+    if (!id || !rosterIds.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    cleanStarters.push(id);
+    if (cleanStarters.length >= STARTER_COUNT) break;
+  }
+
+  const cleanBench: string[] = [];
+  for (const id of benchIds) {
+    if (!id || !rosterIds.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    cleanBench.push(id);
+    if (cleanBench.length >= BENCH_COUNT) break;
+  }
+
+  let cleanCaptain =
+    captainId && cleanStarters.includes(captainId) ? captainId : null;
+  if (!cleanCaptain && cleanStarters.length > 0) {
+    cleanCaptain = cleanStarters[0];
+  }
+
+  let formation: string | null = null;
+  if (cleanStarters.length === STARTER_COUNT) {
+    const starters = cleanStarters
+      .map((id) => rosterPlayers.find((p) => p.id === id))
+      .filter(Boolean) as Player[];
+    const validated = validateFormation(starters);
+    if (validated.valid) {
+      formation = validated.formation;
+    }
+  }
+
+  return {
+    ok: true,
+    starterIds: cleanStarters,
+    benchIds: cleanBench,
+    captainId: cleanCaptain,
+    formation,
+  };
+}
+
 export function deriveReserveIds(
   rosterIds: string[],
   starterIds: string[],

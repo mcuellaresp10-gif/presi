@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   assignSquadRoles,
-  validateLineupDraft,
+  sanitizeLineupDraft,
 } from "@/lib/game/squad-limits";
 import type { Player } from "@/lib/game/types";
 import { getEditableGameweek, isGameweekEditable } from "@/lib/actions/gameweek";
@@ -13,7 +13,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function saveLineupDraft(
   starterIds: string[],
   benchIds: string[],
-  captainId: string | null
+  captainId: string | null,
+  formationLabel?: string | null
 ) {
   const club = await getUserClub();
   if (!club) return { error: "No tienes club." };
@@ -41,23 +42,31 @@ export async function saveLineupDraft(
   );
   const rosterIds = rosterPlayers.map((p) => p.id);
 
-  const validation = validateLineupDraft(starterIds, benchIds, rosterPlayers);
-  if (!validation.ok) {
-    return { error: validation.reason };
+  const sanitized = sanitizeLineupDraft(
+    starterIds,
+    benchIds,
+    captainId,
+    rosterPlayers
+  );
+  if (!sanitized.ok) {
+    return { error: sanitized.reason };
   }
 
-  if (!captainId || !starterIds.includes(captainId)) {
-    return { error: "Elige un capitán entre los 11 titulares." };
-  }
+  const {
+    starterIds: cleanStarters,
+    benchIds: cleanBench,
+    captainId: cleanCaptain,
+    formation: derivedFormation,
+  } = sanitized;
 
   const { error: draftError } = await supabase.from("lineup_drafts").upsert(
     {
       club_id: club.id,
       gameweek_id: gameweek.id,
-      starter_ids: starterIds,
-      bench_ids: benchIds,
-      captain_id: captainId,
-      formation: validation.formation,
+      starter_ids: cleanStarters,
+      bench_ids: cleanBench,
+      captain_id: cleanCaptain,
+      formation: derivedFormation ?? formationLabel ?? null,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "club_id,gameweek_id" }
@@ -65,7 +74,7 @@ export async function saveLineupDraft(
 
   if (draftError) return { error: draftError.message };
 
-  const roles = assignSquadRoles(rosterIds, starterIds, benchIds);
+  const roles = assignSquadRoles(rosterIds, cleanStarters, cleanBench);
   for (const [playerId, squadRole] of Array.from(roles.entries())) {
     await supabase
       .from("club_roster")
@@ -80,7 +89,14 @@ export async function saveLineupDraft(
   revalidatePath("/plantilla");
   revalidatePath("/inicio");
 
-  return { success: true, formation: validation.formation };
+  return {
+    success: true,
+    formation: derivedFormation ?? formationLabel ?? null,
+    isComplete:
+      cleanStarters.length === 11 &&
+      cleanBench.length === 5 &&
+      !!cleanCaptain,
+  };
 }
 
 /** @deprecated Use saveLineupDraft */

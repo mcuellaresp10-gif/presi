@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { EscudoConfig } from "@/lib/game/types";
 import { Clock } from "lucide-react";
 import { formatRemainingTime } from "@/lib/game";
+import { gameweekPhaseLabel } from "@/lib/gameweek/status";
 import { StadiumIncomePin } from "@/components/home/StadiumIncomePin";
 
 export function HomeDashboard({
@@ -69,7 +70,17 @@ export function HomeDashboard({
     deadlineMs !== null ? formatRemainingTime(deadlineMs) : "—";
 
   const needsLineup = !hasValidDraft && !isLineupLocked && !!gameweekRound;
-  const live = gameweekStatus === "live";
+  const phase =
+    gameweekStatus === "live" ||
+    gameweekStatus === "upcoming" ||
+    gameweekStatus === "finished"
+      ? gameweekStatus
+      : "upcoming";
+  const live = phase === "live";
+  const upcoming = phase === "upcoming";
+  const phaseLabel = gameweekPhaseLabel(
+    phase as "upcoming" | "live" | "finished"
+  );
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -131,15 +142,25 @@ export function HomeDashboard({
           </div>
 
           <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-black/30 px-3 py-2 text-xs">
-            <LiveBadge live={live} label={live ? "En vivo" : "Jornada"} />
+            <LiveBadge
+              live={live}
+              label={phaseLabel}
+              className={
+                upcoming ? "bg-presi-gold/20 text-presi-gold" : undefined
+              }
+            />
             <Clock className="h-3.5 w-3.5 text-presi-gold" />
             <span className="text-white/80">
               {gameweekRound
                 ? live
                   ? "Partidos en curso"
-                  : isLineupLocked
-                    ? "Alineación bloqueada"
-                    : `Cierra en ${deadlineCountdown}`
+                  : upcoming
+                    ? isLineupLocked
+                      ? "Temporada por comenzar"
+                      : `Primera fecha en ${deadlineCountdown}`
+                    : isLineupLocked
+                      ? "Alineación bloqueada"
+                      : `Cierra en ${deadlineCountdown}`
                 : "Sin jornada activa"}
             </span>
           </div>

@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Clock, Shirt, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -23,7 +21,6 @@ import {
   formatRemainingTime,
   getFormationSlots,
   VALID_FORMATIONS,
-  validateFormation,
 } from "@/lib/game";
 import { getStarterSlotKeys } from "@/lib/game/lineup-slots";
 import {
@@ -48,6 +45,7 @@ export function PlantillaClient({
   initialStarterIds,
   initialBenchIds,
   initialCaptainId,
+  initialFormation = "4-4-2",
 }: {
   players: RosterPlayer[];
   usedBudget: number;
@@ -60,11 +58,13 @@ export function PlantillaClient({
   initialStarterIds: string[];
   initialBenchIds: string[];
   initialCaptainId: string | null;
+  initialFormation?: string;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const subsRef = useRef<HTMLDivElement>(null);
-  const [formation, setFormation] = useState("4-4-2");
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef("");
+  const [formation, setFormation] = useState(initialFormation);
   const [captainId, setCaptainId] = useState<string | null>(() => {
     if (
       initialCaptainId &&
@@ -77,7 +77,9 @@ export function PlantillaClient({
     }
     return null;
   });
-  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const [detailPlayer, setDetailPlayer] = useState<RosterPlayer | null>(null);
   const [now, setNow] = useState<number | null>(null);
   const [dragOverBench, setDragOverBench] = useState<number | null>(null);
@@ -132,6 +134,76 @@ export function PlantillaClient({
       setCaptainId(selectedIds[0]);
     }
   }, [selectedIds, captainId]);
+
+  useEffect(() => {
+    lastSavedRef.current = JSON.stringify({
+      formation: initialFormation,
+      selectedIds: initialStarterIds,
+      benchIds: initialBenchIds,
+      captainId:
+        initialCaptainId &&
+        initialStarterIds.includes(initialCaptainId)
+          ? initialCaptainId
+          : initialStarterIds.length > 0
+            ? initialStarterIds[0]
+            : null,
+    });
+  }, [
+    initialFormation,
+    initialStarterIds,
+    initialBenchIds,
+    initialCaptainId,
+  ]);
+
+  const lineupSignature = useMemo(
+    () =>
+      JSON.stringify({
+        formation,
+        selectedIds,
+        benchIds,
+        captainId,
+      }),
+    [formation, selectedIds, benchIds, captainId]
+  );
+
+  useEffect(() => {
+    if (isLineupLocked) return;
+    if (lineupSignature === lastSavedRef.current) return;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      setSaveStatus("saving");
+      const result = await saveLineupDraft(
+        selectedIds,
+        benchIds,
+        captainId,
+        formation
+      );
+
+      if ("error" in result && result.error) {
+        setSaveStatus("error");
+        toast({
+          title: "No se pudo guardar",
+          description: result.error,
+        });
+      } else {
+        lastSavedRef.current = lineupSignature;
+        setSaveStatus("saved");
+      }
+    }, 500);
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [
+    lineupSignature,
+    isLineupLocked,
+    selectedIds,
+    benchIds,
+    captainId,
+    formation,
+    toast,
+  ]);
 
   const slots = getFormationSlots(formation);
   const deadlineMs =
@@ -274,48 +346,7 @@ export function PlantillaClient({
     }
   }
 
-  async function handleSave() {
-    if (isLineupLocked) return;
-
-    const validation = validateFormation(selectedPlayers);
-    if (!validation.valid) {
-      toast({ title: "Formación inválida", description: validation.error });
-      return;
-    }
-
-    if (benchIds.length !== BENCH_COUNT) {
-      toast({
-        title: "Banca incompleta",
-        description: `Necesitas ${BENCH_COUNT} jugadores en la banca.`,
-      });
-      return;
-    }
-
-    if (!captainId || !selectedIds.includes(captainId)) {
-      toast({
-        title: "Capitán requerido",
-        description: "Elige un capitán entre los 11 titulares (puntos x2).",
-      });
-      return;
-    }
-
-    setSaving(true);
-    const result = await saveLineupDraft(selectedIds, benchIds, captainId);
-
-    if ("error" in result && result.error) {
-      toast({ title: "Error", description: result.error });
-    } else {
-      toast({
-        title: "Alineación guardada",
-        description: `Jornada ${gameweekRound ?? ""}: ${result.formation}`,
-      });
-      router.refresh();
-    }
-    setSaving(false);
-  }
-
-  const canSave =
-    !isLineupLocked &&
+  const isLineupComplete =
     selectedIds.length === STARTER_COUNT &&
     benchIds.length === BENCH_COUNT &&
     !!captainId &&
@@ -377,8 +408,9 @@ export function PlantillaClient({
                 </span>
               ) : (
                 <span>
-                  Jornada {editingGameweekRound ?? gameweekRound} — guarda 11 +
-                  banca + capitán antes del primer partido
+                  Jornada {editingGameweekRound ?? gameweekRound} — los cambios
+                  se guardan solos
+                  {deadlineAt ? ` · cierra en ${deadlineCountdown}` : ""}
                 </span>
               )}
             </div>
@@ -562,18 +594,33 @@ export function PlantillaClient({
         </div>
 
         <div className="fixed bottom-[4.5rem] left-0 right-0 z-40 border-t border-white/10 bg-presi-elevated/95 p-3 backdrop-blur safe-bottom">
-          <div className="mx-auto flex max-w-lg gap-2">
-            <div className="flex flex-1 items-center justify-center rounded-lg bg-white/5 px-3 text-xs font-medium text-white/70">
+          <div className="mx-auto flex max-w-lg items-center gap-2">
+            <div className="flex flex-1 items-center justify-center rounded-lg bg-white/5 px-3 py-2 text-xs font-medium text-white/70">
               GK {counts.GK}/{slots.GK} · DEF {counts.DEF}/{slots.DEF} · MED{" "}
               {counts.MED}/{slots.MED} · DEL {counts.DEL}/{slots.DEL}
             </div>
-            <Button
-              className="shrink-0 bg-presi-gold px-6 font-bold text-presi-bg hover:bg-presi-gold/90"
-              onClick={handleSave}
-              disabled={saving || !canSave}
-            >
-              {saving ? "Guardando..." : "Guardar alineación"}
-            </Button>
+            {!isLineupLocked ? (
+              <div
+                className={cn(
+                  "shrink-0 rounded-lg px-3 py-2 text-xs font-medium",
+                  saveStatus === "saving" && "text-white/50",
+                  saveStatus === "saved" && "text-presi-cyan",
+                  saveStatus === "error" && "text-red-300",
+                  saveStatus === "idle" &&
+                    (isLineupComplete ? "text-presi-cyan/80" : "text-white/40")
+                )}
+              >
+                {saveStatus === "saving"
+                  ? "Guardando…"
+                  : saveStatus === "error"
+                    ? "Error al guardar"
+                    : saveStatus === "saved"
+                      ? "Guardado"
+                      : isLineupComplete
+                        ? "Lista para jornada"
+                        : "Borrador"}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

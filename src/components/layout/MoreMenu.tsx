@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   BarChart3,
+  CalendarDays,
   Copy,
   LogOut,
   Trophy,
@@ -17,6 +18,7 @@ import { useEffect, useState } from "react";
 
 const MORE_ITEMS = [
   { href: "/ligas", label: "Mis ligas", icon: Trophy },
+  { href: "/calendario", label: "Calendario Liga Colombiana", icon: CalendarDays },
   { href: "/ranking", label: "Ranking global", icon: BarChart3 },
   { href: "/perfil", label: "Mi perfil", icon: User },
 ] as const;

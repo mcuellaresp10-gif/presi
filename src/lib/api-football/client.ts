@@ -1,7 +1,13 @@
 const BASE_URL = "https://v3.football.api-sports.io";
 
-export const DEFAULT_LEAGUE_ID = 239;
-export const DEFAULT_SEASON = new Date().getFullYear();
+/** Primera A Colombia — ver API_FOOTBALL_LEAGUE_ID en .env */
+export const DEFAULT_LEAGUE_ID = Number(
+  process.env.API_FOOTBALL_LEAGUE_ID ?? 239
+);
+export const DEFAULT_LEAGUE_NAME = "Liga Colombiana";
+export const DEFAULT_SEASON = Number(
+  process.env.API_FOOTBALL_SEASON ?? new Date().getFullYear()
+);
 
 export function isApiFootballConfigured(): boolean {
   return Boolean(process.env.API_FOOTBALL_KEY?.trim());
