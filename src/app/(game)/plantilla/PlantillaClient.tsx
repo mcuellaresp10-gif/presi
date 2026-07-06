@@ -56,8 +56,10 @@ export function PlantillaClient({
   const { toast } = useToast();
   const subsRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef("");
   const hasInitializedSaveRef = useRef(false);
+  const saveInFlightRef = useRef(false);
   const [formation, setFormation] = useState(() => {
     const valid = VALID_FORMATIONS.some((f) => f.label === initialFormation);
     return valid ? initialFormation : "4-4-2";
@@ -169,9 +171,11 @@ export function PlantillaClient({
     if (isLineupLocked) return;
     if (lineupSignature === lastSavedRef.current) return;
 
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(async () => {
+    const runSave = async (signature: string) => {
+      if (saveInFlightRef.current) return;
+      saveInFlightRef.current = true;
       setSaveStatus("saving");
+
       const result = await saveLineupDraft(
         selectedIds,
         benchIds,
@@ -179,16 +183,26 @@ export function PlantillaClient({
         formation
       );
 
+      saveInFlightRef.current = false;
+
       if ("error" in result && result.error) {
         setSaveStatus("error");
-        toast({
-          title: "No se pudo guardar",
-          description: result.error,
-        });
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = setTimeout(() => {
+          if (signature !== lastSavedRef.current) {
+            void runSave(signature);
+          }
+        }, 4000);
       } else {
-        lastSavedRef.current = lineupSignature;
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        lastSavedRef.current = signature;
         setSaveStatus("saved");
       }
+    };
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      void runSave(lineupSignature);
     }, 500);
 
     return () => {
@@ -201,7 +215,6 @@ export function PlantillaClient({
     benchIds,
     captainId,
     formation,
-    toast,
   ]);
 
   const slots = getFormationSlots(formation);
@@ -623,7 +636,7 @@ export function PlantillaClient({
                 {saveStatus === "saving"
                   ? "Guardando…"
                   : saveStatus === "error"
-                    ? "Error al guardar"
+                    ? "Reintentando…"
                     : saveStatus === "saved"
                       ? "Guardado"
                       : isLineupComplete

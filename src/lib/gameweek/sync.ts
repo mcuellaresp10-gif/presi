@@ -246,7 +246,7 @@ async function hasOpenGameweek(supabase: SupabaseClient): Promise<boolean> {
 }
 
 /** Garantiza al menos una jornada con primer partido en el futuro. */
-async function ensureOpenGameweek(supabase: SupabaseClient) {
+export async function ensureOpenGameweek(supabase: SupabaseClient) {
   if (await hasOpenGameweek(supabase)) return;
 
   if (isApiFootballConfigured()) {
@@ -255,20 +255,29 @@ async function ensureOpenGameweek(supabase: SupabaseClient) {
     if (await hasOpenGameweek(supabase)) return;
   }
 
+  const phase = getActiveTournamentPhase();
   const { data: latest } = await supabase
     .from("gameweeks")
     .select("*")
-    .eq("tournament_phase", getActiveTournamentPhase())
+    .eq("tournament_phase", phase)
     .order("round", { ascending: false })
     .limit(1)
     .maybeSingle();
 
+  const firstKickoff = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const lastKickoff = new Date(Date.now() + 9 * 24 * 60 * 60 * 1000);
+
   if (!latest) {
+    await supabase.from("gameweeks").insert({
+      season: DEFAULT_SEASON,
+      tournament_phase: phase,
+      round: 1,
+      first_kickoff_at: firstKickoff.toISOString(),
+      last_kickoff_at: lastKickoff.toISOString(),
+      status: "upcoming",
+    });
     return;
   }
-
-  const firstKickoff = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const lastKickoff = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
   await supabase
     .from("gameweeks")

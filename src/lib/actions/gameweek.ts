@@ -3,11 +3,16 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
-import { runPageLoadGameweekTick } from "@/lib/gameweek/sync";
+import {
+  ensureOpenGameweek,
+  runPageLoadGameweekTick,
+  syncFixturesFromApi,
+} from "@/lib/gameweek/sync";
+import { isApiFootballConfigured } from "@/lib/api-football/client";
+import { tickGameweekStatuses } from "@/lib/gameweek/processor";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
 import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
 import { getActiveTournamentPhase } from "@/lib/gameweek/tournament";
-import { DEFAULT_SEASON } from "@/lib/api-football/client";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,8 +34,8 @@ export async function getCurrentGameweek(): Promise<GameweekPublic | null> {
   const { data: rows } = await supabase
     .from("gameweeks")
     .select("*")
-    .eq("season", DEFAULT_SEASON)
     .eq("tournament_phase", tournamentPhase)
+    .order("season", { ascending: false })
     .order("round", { ascending: true });
 
   if (!rows?.length) return null;
@@ -97,8 +102,8 @@ export async function getEditableGameweek(): Promise<GameweekPublic | null> {
   const { data: rows } = await supabase
     .from("gameweeks")
     .select("*")
-    .eq("season", DEFAULT_SEASON)
     .eq("tournament_phase", tournamentPhase)
+    .order("season", { ascending: false })
     .order("round", { ascending: true });
 
   for (const row of rows ?? []) {
@@ -112,12 +117,43 @@ export async function getEditableGameweek(): Promise<GameweekPublic | null> {
 }
 
 export async function resolveGameweekForDraftSave(): Promise<GameweekPublic | null> {
+  const found = await findGameweekForDraftSave();
+  if (found) return found;
+
+  const supabase = createServiceRoleClient();
+  if (isApiFootballConfigured()) {
+    await syncFixturesFromApi(supabase);
+  }
+  await ensureOpenGameweek(supabase);
+  await tickGameweekStatuses(supabase);
+
+  return findGameweekForDraftSave();
+}
+
+async function findGameweekForDraftSave(): Promise<GameweekPublic | null> {
   const editable = await getEditableGameweek();
   if (editable) return editable;
 
   const current = await getCurrentGameweek();
   if (current?.status === "upcoming") {
     return current;
+  }
+
+  const supabase = await createClient();
+  const now = new Date();
+  const phase = getActiveTournamentPhase(now);
+
+  const { data: futureRow } = await supabase
+    .from("gameweeks")
+    .select("*")
+    .eq("tournament_phase", phase)
+    .gt("first_kickoff_at", now.toISOString())
+    .order("first_kickoff_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (futureRow) {
+    return mapGameweek(futureRow, now);
   }
 
   return null;
