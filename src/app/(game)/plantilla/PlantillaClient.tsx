@@ -2,13 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Clock, Shirt, Wallet } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PlayerDetailPanel, type PlayerSquadStatus } from "@/components/plantilla/PlayerDetailPanel";
 import {
   makeDragSource,
@@ -65,7 +58,10 @@ export function PlantillaClient({
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef("");
   const hasInitializedSaveRef = useRef(false);
-  const [formation, setFormation] = useState(initialFormation);
+  const [formation, setFormation] = useState(() => {
+    const valid = VALID_FORMATIONS.some((f) => f.label === initialFormation);
+    return valid ? initialFormation : "4-4-2";
+  });
   const [captainId, setCaptainId] = useState<string | null>(() => {
     if (
       initialCaptainId &&
@@ -426,41 +422,52 @@ export function PlantillaClient({
           )}
         </div>
 
-        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
-          <div className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1.5">
-            <Shirt className="h-3.5 w-3.5 text-presi-cyan" />
-            <span className="text-xs font-semibold">
-              {players.length}
-              <span className="text-white/40">/{MAX_SQUAD}</span>
-            </span>
-          </div>
-
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg bg-presi-cyan/20 px-2.5 py-1.5">
-            <Wallet className="h-3.5 w-3.5 shrink-0 text-presi-cyan" />
-            <span className="truncate text-xs font-semibold">
-              {formatCompactMoney(usedBudget)}
-              <span className="text-white/50">
-                /{formatCompactMoney(totalBudget)}
+        <div className="space-y-2 border-b border-white/10 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1.5">
+              <Shirt className="h-3.5 w-3.5 text-presi-cyan" />
+              <span className="text-xs font-semibold">
+                {players.length}
+                <span className="text-white/40">/{MAX_SQUAD}</span>
               </span>
-            </span>
+            </div>
+
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg bg-presi-cyan/20 px-2.5 py-1.5">
+              <Wallet className="h-3.5 w-3.5 shrink-0 text-presi-cyan" />
+              <span className="truncate text-xs font-semibold">
+                {formatCompactMoney(usedBudget)}
+                <span className="text-white/50">
+                  /{formatCompactMoney(totalBudget)}
+                </span>
+              </span>
+            </div>
           </div>
 
-          <Select
-            value={formation}
-            onValueChange={setFormation}
-            disabled={isLineupLocked}
+          <div
+            className="flex gap-1 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-1"
+            role="group"
+            aria-label="Formación"
           >
-            <SelectTrigger className="relative z-30 h-8 w-[5.5rem] border-white/15 bg-white/5 text-xs text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="z-[80]">
-              {VALID_FORMATIONS.map((f) => (
-                <SelectItem key={f.label} value={f.label}>
+            {VALID_FORMATIONS.map((f) => {
+              const active = formation === f.label;
+              return (
+                <button
+                  key={f.label}
+                  type="button"
+                  disabled={isLineupLocked}
+                  onClick={() => setFormation(f.label)}
+                  className={cn(
+                    "min-h-[36px] min-w-[3.25rem] shrink-0 rounded px-2.5 text-xs font-bold transition",
+                    active
+                      ? "bg-presi-gold text-presi-bg"
+                      : "text-white/70 hover:bg-white/10"
+                  )}
+                >
                   {f.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="px-3 py-4">

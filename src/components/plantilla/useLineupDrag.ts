@@ -150,13 +150,22 @@ export function useLineupDrag({
     lineupRef.current = { starterSlotMap, benchSlots };
   }, [starterSlotMap, benchSlots]);
 
-  const [formationSynced, setFormationSynced] = useState(formation);
+  const previousFormationRef = useRef(formation);
+
+  useEffect(() => {
+    if (previousFormationRef.current === formation) return;
+    previousFormationRef.current = formation;
+    setStarterSlotMap((prev) => {
+      const ids = starterIdsFromSlotMap(prev);
+      return buildStarterSlotMapFromIds(formation, ids, playersById);
+    });
+  }, [formation, playersById]);
 
   useEffect(() => {
     const rosterIds = new Set(players.map((p) => p.id));
     setStarterSlotMap((prev) => {
-      const next = normalizeStarterSlotMap(formation, prev);
       let changed = false;
+      const next = { ...prev };
       for (const key of Object.keys(next)) {
         const id = next[key];
         if (id && !rosterIds.has(id)) {
@@ -170,16 +179,7 @@ export function useLineupDrag({
       const next = prev.map((id) => (id && !rosterIds.has(id) ? null : id));
       return next.some((id, i) => id !== prev[i]) ? next : prev;
     });
-  }, [players, formation]);
-
-  useEffect(() => {
-    if (formation === formationSynced) return;
-    setStarterSlotMap((prev) => {
-      const ids = starterIdsFromSlotMap(prev);
-      return buildStarterSlotMapFromIds(formation, ids, playersById);
-    });
-    setFormationSynced(formation);
-  }, [formation, formationSynced, playersById]);
+  }, [players]);
 
   const selectedIds = starterIdsFromSlotMap(starterSlotMap);
   const benchIds = benchIdsFromSlots(benchSlots);
