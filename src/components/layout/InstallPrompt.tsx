@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { Share, X, Download, Copy } from "lucide-react";
+import { Download, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CloseButton } from "@/components/ui/close-button";
+import { SafariInstallGuide } from "@/components/layout/SafariInstallGuide";
 import { useToast } from "@/components/ui/use-toast";
 import {
   installPromptBottom,
@@ -123,23 +125,18 @@ export function InstallPrompt() {
       className="fixed inset-x-3 mx-auto max-w-lg rounded-xl border border-presi-cyan/20 bg-presi-elevated p-4 text-white shadow-xl shadow-black/40 sm:inset-x-4"
       style={{ ...bottomStyle, zIndex: Z_INSTALL_PROMPT }}
     >
-      <button
-        type="button"
+      <CloseButton
         onClick={dismiss}
-        aria-label="Cerrar"
-        className="absolute right-3 top-3 text-white/50 hover:text-white"
-      >
-        <X className="h-4 w-4" />
-      </button>
+        className="absolute right-2 top-2"
+      />
 
       <div className="pr-6">
         <p className="text-sm font-medium text-presi-gold">{instructions.title}</p>
 
         {platform === "ios-safari" ? (
-          <p className="mt-1 flex flex-wrap items-center gap-1 text-sm text-white/80">
-            Toca <Share className="mx-0.5 inline h-4 w-4" /> Compartir →{" "}
-            <span className="font-semibold">Agregar a inicio</span>.
-          </p>
+          <div className="mt-2">
+            <SafariInstallGuide />
+          </div>
         ) : (
           <ol className="mt-2 space-y-1 text-[11px] leading-snug text-white/75 sm:text-xs">
             {instructions.steps.map((step) => (
@@ -181,29 +178,4 @@ export function InstallPrompt() {
   return createPortal(panel, document.body);
 }
 
-/** Contenido reutilizable para el menú «Más». */
-export function InstallAppInstructions({
-  compact = false,
-}: {
-  compact?: boolean;
-}) {
-  const platform = detectInstallPlatform();
-  const instructions = getInstallInstructions(platform);
-  const hasNative = Boolean(getDeferredInstallPrompt());
-
-  return (
-    <div className={compact ? "text-xs text-white/70" : "text-sm text-white/80"}>
-      <p className="font-semibold text-presi-gold">{instructions.title}</p>
-      <ul className="mt-2 list-inside list-disc space-y-1">
-        {instructions.steps.map((step) => (
-          <li key={step}>{step}</li>
-        ))}
-      </ul>
-      {hasNative && instructions.canUseNativePrompt ? (
-        <p className="mt-2 text-[11px] text-presi-cyan">
-          También puedes usar el botón «Instalar» del banner en Inicio.
-        </p>
-      ) : null}
-    </div>
-  );
-}
+export { InstallAppInstructions } from "@/components/layout/InstallAppInstructions";

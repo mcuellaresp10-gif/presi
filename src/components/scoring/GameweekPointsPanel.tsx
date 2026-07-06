@@ -6,6 +6,7 @@ import {
   PointsBreakdownSheet,
   type GameweekPlayerBreakdown,
 } from "@/components/scoring/PointsBreakdownSheet";
+import { CloseButton } from "@/components/ui/close-button";
 import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
 import { getGameweekPointsBreakdown } from "@/lib/actions/gameweek";
 
@@ -70,13 +71,19 @@ export function GameweekPointsPanel({
             onClick={() => setOpen(false)}
           />
           <div className="relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-presi-surface shadow-2xl">
-            <div className="sticky top-0 border-b border-white/10 bg-presi-surface px-4 py-3">
-              <h2 className="text-lg font-bold text-white">
-                Puntos jornada {gameweekRound}
-              </h2>
-              <p className="text-xs text-white/60">
-                Total: {gameweekPoints.toLocaleString("es-CO")} pts
-              </p>
+            <div className="sticky top-0 flex items-start justify-between gap-2 border-b border-white/10 bg-presi-surface px-4 py-3">
+              <div>
+                <h2 className="text-lg font-bold text-white">
+                  Puntos jornada {gameweekRound}
+                </h2>
+                <p className="text-xs text-white/60">
+                  Total: {gameweekPoints.toLocaleString("es-CO")} pts
+                </p>
+              </div>
+              <CloseButton
+                onClick={() => setOpen(false)}
+                className="-mr-1 shrink-0"
+              />
             </div>
             <ul className="divide-y divide-white/5 p-2">
               {players.length === 0 ? (

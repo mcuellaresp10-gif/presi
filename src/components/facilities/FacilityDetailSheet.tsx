@@ -1,6 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
+import { useEffect } from "react";
+import { CloseButton } from "@/components/ui/close-button";
 import { AcademyPackCard, type AcademyUIState } from "@/components/facilities/AcademyPackCard";
 import { FacilityUpgradeCard } from "@/components/facilities/FacilityUpgradeCard";
 import {
@@ -58,6 +59,20 @@ export function FacilityDetailSheet({
   wildCards?: WildCardInventoryItem[];
   rosterPlayers?: Player[];
 }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
   if (!open || !tipo) return null;
 
   const config = CAMPUS_BUILDINGS.find((b) => b.tipo === tipo);
@@ -65,7 +80,7 @@ export function FacilityDetailSheet({
   const info = upgradeInfo[tipo];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-[70]">
       <button
         type="button"
         aria-label="Cerrar"
@@ -73,13 +88,13 @@ export function FacilityDetailSheet({
         onClick={onClose}
       />
 
-      <div
+      <aside
         className={cn(
-          "relative z-10 max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-3xl",
-          "border border-white/10 bg-presi-surface shadow-2xl"
+          "absolute bottom-0 left-0 right-0 mx-auto flex max-h-[min(90dvh,calc(100dvh-env(safe-area-inset-bottom,0px)))] w-full max-w-lg flex-col",
+          "rounded-t-3xl border border-white/10 bg-presi-surface shadow-2xl safe-bottom"
         )}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-presi-surface px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3">
           <div>
             <p className="text-xs uppercase tracking-widest text-presi-cyan/70">
               {config?.label ?? tipo}
@@ -88,70 +103,66 @@ export function FacilityDetailSheet({
               {config?.shortLabel ?? tipo}
             </h2>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg bg-white/10 p-2 text-white/70 hover:bg-white/20"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} className="-mr-1" />
         </div>
 
-        <div className="space-y-4 p-4">
-          {tipo === "scouting" && (
-            <>
-              <ScoutingPackCard
-                state={scoutingState}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
+          <div className="space-y-4 pb-2">
+            {tipo === "scouting" && (
+              <>
+                <ScoutingPackCard
+                  state={scoutingState}
+                  showUpgrade
+                  onUpgrade={() => onUpgrade("scouting")}
+                  upgradeLoading={loading === "scouting"}
+                  isUpgrading={scoutingUpgrading}
+                  upgradeRemaining={scoutingUpgradeRemaining}
+                  upgradeCost={info?.cost ?? 0}
+                  isMaxLevel={info?.isMaxLevel ?? false}
+                  canAffordUpgrade={info?.canAfford ?? false}
+                  upgradeBuildHours={info?.buildHours ?? 24}
+                />
+                {wildCards.length > 0 && (
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
+                      Tus Wild Cards
+                    </p>
+                    <WildCardInventory
+                      cards={wildCards}
+                      rosterPlayers={rosterPlayers}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
+            {tipo === "academia" && (
+              <AcademyPackCard
+                state={academyState}
                 showUpgrade
-                onUpgrade={() => onUpgrade("scouting")}
-                upgradeLoading={loading === "scouting"}
-                isUpgrading={scoutingUpgrading}
-                upgradeRemaining={scoutingUpgradeRemaining}
+                onUpgrade={() => onUpgrade("academia")}
+                upgradeLoading={loading === "academia"}
+                isUpgrading={academyUpgrading}
+                upgradeRemaining={academyUpgradeRemaining}
                 upgradeCost={info?.cost ?? 0}
                 isMaxLevel={info?.isMaxLevel ?? false}
                 canAffordUpgrade={info?.canAfford ?? false}
                 upgradeBuildHours={info?.buildHours ?? 24}
               />
-              {wildCards.length > 0 && (
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
-                    Tus Wild Cards
-                  </p>
-                  <WildCardInventory
-                    cards={wildCards}
-                    rosterPlayers={rosterPlayers}
-                  />
-                </div>
-              )}
-            </>
-          )}
+            )}
 
-          {tipo === "academia" && (
-            <AcademyPackCard
-              state={academyState}
-              showUpgrade
-              onUpgrade={() => onUpgrade("academia")}
-              upgradeLoading={loading === "academia"}
-              isUpgrading={academyUpgrading}
-              upgradeRemaining={academyUpgradeRemaining}
-              upgradeCost={info?.cost ?? 0}
-              isMaxLevel={info?.isMaxLevel ?? false}
-              canAffordUpgrade={info?.canAfford ?? false}
-              upgradeBuildHours={info?.buildHours ?? 24}
-            />
-          )}
-
-          {tipo !== "scouting" && tipo !== "academia" && facility && (
-            <FacilityUpgradeCard
-              facility={facility}
-              loading={loading === tipo}
-              presupuesto={presupuesto}
-              upgradeCost={info?.cost ?? 0}
-              onUpgrade={onUpgrade}
-            />
-          )}
+            {tipo !== "scouting" && tipo !== "academia" && facility && (
+              <FacilityUpgradeCard
+                facility={facility}
+                loading={loading === tipo}
+                presupuesto={presupuesto}
+                upgradeCost={info?.cost ?? 0}
+                onUpgrade={onUpgrade}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </aside>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HelpCircle, X } from "lucide-react";
+import { HelpCircle } from "lucide-react";
+import { CloseButton } from "@/components/ui/close-button";
 
 const STORAGE_KEY = "presi_plantilla_coach_seen";
 
@@ -40,14 +41,12 @@ export function PlantillaCoachHint() {
         Arrastra jugadores al campo o banca. Toca una carta para ver detalles y
         mover entre titular, banca o reserva.
       </p>
-      <button
-        type="button"
+      <CloseButton
         onClick={dismiss}
-        className="shrink-0 text-white/50 hover:text-white"
-        aria-label="Cerrar"
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
+        variant="inline"
+        className="h-9 w-9"
+        iconClassName="h-4 w-4"
+      />
     </div>
   );
 }

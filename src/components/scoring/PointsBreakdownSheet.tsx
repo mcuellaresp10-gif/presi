@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, Crown } from "lucide-react";
+import { CloseButton } from "@/components/ui/close-button";
 import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
 import type { ScoringBreakdownLine } from "@/lib/game/scoring";
 import type { Player, Position } from "@/lib/game/types";
@@ -71,14 +72,17 @@ export function PointsBreakdownSheet({
 
       <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-presi-surface shadow-2xl">
         <div className="sticky top-0 z-10 border-b border-white/10 bg-presi-surface/95 px-4 py-3 backdrop-blur">
-          <button
-            type="button"
-            onClick={onBack}
-            className="mb-2 flex items-center gap-1 text-xs font-semibold text-presi-cyan"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Volver
-          </button>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex min-h-[44px] items-center gap-1 rounded-lg px-2 text-xs font-semibold text-presi-cyan hover:bg-white/5"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </button>
+            <CloseButton onClick={onClose} className="-mr-1 shrink-0" />
+          </div>
           {gameweekRound && (
             <p className="text-[10px] uppercase tracking-widest text-white/50">
               Jornada {gameweekRound}

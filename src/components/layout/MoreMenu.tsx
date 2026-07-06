@@ -5,16 +5,19 @@ import {
   BarChart3,
   CalendarDays,
   Copy,
+  Download,
   LogOut,
+  Smartphone,
   Trophy,
   User,
-  X,
 } from "lucide-react";
+import { CloseButton } from "@/components/ui/close-button";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import type { ProfileSummary } from "@/lib/actions/profile";
-import { InstallAppInstructions } from "@/components/layout/InstallPrompt";
+import { InstallAppInstructions } from "@/components/layout/InstallAppInstructions";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
+import { isStandaloneDisplay } from "@/lib/pwa/install-prompt";
 
 const MORE_ITEMS = [
   { href: "/ligas", label: "Mis ligas", icon: Trophy },
@@ -34,6 +37,8 @@ export function MoreMenu({
 }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
+  const showInstallEntry = !isStandaloneDisplay();
 
   useEffect(() => {
     if (!open) return;
@@ -69,13 +74,7 @@ export function MoreMenu({
       <aside className="absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-2xl bg-presi-surface text-white shadow-2xl safe-bottom">
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <p className="text-display text-sm text-presi-gold">Más</p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-white/70 hover:bg-white/10"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <CloseButton onClick={onClose} label="Cerrar menú" className="-mr-1" />
         </div>
 
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
@@ -104,6 +103,18 @@ export function MoreMenu({
             );
           })}
 
+          {showInstallEntry ? (
+            <button
+              type="button"
+              onClick={() => setInstallOpen((open) => !open)}
+              className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/5"
+            >
+              <Smartphone className="h-5 w-5 shrink-0 text-presi-cyan/70" />
+              Instalar app
+              <Download className="ml-auto h-4 w-4 text-white/40" />
+            </button>
+          ) : null}
+
           <form action="/auth/signout" method="post" className="mt-2">
             <button
               type="submit"
@@ -117,9 +128,18 @@ export function MoreMenu({
 
         <div className="border-t border-white/10 px-4 py-4">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/40">
-            App
+            {showInstallEntry && installOpen ? "Instalar PRESI" : "App"}
           </p>
-          <InstallAppInstructions compact />
+          {showInstallEntry && installOpen ? (
+            <InstallAppInstructions compact showNativeButton />
+          ) : showInstallEntry ? (
+            <p className="text-xs text-white/50">
+              Toca <span className="font-semibold text-white">Instalar app</span>{" "}
+              arriba para ver cómo agregar PRESI a tu inicio.
+            </p>
+          ) : (
+            <InstallAppInstructions compact showNativeButton={false} />
+          )}
         </div>
 
         <div className="border-t border-white/10 px-4 py-3">

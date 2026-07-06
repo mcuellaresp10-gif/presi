@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { CloseButton } from "@/components/ui/close-button";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -152,13 +152,11 @@ export function PlayerDetailPanel({
 
       <div className="relative z-10 max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-presi-surface text-white shadow-2xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-presi-navy via-presi-cyan/90 to-presi-bg px-4 pb-16 pt-5">
-          <button
-            type="button"
+          <CloseButton
             onClick={onClose}
-            className="absolute right-3 top-3 rounded-lg bg-black/20 p-1.5 text-white/80 hover:bg-black/30"
-          >
-            <X className="h-4 w-4" />
-          </button>
+            variant="overlay"
+            className="absolute right-2 top-2 z-10"
+          />
 
           <div className="flex gap-4">
             <div>

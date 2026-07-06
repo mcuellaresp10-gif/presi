@@ -98,7 +98,7 @@ export function getInstallInstructions(platform: InstallPlatform): {
       return {
         title: "Instala PRESI en tu iPhone",
         steps: [
-          "Toca el botón Compartir (cuadrado con flecha).",
+          "Busca Compartir en la barra de Safari (abajo, centro).",
           "Elige «Agregar a inicio».",
           "Confirma con «Agregar».",
         ],

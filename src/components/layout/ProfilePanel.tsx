@@ -13,8 +13,8 @@ import {
   Trophy,
   User,
   Users,
-  X,
 } from "lucide-react";
+import { CloseButton } from "@/components/ui/close-button";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import type { ProfileSummary } from "@/lib/actions/profile";
 import { useToast } from "@/components/ui/use-toast";
@@ -75,13 +75,7 @@ export function ProfilePanel({
           <p className="text-xs font-semibold uppercase tracking-widest text-white/50">
             Perfil
           </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-white/70 hover:bg-white/10"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <CloseButton onClick={onClose} label="Cerrar menú" className="-mr-1" />
         </div>
 
         <div className="border-b border-white/10 px-6 py-6 text-center">
