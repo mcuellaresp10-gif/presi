@@ -6,10 +6,7 @@ import { getUserClub } from "@/lib/actions/club";
 import {
   ensureOpenGameweek,
   runPageLoadGameweekTick,
-  syncFixturesFromApi,
 } from "@/lib/gameweek/sync";
-import { isApiFootballConfigured } from "@/lib/api-football/client";
-import { tickGameweekStatuses } from "@/lib/gameweek/processor";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
 import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
 import { getActiveTournamentPhase } from "@/lib/gameweek/tournament";
@@ -121,24 +118,25 @@ export async function resolveGameweekForDraftSave(): Promise<GameweekPublic | nu
   if (found) return found;
 
   const supabase = createServiceRoleClient();
-  if (isApiFootballConfigured()) {
-    await syncFixturesFromApi(supabase);
-  }
   await ensureOpenGameweek(supabase);
-  await tickGameweekStatuses(supabase);
 
   return findGameweekForDraftSave();
 }
 
+export async function getGameweekById(
+  id: string
+): Promise<GameweekPublic | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("gameweeks")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  return data ? mapGameweek(data) : null;
+}
+
 async function findGameweekForDraftSave(): Promise<GameweekPublic | null> {
-  const editable = await getEditableGameweek();
-  if (editable) return editable;
-
-  const current = await getCurrentGameweek();
-  if (current?.status === "upcoming") {
-    return current;
-  }
-
   const supabase = await createClient();
   const now = new Date();
   const phase = getActiveTournamentPhase(now);
@@ -154,6 +152,20 @@ async function findGameweekForDraftSave(): Promise<GameweekPublic | null> {
 
   if (futureRow) {
     return mapGameweek(futureRow, now);
+  }
+
+  const { data: rows } = await supabase
+    .from("gameweeks")
+    .select("*")
+    .eq("tournament_phase", phase)
+    .order("season", { ascending: false })
+    .order("round", { ascending: true });
+
+  for (const row of rows ?? []) {
+    const gameweek = mapGameweek(row, now);
+    if (gameweek.status === "upcoming") {
+      return gameweek;
+    }
   }
 
   return null;

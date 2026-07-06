@@ -39,6 +39,7 @@ export function PlantillaClient({
   initialBenchIds,
   initialCaptainId,
   initialFormation = "4-4-2",
+  editingGameweekId = null,
 }: {
   players: RosterPlayer[];
   usedBudget: number;
@@ -52,6 +53,7 @@ export function PlantillaClient({
   initialBenchIds: string[];
   initialCaptainId: string | null;
   initialFormation?: string;
+  editingGameweekId?: string | null;
 }) {
   const { toast } = useToast();
   const subsRef = useRef<HTMLDivElement>(null);
@@ -60,6 +62,8 @@ export function PlantillaClient({
   const lastSavedRef = useRef("");
   const hasInitializedSaveRef = useRef(false);
   const saveInFlightRef = useRef(false);
+  const pendingSaveRef = useRef<string | null>(null);
+  const gameweekIdRef = useRef<string | null>(editingGameweekId);
   const [formation, setFormation] = useState(() => {
     const valid = VALID_FORMATIONS.some((f) => f.label === initialFormation);
     return valid ? initialFormation : "4-4-2";
@@ -168,42 +172,61 @@ export function PlantillaClient({
   );
 
   useEffect(() => {
+    gameweekIdRef.current = editingGameweekId;
+  }, [editingGameweekId]);
+
+  useEffect(() => {
     if (isLineupLocked) return;
     if (lineupSignature === lastSavedRef.current) return;
 
     const runSave = async (signature: string) => {
-      if (saveInFlightRef.current) return;
+      if (saveInFlightRef.current) {
+        pendingSaveRef.current = signature;
+        return;
+      }
+
       saveInFlightRef.current = true;
       setSaveStatus("saving");
 
-      const result = await saveLineupDraft(
-        selectedIds,
-        benchIds,
-        captainId,
-        formation
-      );
+      try {
+        const result = await saveLineupDraft(
+          selectedIds,
+          benchIds,
+          captainId,
+          formation,
+          gameweekIdRef.current
+        );
 
-      saveInFlightRef.current = false;
-
-      if ("error" in result && result.error) {
-        setSaveStatus("error");
-        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = setTimeout(() => {
-          if (signature !== lastSavedRef.current) {
-            void runSave(signature);
+        if ("error" in result && result.error) {
+          setSaveStatus("error");
+          if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+          retryTimeoutRef.current = setTimeout(() => {
+            if (signature !== lastSavedRef.current) {
+              void runSave(signature);
+            }
+          }, 4000);
+        } else {
+          if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+          if ("gameweekId" in result && result.gameweekId) {
+            gameweekIdRef.current = result.gameweekId;
           }
-        }, 4000);
-      } else {
-        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-        lastSavedRef.current = signature;
-        setSaveStatus("saved");
+          lastSavedRef.current = signature;
+          setSaveStatus("saved");
+        }
+      } finally {
+        saveInFlightRef.current = false;
+        const pending = pendingSaveRef.current;
+        pendingSaveRef.current = null;
+        if (pending && pending !== lastSavedRef.current) {
+          void runSave(pending);
+        }
       }
     };
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       void runSave(lineupSignature);
-    }, 500);
+    }, 400);
 
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);

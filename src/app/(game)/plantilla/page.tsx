@@ -37,6 +37,7 @@ export default async function PlantillaPage() {
       initialBenchIds={draft?.benchIds ?? []}
       initialCaptainId={draft?.captainId ?? null}
       initialFormation={draft?.formation ?? "4-4-2"}
+      editingGameweekId={lineupState?.editingGameweek?.id ?? null}
     />
       <GameweekBackgroundSync />
     </>

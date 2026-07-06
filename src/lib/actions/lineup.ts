@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import {
   assignSquadRoles,
   sanitizeLineupDraft,
@@ -8,6 +7,7 @@ import {
 import type { Player } from "@/lib/game/types";
 import {
   getCurrentGameweek,
+  getGameweekById,
   resolveGameweekForDraftSave,
 } from "@/lib/actions/gameweek";
 import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
@@ -18,12 +18,16 @@ export async function saveLineupDraft(
   starterIds: string[],
   benchIds: string[],
   captainId: string | null,
-  formationLabel?: string | null
+  formationLabel?: string | null,
+  gameweekId?: string | null
 ) {
   const club = await getUserClub();
   if (!club) return { error: "No tienes club." };
 
-  const gameweek = await resolveGameweekForDraftSave();
+  const gameweek =
+    (gameweekId ? await getGameweekById(gameweekId) : null) ??
+    (await resolveGameweekForDraftSave());
+
   if (!gameweek) {
     const current = await getCurrentGameweek();
     if (computeIsLineupLocked(null, current)) {
@@ -88,21 +92,22 @@ export async function saveLineupDraft(
   if (draftError) return { error: draftError.message };
 
   const roles = assignSquadRoles(rosterIds, cleanStarters, cleanBench);
-  for (const [playerId, squadRole] of Array.from(roles.entries())) {
-    await supabase
-      .from("club_roster")
-      .update({
-        squad_role: squadRole,
-        es_titular: squadRole === "starter",
-      })
-      .eq("club_id", club.id)
-      .eq("player_id", playerId);
-  }
-
-  revalidatePath("/inicio");
+  await Promise.all(
+    Array.from(roles.entries()).map(([playerId, squadRole]) =>
+      supabase
+        .from("club_roster")
+        .update({
+          squad_role: squadRole,
+          es_titular: squadRole === "starter",
+        })
+        .eq("club_id", club.id)
+        .eq("player_id", playerId)
+    )
+  );
 
   return {
     success: true,
+    gameweekId: gameweek.id,
     formation: derivedFormation ?? formationLabel ?? null,
     isComplete:
       cleanStarters.length === 11 &&
