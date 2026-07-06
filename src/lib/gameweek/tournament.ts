@@ -62,7 +62,7 @@ export function buildGameweekGroupsFromFixtures(
 
   const groups: GameweekFixtureGroup[] = [];
 
-  for (const [phase, phaseFixtures] of byPhase) {
+  for (const [phase, phaseFixtures] of Array.from(byPhase)) {
     const byApiRound = new Map<string, ApiFixture[]>();
     for (const f of phaseFixtures) {
       const label = f.league.round;

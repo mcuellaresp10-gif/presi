@@ -159,7 +159,7 @@ export async function syncFixturesFromApi(
     }
   }
 
-  for (const phase of syncedPhases) {
+  for (const phase of Array.from(syncedPhases)) {
     await pruneStaleGameweeks(supabase, season, phase, syncedGameweekIds);
   }
 
