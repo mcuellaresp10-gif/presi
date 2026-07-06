@@ -1,8 +1,10 @@
 {
   "name": "PRESI — Fantasy Liga Colombiana",
   "short_name": "PRESI",
+  "id": "/",
+  "scope": "/",
   "description": "Fantasy ownership de fútbol colombiano",
-  "start_url": "/",
+  "start_url": "/inicio",
   "display": "standalone",
   "background_color": "#070B18",
   "theme_color": "#070B18",

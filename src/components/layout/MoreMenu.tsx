@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import type { ProfileSummary } from "@/lib/actions/profile";
+import { InstallAppInstructions } from "@/components/layout/InstallPrompt";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 
@@ -111,6 +112,13 @@ export function MoreMenu({
             </button>
           </form>
         </nav>
+
+        <div className="border-t border-white/10 px-4 py-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/40">
+            App
+          </p>
+          <InstallAppInstructions compact />
+        </div>
 
         <div className="border-t border-white/10 px-4 py-3">
           <button
