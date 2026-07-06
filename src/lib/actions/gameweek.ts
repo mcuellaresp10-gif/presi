@@ -220,7 +220,6 @@ export async function triggerGameweekSync() {
     const supabase = createServiceRoleClient();
     const result = await runPageLoadGameweekTick(supabase);
     revalidatePath("/inicio");
-    revalidatePath("/plantilla");
     revalidatePath("/ranking");
     revalidatePath("/calendario");
     return result;

@@ -64,6 +64,7 @@ export function PlantillaClient({
   const subsRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef("");
+  const hasInitializedSaveRef = useRef(false);
   const [formation, setFormation] = useState(initialFormation);
   const [captainId, setCaptainId] = useState<string | null>(() => {
     if (
@@ -136,6 +137,8 @@ export function PlantillaClient({
   }, [selectedIds, captainId]);
 
   useEffect(() => {
+    if (hasInitializedSaveRef.current) return;
+    hasInitializedSaveRef.current = true;
     lastSavedRef.current = JSON.stringify({
       formation: initialFormation,
       selectedIds: initialStarterIds,
@@ -447,10 +450,10 @@ export function PlantillaClient({
             onValueChange={setFormation}
             disabled={isLineupLocked}
           >
-            <SelectTrigger className="h-8 w-[5.5rem] border-white/15 bg-white/5 text-xs text-white">
+            <SelectTrigger className="relative z-30 h-8 w-[5.5rem] border-white/15 bg-white/5 text-xs text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[80]">
               {VALID_FORMATIONS.map((f) => (
                 <SelectItem key={f.label} value={f.label}>
                   {f.label}

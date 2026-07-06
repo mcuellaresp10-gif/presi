@@ -86,7 +86,6 @@ export async function saveLineupDraft(
       .eq("player_id", playerId);
   }
 
-  revalidatePath("/plantilla");
   revalidatePath("/inicio");
 
   return {

@@ -174,12 +174,12 @@ export function useLineupDrag({
 
   useEffect(() => {
     if (formation === formationSynced) return;
-    const ids = starterIdsFromSlotMap(starterSlotMap);
-    setStarterSlotMap(
-      buildStarterSlotMapFromIds(formation, ids, playersById)
-    );
+    setStarterSlotMap((prev) => {
+      const ids = starterIdsFromSlotMap(prev);
+      return buildStarterSlotMapFromIds(formation, ids, playersById);
+    });
     setFormationSynced(formation);
-  }, [formation, formationSynced, starterSlotMap, playersById]);
+  }, [formation, formationSynced, playersById]);
 
   const selectedIds = starterIdsFromSlotMap(starterSlotMap);
   const benchIds = benchIdsFromSlots(benchSlots);
