@@ -3,29 +3,61 @@ import type { Player, Rarity } from "@/lib/game/types";
 
 const RARITY_STYLES: Record<
   Rarity,
-  { border: string; badge: string; label: string }
+  {
+    frame: string;
+    panel: string;
+    stripe: string;
+    badge: string;
+    label: string;
+    position: string;
+    name: string;
+    meta: string;
+    price: string;
+  }
 > = {
   bronce: {
-    border: "border-[#CD7F32] shadow-[0_0_12px_rgba(205,127,50,0.35)]",
+    frame: "border-[#CD7F32] shadow-[0_0_12px_rgba(205,127,50,0.35)]",
+    panel: "bg-presi-surface",
+    stripe: "from-[#CD7F32]/35 via-[#CD7F32]/10 to-transparent",
     badge: "bg-[#CD7F32] text-white",
     label: "Bronce",
+    position: "text-orange-300",
+    name: "text-white",
+    meta: "text-white/75",
+    price: "text-orange-200",
   },
   plata: {
-    border:
-      "border-transparent bg-gradient-to-br from-gray-300 via-white to-gray-500 shadow-[0_0_12px_rgba(192,192,192,0.4)]",
-    badge: "bg-gradient-to-r from-gray-300 to-gray-500 text-presi-bg",
+    frame: "border-gray-300/70 shadow-[0_0_12px_rgba(192,192,192,0.35)]",
+    panel: "bg-presi-surface",
+    stripe: "from-gray-300/30 via-gray-200/10 to-transparent",
+    badge: "bg-gradient-to-r from-gray-200 to-gray-400 text-presi-bg",
     label: "Plata",
+    position: "text-gray-200",
+    name: "text-white",
+    meta: "text-white/80",
+    price: "text-gray-100",
   },
   oro: {
-    border:
-      "border-transparent bg-gradient-to-br from-presi-gold via-yellow-200 to-amber-700 shadow-[0_0_16px_rgba(245,197,24,0.45)]",
+    frame: "border-presi-gold/90 shadow-[0_0_16px_rgba(245,197,24,0.45)]",
+    panel: "bg-presi-surface",
+    stripe: "from-presi-gold/35 via-amber-500/10 to-transparent",
     badge: "bg-presi-gold text-presi-bg",
     label: "Oro",
+    position: "text-amber-200",
+    name: "text-white",
+    meta: "text-white/80",
+    price: "text-presi-gold",
   },
   leyenda: {
-    border: "border-2 border-transparent legend-holo",
-    badge: "bg-presi-navy text-presi-gold",
+    frame: "border-2 border-transparent p-[2px] legend-holo shadow-[0_0_18px_rgba(34,211,238,0.35)]",
+    panel: "bg-presi-bg",
+    stripe: "from-presi-cyan/30 via-presi-gold/15 to-transparent",
+    badge: "bg-presi-navy text-presi-gold ring-1 ring-presi-gold/40",
     label: "Leyenda",
+    position: "text-presi-cyan",
+    name: "text-white",
+    meta: "text-white/80",
+    price: "text-presi-gold",
   },
 };
 
@@ -41,39 +73,65 @@ export function PlayerCard({
   compact?: boolean;
 }) {
   const style = RARITY_STYLES[player.rareza];
+  const isLegendFrame = player.rareza === "leyenda";
 
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "geo-card relative w-full border-2 bg-presi-surface p-3 text-left transition-transform",
-        style.border,
+        "geo-card relative w-full text-left transition-transform",
+        isLegendFrame ? style.frame : cn("border-2 bg-presi-surface", style.frame),
         selected && "scale-[1.02] ring-2 ring-presi-gold",
-        onClick && "cursor-pointer hover:scale-[1.02]",
-        compact ? "p-2" : "p-3"
+        onClick && "cursor-pointer hover:scale-[1.02]"
       )}
     >
-      <span
+      <div
         className={cn(
-          "absolute right-2 top-2 rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase",
-          style.badge
+          "relative overflow-hidden",
+          isLegendFrame ? cn("geo-card border-0", style.panel) : style.panel,
+          compact ? "p-2" : "p-3"
         )}
       >
-        {style.label}
-      </span>
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b",
+            style.stripe
+          )}
+        />
 
-      <div className="mt-4">
-        <p className="text-display text-xs text-presi-cyan">{player.posicion}</p>
-        <p className={cn("font-bold text-white", compact ? "text-sm" : "text-base")}>
-          {player.nombre}
+        <span
+          className={cn(
+            "absolute right-2 top-2 z-10 rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase",
+            style.badge
+          )}
+        >
+          {style.label}
+        </span>
+
+        <div className="relative z-[1] mt-4">
+          <p className={cn("text-display text-xs", style.position)}>
+            {player.posicion}
+          </p>
+          <p
+            className={cn(
+              "font-bold leading-tight",
+              style.name,
+              compact ? "text-sm" : "text-base"
+            )}
+          >
+            {player.nombre}
+          </p>
+          <p className={cn("text-xs leading-snug", style.meta)}>
+            {player.equipo_real}
+          </p>
+        </div>
+
+        <p className={cn("relative z-[1] mt-2 text-sm font-semibold", style.price)}>
+          {formatCOP(player.costo_base)}
         </p>
-        <p className="text-xs text-white/70">{player.equipo_real}</p>
       </div>
-
-      <p className="mt-2 text-sm font-semibold text-presi-gold">
-        {formatCOP(player.costo_base)}
-      </p>
     </button>
   );
 }

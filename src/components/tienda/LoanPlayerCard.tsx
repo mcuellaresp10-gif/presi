@@ -63,7 +63,7 @@ export function LoanPlayerCard({
           : "border-white/15 shadow-lg"
       )}
     >
-      <span className="absolute right-2 top-2 rounded bg-cyan-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cyan-200">
+      <span className="absolute right-2 top-2 z-10 rounded bg-presi-bg/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-presi-cyan ring-1 ring-presi-cyan/40">
         Préstamo {offer.jornadasPrestamo}J
       </span>
 
