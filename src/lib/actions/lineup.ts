@@ -6,7 +6,11 @@ import {
   sanitizeLineupDraft,
 } from "@/lib/game/squad-limits";
 import type { Player } from "@/lib/game/types";
-import { getEditableGameweek, isGameweekEditable } from "@/lib/actions/gameweek";
+import {
+  getCurrentGameweek,
+  resolveGameweekForDraftSave,
+} from "@/lib/actions/gameweek";
+import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,12 +23,21 @@ export async function saveLineupDraft(
   const club = await getUserClub();
   if (!club) return { error: "No tienes club." };
 
-  const gameweek = await getEditableGameweek();
+  const gameweek = await resolveGameweekForDraftSave();
   if (!gameweek) {
-    return { error: "No hay jornada abierta para editar. La actual ya comenzó." };
+    const current = await getCurrentGameweek();
+    if (computeIsLineupLocked(null, current)) {
+      return {
+        error: "La jornada ya comenzó. No puedes cambiar la alineación.",
+      };
+    }
+    return {
+      error:
+        "El calendario se está sincronizando. Intenta de nuevo en unos segundos.",
+    };
   }
 
-  if (!(await isGameweekEditable(gameweek, club.id))) {
+  if (computeIsLineupLocked(gameweek, gameweek)) {
     return {
       error: "La jornada ya comenzó. No puedes cambiar la alineación.",
     };

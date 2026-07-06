@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
 import { runPageLoadGameweekTick } from "@/lib/gameweek/sync";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
+import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
 import { getActiveTournamentPhase } from "@/lib/gameweek/tournament";
 import { DEFAULT_SEASON } from "@/lib/api-football/client";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -90,20 +91,36 @@ function mapGameweek(
 
 export async function getEditableGameweek(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
-  const now = new Date().toISOString();
-  const tournamentPhase = getActiveTournamentPhase();
+  const now = new Date();
+  const tournamentPhase = getActiveTournamentPhase(now);
 
-  const { data: row } = await supabase
+  const { data: rows } = await supabase
     .from("gameweeks")
     .select("*")
     .eq("season", DEFAULT_SEASON)
     .eq("tournament_phase", tournamentPhase)
-    .gt("first_kickoff_at", now)
-    .order("first_kickoff_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order("round", { ascending: true });
 
-  return row ? mapGameweek(row) : null;
+  for (const row of rows ?? []) {
+    const gameweek = mapGameweek(row, now);
+    if (gameweek.status === "upcoming") {
+      return gameweek;
+    }
+  }
+
+  return null;
+}
+
+export async function resolveGameweekForDraftSave(): Promise<GameweekPublic | null> {
+  const editable = await getEditableGameweek();
+  if (editable) return editable;
+
+  const current = await getCurrentGameweek();
+  if (current?.status === "upcoming") {
+    return current;
+  }
+
+  return null;
 }
 
 export async function isGameweekEditable(
@@ -121,19 +138,21 @@ export async function getPlantillaLineupState() {
 
   const currentGameweek = await getCurrentGameweek();
   const editingGameweek = await getEditableGameweek();
+  const isLineupLocked = computeIsLineupLocked(
+    editingGameweek,
+    currentGameweek
+  );
 
   if (!editingGameweek) {
     return {
       currentGameweek,
       editingGameweek: currentGameweek,
-      isLineupLocked: true,
+      isLineupLocked,
       deadlineAt: currentGameweek?.firstKickoffAt ?? null,
       displayRound: currentGameweek?.round ?? null,
       editingRound: currentGameweek?.round ?? null,
     };
   }
-
-  const isLineupLocked = !(await isGameweekEditable(editingGameweek, club.id));
 
   return {
     currentGameweek,
@@ -196,9 +215,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
         .maybeSingle(),
     ]);
 
-  const isLineupLocked = editableGameweek
-    ? !(await isGameweekEditable(editableGameweek, club.id))
-    : true;
+  const isLineupLocked = computeIsLineupLocked(editableGameweek, gameweek);
 
   return {
     gameweek,

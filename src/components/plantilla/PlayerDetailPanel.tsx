@@ -235,7 +235,7 @@ export function PlayerDetailPanel({
             </p>
             <p className="mb-3 text-[11px] leading-snug text-white/45">
               {lineupLocked
-                ? "La jornada actual ya comenzó. Los botones muestran el estado actual; podrás cambiarlos cuando abra la próxima jornada."
+                ? "La jornada ya empezó. Podrás mover jugadores cuando abra la próxima jornada."
                 : "Toca 11 inicial, Banca o Reserva para mover al jugador. Su rol en campo (delantero, defensa…) no se puede cambiar."}
             </p>
 

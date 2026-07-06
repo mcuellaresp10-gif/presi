@@ -32,7 +32,7 @@ export default async function PlantillaPage() {
       gameweekRound={lineupState?.displayRound ?? null}
       editingGameweekRound={lineupState?.editingRound ?? null}
       deadlineAt={lineupState?.deadlineAt ?? null}
-      isLineupLocked={lineupState?.isLineupLocked ?? true}
+      isLineupLocked={lineupState?.isLineupLocked ?? false}
       initialStarterIds={draft?.starterIds ?? []}
       initialBenchIds={draft?.benchIds ?? []}
       initialCaptainId={draft?.captainId ?? null}

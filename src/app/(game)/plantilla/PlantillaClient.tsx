@@ -652,7 +652,7 @@ export function PlantillaClient({
             description:
               deadlineAt && Date.now() >= new Date(deadlineAt).getTime()
                 ? `El primer partido de esta jornada fue el ${new Date(deadlineAt).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })}.`
-                : "No hay jornada abierta para editar en este momento.",
+                : "La jornada ya está en curso. Podrás editar cuando abra la próxima.",
           });
         }}
         onSetCaptain={() => {
