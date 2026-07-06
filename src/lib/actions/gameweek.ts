@@ -1,14 +1,19 @@
 "use server";
 
 import { cache } from "react";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
+import { isApiFootballConfigured } from "@/lib/api-football/client";
 import {
   ensureOpenGameweek,
   runPageLoadGameweekTick,
   syncCalendarFromApi,
 } from "@/lib/gameweek/sync";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
+import {
+  isCalendarStale,
+  resolveNextGameweekRow,
+} from "@/lib/gameweek/resolve-next";
 import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
 import { getActiveTournamentPhase } from "@/lib/gameweek/tournament";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -101,21 +106,11 @@ export async function getEditableGameweek(): Promise<GameweekPublic | null> {
   return getNextGameweek();
 }
 
-/** Próxima jornada del semestre activo por fecha de pitido (no por número de ronda). */
+/** Próxima jornada del semestre activo según partidos reales en BD. */
 export async function getNextGameweek(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
   const now = new Date();
-  const tournamentPhase = getActiveTournamentPhase(now);
-
-  const { data: row } = await supabase
-    .from("gameweeks")
-    .select("*")
-    .eq("tournament_phase", tournamentPhase)
-    .gt("first_kickoff_at", now.toISOString())
-    .order("first_kickoff_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
+  const row = await resolveNextGameweekRow(supabase, now);
   return row ? mapGameweek(row, now) : null;
 }
 
@@ -145,21 +140,10 @@ export async function getGameweekById(
 async function findGameweekForDraftSave(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
   const now = new Date();
+  const row = await resolveNextGameweekRow(supabase, now);
+  if (row) return mapGameweek(row, now);
+
   const phase = getActiveTournamentPhase(now);
-
-  const { data: futureRow } = await supabase
-    .from("gameweeks")
-    .select("*")
-    .eq("tournament_phase", phase)
-    .gt("first_kickoff_at", now.toISOString())
-    .order("first_kickoff_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (futureRow) {
-    return mapGameweek(futureRow, now);
-  }
-
   const { data: rows } = await supabase
     .from("gameweeks")
     .select("*")
@@ -176,6 +160,18 @@ async function findGameweekForDraftSave(): Promise<GameweekPublic | null> {
 
   return null;
 }
+
+const repairCalendarIfStale = unstable_cache(
+  async () => {
+    if (!isApiFootballConfigured()) return;
+    const supabase = createServiceRoleClient();
+    if (await isCalendarStale(supabase)) {
+      await syncCalendarFromApi(supabase);
+    }
+  },
+  ["presi-calendar-repair"],
+  { revalidate: 3600 }
+);
 
 export async function isGameweekEditable(
   gameweek: GameweekPublic,
@@ -219,6 +215,8 @@ export async function getPlantillaLineupState() {
 }
 
 export const getClubGameweekSummary = cache(async function getClubGameweekSummary() {
+  await repairCalendarIfStale();
+
   const club = await getUserClub();
   if (!club) return null;
 

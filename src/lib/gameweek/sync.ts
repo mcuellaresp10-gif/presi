@@ -175,19 +175,27 @@ async function pruneStaleGameweeks(
 ) {
   const { data: rows } = await supabase
     .from("gameweeks")
-    .select("id")
+    .select("id, round")
     .eq("season", season)
     .eq("tournament_phase", phase);
+
+  const keepRows = (rows ?? []).filter((row) => keepIds.has(row.id));
+  const targetId =
+    keepRows.sort((a, b) => a.round - b.round)[0]?.id ?? null;
 
   for (const row of rows ?? []) {
     if (keepIds.has(row.id)) continue;
 
-    const { count: draftCount } = await supabase
-      .from("lineup_drafts")
-      .select("id", { count: "exact", head: true })
-      .eq("gameweek_id", row.id);
-
-    if (draftCount && draftCount > 0) continue;
+    if (targetId) {
+      await supabase
+        .from("lineup_drafts")
+        .update({ gameweek_id: targetId })
+        .eq("gameweek_id", row.id);
+      await supabase
+        .from("lineup_snapshots")
+        .update({ gameweek_id: targetId })
+        .eq("gameweek_id", row.id);
+    }
 
     await supabase.from("fixtures").delete().eq("gameweek_id", row.id);
     await supabase.from("gameweeks").delete().eq("id", row.id);
