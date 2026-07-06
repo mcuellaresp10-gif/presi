@@ -61,9 +61,9 @@ export default async function InicioPage() {
         escudoConfig={club.escudo_config as EscudoConfig}
         seasonPoints={seasonPoints}
         gameweekPoints={gwSummary?.gameweekPoints ?? 0}
-        gameweekRound={gwSummary?.gameweek?.round ?? null}
-        gameweekStatus={gwSummary?.gameweek?.status ?? null}
-        deadlineAt={gwSummary?.gameweek?.firstKickoffAt ?? null}
+        gameweekRound={gwSummary?.displayGameweek?.round ?? null}
+        gameweekStatus={gwSummary?.displayGameweek?.status ?? null}
+        deadlineAt={gwSummary?.deadlineAt ?? null}
         isLineupLocked={gwSummary?.isLineupLocked ?? false}
         hasValidDraft={gwSummary?.hasValidDraft ?? false}
         rivalNombre={rivalEntry?.club_nombre ?? null}

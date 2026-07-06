@@ -6,14 +6,12 @@ import {
   fetchLeaguePlayersPage,
   isApiFootballConfigured,
   mapApiPosition,
-  parseRoundNumber,
 } from "@/lib/api-football/client";
 import { mapApiPlayerStatRow } from "@/lib/api-football/map-stats";
 import { buildTierAssignmentsFromApiRows } from "@/lib/game/player-rarity";
 import {
-  gameweekGroupKey,
+  buildGameweekGroupsFromFixtures,
   getActiveTournamentPhase,
-  parseFixtureTournamentPhase,
   type TournamentPhase,
 } from "@/lib/gameweek/tournament";
 import {
@@ -110,24 +108,12 @@ export async function syncFixturesFromApi(
   }
 
   const fixtures = await fetchLeagueFixtures(leagueId, season);
-  const byPhaseRound = new Map<
-    string,
-    { phase: TournamentPhase; round: number; fixtures: typeof fixtures }
-  >();
+  const groups = buildGameweekGroupsFromFixtures(fixtures);
+  const syncedGameweekIds = new Set<string>();
+  const syncedPhases = new Set<TournamentPhase>();
 
-  for (const f of fixtures) {
-    const round = parseRoundNumber(f.league.round);
-    const phase = parseFixtureTournamentPhase(f.league.round, f.fixture.date);
-    const key = gameweekGroupKey(phase, round);
-    if (!byPhaseRound.has(key)) {
-      byPhaseRound.set(key, { phase, round, fixtures: [] });
-    }
-    byPhaseRound.get(key)!.fixtures.push(f);
-  }
-
-  for (const { phase, round, fixtures: roundFixtures } of Array.from(
-    byPhaseRound.values()
-  )) {
+  for (const { phase, round, fixtures: roundFixtures } of groups) {
+    syncedPhases.add(phase);
     const kickoffs = roundFixtures.map((f) =>
       new Date(f.fixture.date).getTime()
     );
@@ -151,6 +137,7 @@ export async function syncFixturesFromApi(
       .single();
 
     if (!gw) continue;
+    syncedGameweekIds.add(gw.id);
 
     for (const f of roundFixtures) {
       if (!f?.fixture?.id) continue;
@@ -172,7 +159,53 @@ export async function syncFixturesFromApi(
     }
   }
 
-  return { mode: "api" as const, rounds: byPhaseRound.size };
+  for (const phase of syncedPhases) {
+    await pruneStaleGameweeks(supabase, season, phase, syncedGameweekIds);
+  }
+
+  return { mode: "api" as const, rounds: groups.length };
+}
+
+/** Elimina jornadas huérfanas tras re-numerar (p. ej. J20 fantasma en Clausura). */
+async function pruneStaleGameweeks(
+  supabase: SupabaseClient,
+  season: number,
+  phase: TournamentPhase,
+  keepIds: Set<string>
+) {
+  const { data: rows } = await supabase
+    .from("gameweeks")
+    .select("id")
+    .eq("season", season)
+    .eq("tournament_phase", phase);
+
+  for (const row of rows ?? []) {
+    if (keepIds.has(row.id)) continue;
+
+    const { count: draftCount } = await supabase
+      .from("lineup_drafts")
+      .select("id", { count: "exact", head: true })
+      .eq("gameweek_id", row.id);
+
+    if (draftCount && draftCount > 0) continue;
+
+    await supabase.from("fixtures").delete().eq("gameweek_id", row.id);
+    await supabase.from("gameweeks").delete().eq("id", row.id);
+  }
+}
+
+export async function syncCalendarFromApi(
+  supabase: SupabaseClient,
+  leagueId = DEFAULT_LEAGUE_ID,
+  season = DEFAULT_SEASON
+) {
+  if (!isApiFootballConfigured()) {
+    return { mode: "skip" as const };
+  }
+
+  const result = await syncFixturesFromApi(supabase, leagueId, season);
+  await tickGameweekStatuses(supabase);
+  return result;
 }
 
 export async function syncLiveStatsFromApi(supabase: SupabaseClient) {
@@ -245,48 +278,14 @@ async function hasOpenGameweek(supabase: SupabaseClient): Promise<boolean> {
   );
 }
 
-/** Garantiza al menos una jornada con primer partido en el futuro. */
+/** Garantiza jornadas futuras sincronizadas desde la API (sin fechas inventadas). */
 export async function ensureOpenGameweek(supabase: SupabaseClient) {
   if (await hasOpenGameweek(supabase)) return;
 
   if (isApiFootballConfigured()) {
     await syncFixturesFromApi(supabase);
     await tickGameweekStatuses(supabase);
-    if (await hasOpenGameweek(supabase)) return;
   }
-
-  const phase = getActiveTournamentPhase();
-  const { data: latest } = await supabase
-    .from("gameweeks")
-    .select("*")
-    .eq("tournament_phase", phase)
-    .order("round", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const firstKickoff = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const lastKickoff = new Date(Date.now() + 9 * 24 * 60 * 60 * 1000);
-
-  if (!latest) {
-    await supabase.from("gameweeks").insert({
-      season: DEFAULT_SEASON,
-      tournament_phase: phase,
-      round: 1,
-      first_kickoff_at: firstKickoff.toISOString(),
-      last_kickoff_at: lastKickoff.toISOString(),
-      status: "upcoming",
-    });
-    return;
-  }
-
-  await supabase
-    .from("gameweeks")
-    .update({
-      first_kickoff_at: firstKickoff.toISOString(),
-      last_kickoff_at: lastKickoff.toISOString(),
-      status: "upcoming",
-    })
-    .eq("id", latest.id);
 }
 
 export async function hasLiveGameweek(
@@ -314,7 +313,11 @@ export async function runGameweekStatusTick(
  * Si no hay partidos en vivo, responde al instante sin llamar API-Football.
  */
 export async function runGameweekCronPipeline(supabase: SupabaseClient) {
-  await runGameweekStatusTick(supabase);
+  if (isApiFootballConfigured()) {
+    await syncCalendarFromApi(supabase);
+  } else {
+    await runGameweekStatusTick(supabase);
+  }
 
   const live = await hasLiveGameweek(supabase);
   if (!live) {

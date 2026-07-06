@@ -157,7 +157,9 @@ export function HomeDashboard({
                   : upcoming
                     ? isLineupLocked
                       ? "Temporada por comenzar"
-                      : `Primera fecha en ${deadlineCountdown}`
+                      : gameweekRound === 1
+                        ? `Primera fecha en ${deadlineCountdown}`
+                        : `Próxima fecha en ${deadlineCountdown}`
                     : isLineupLocked
                       ? "Alineación bloqueada"
                       : `Cierra en ${deadlineCountdown}`

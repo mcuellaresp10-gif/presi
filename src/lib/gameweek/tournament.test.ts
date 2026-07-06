@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildGameweekGroupsFromFixtures,
   getActiveTournamentPhase,
   inferTournamentPhaseFromDate,
   parseFixtureTournamentPhase,
 } from "@/lib/gameweek/tournament";
+import type { ApiFixture } from "@/lib/api-football/client";
+
+function makeFixture(
+  round: string,
+  date: string,
+  id = 1
+): ApiFixture {
+  return {
+    fixture: { id, date, status: { short: "NS" } },
+    league: { round, season: 2026 },
+    goals: { home: null, away: null },
+    teams: { home: { name: "Local" }, away: { name: "Visitante" } },
+  };
+}
 
 describe("tournament phase", () => {
   it("infers clausura from july onwards", () => {
@@ -43,5 +58,21 @@ describe("tournament phase", () => {
     expect(getActiveTournamentPhase(new Date("2026-07-05T00:00:00.000Z"))).toBe(
       "clausura"
     );
+  });
+
+  it("renumbers clausura rounds from kickoff order, not API cumulative round", () => {
+    const fixtures: ApiFixture[] = [
+      makeFixture("Regular Season - 20", "2026-07-25T23:10:00.000Z", 1),
+      makeFixture("Regular Season - 20", "2026-07-26T01:15:00.000Z", 2),
+      makeFixture("Regular Season - 21", "2026-08-02T23:10:00.000Z", 3),
+    ];
+
+    const groups = buildGameweekGroupsFromFixtures(fixtures);
+    const clausura = groups.filter((g) => g.phase === "clausura");
+
+    expect(clausura).toHaveLength(2);
+    expect(clausura[0]?.round).toBe(1);
+    expect(clausura[0]?.fixtures).toHaveLength(2);
+    expect(clausura[1]?.round).toBe(2);
   });
 });

@@ -6,6 +6,7 @@ import { getUserClub } from "@/lib/actions/club";
 import {
   ensureOpenGameweek,
   runPageLoadGameweekTick,
+  syncCalendarFromApi,
 } from "@/lib/gameweek/sync";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
 import { computeIsLineupLocked } from "@/lib/gameweek/lineup-lock";
@@ -53,6 +54,11 @@ export async function getCurrentGameweek(): Promise<GameweekPublic | null> {
 
   const upcoming = withPhase.filter((item) => item.phase === "upcoming");
   if (upcoming.length) {
+    upcoming.sort(
+      (a, b) =>
+        new Date(a.row.first_kickoff_at).getTime() -
+        new Date(b.row.first_kickoff_at).getTime()
+    );
     return mapGameweek(upcoming[0]!.row, now);
   }
 
@@ -92,25 +98,25 @@ function mapGameweek(
 }
 
 export async function getEditableGameweek(): Promise<GameweekPublic | null> {
+  return getNextGameweek();
+}
+
+/** Próxima jornada del semestre activo por fecha de pitido (no por número de ronda). */
+export async function getNextGameweek(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
   const now = new Date();
   const tournamentPhase = getActiveTournamentPhase(now);
 
-  const { data: rows } = await supabase
+  const { data: row } = await supabase
     .from("gameweeks")
     .select("*")
     .eq("tournament_phase", tournamentPhase)
-    .order("season", { ascending: false })
-    .order("round", { ascending: true });
+    .gt("first_kickoff_at", now.toISOString())
+    .order("first_kickoff_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-  for (const row of rows ?? []) {
-    const gameweek = mapGameweek(row, now);
-    if (gameweek.status === "upcoming") {
-      return gameweek;
-    }
-  }
-
-  return null;
+  return row ? mapGameweek(row, now) : null;
 }
 
 export async function resolveGameweekForDraftSave(): Promise<GameweekPublic | null> {
@@ -216,14 +222,24 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
   const club = await getUserClub();
   if (!club) return null;
 
-  const [gameweek, editableGameweek] = await Promise.all([
+  const [gameweek, nextGameweek, editableGameweek] = await Promise.all([
     getCurrentGameweek(),
+    getNextGameweek(),
     getEditableGameweek(),
   ]);
 
-  if (!gameweek) {
+  const displayGameweek =
+    gameweek?.status === "live"
+      ? gameweek
+      : (nextGameweek ?? gameweek);
+
+  const deadlineGameweek = nextGameweek ?? editableGameweek ?? gameweek;
+
+  if (!displayGameweek) {
     return {
       gameweek: null,
+      displayGameweek: null,
+      deadlineAt: null,
       gameweekPoints: 0,
       seasonPoints: 0,
       isLineupLocked: false,
@@ -233,7 +249,11 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
   }
 
   const supabase = await createClient();
-  const draftGameweekId = editableGameweek?.id ?? gameweek.id;
+  const draftGameweekId = editableGameweek?.id ?? displayGameweek.id;
+  const pointsGameweekId =
+    gameweek?.status === "live" || gameweek?.status === "finished"
+      ? gameweek.id
+      : displayGameweek.id;
 
   const [{ data: snapshot }, { data: draft }, { data: gwPoints }, { data: seasonPoints }] =
     await Promise.all([
@@ -253,13 +273,13 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
         .from("club_gameweek_points")
         .select("points")
         .eq("club_id", club.id)
-        .eq("gameweek_id", gameweek.id)
+        .eq("gameweek_id", pointsGameweekId)
         .maybeSingle(),
       supabase
         .from("club_season_points")
         .select("total_points")
         .eq("club_id", club.id)
-        .eq("season", gameweek.season)
+        .eq("season", displayGameweek.season)
         .maybeSingle(),
     ]);
 
@@ -267,6 +287,8 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
 
   return {
     gameweek,
+    displayGameweek,
+    deadlineAt: deadlineGameweek?.firstKickoffAt ?? null,
     gameweekPoints: Number(gwPoints?.points ?? 0),
     seasonPoints: Number(seasonPoints?.total_points ?? 0),
     isLineupLocked,
@@ -276,13 +298,16 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
       draft.bench_ids?.length === 5 &&
       !!draft.captain_id,
     snapshotValid: snapshot?.is_valid ?? false,
-    gameweekId: gameweek.id,
+    gameweekId: displayGameweek.id,
   };
 });
 
 export async function triggerGameweekSync() {
   try {
     const supabase = createServiceRoleClient();
+    if (process.env.API_FOOTBALL_KEY?.trim()) {
+      await syncCalendarFromApi(supabase);
+    }
     const result = await runPageLoadGameweekTick(supabase);
     revalidatePath("/inicio");
     revalidatePath("/ranking");
