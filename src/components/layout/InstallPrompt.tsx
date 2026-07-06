@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { Share, X, Download, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  installPromptBottom,
+  Z_INSTALL_PROMPT,
+} from "@/lib/layout/bottom-dock";
 import {
   clearDeferredInstallPrompt,
   detectInstallPlatform,
@@ -25,11 +31,23 @@ function recentlyDismissed() {
 }
 
 export function InstallPrompt() {
+  const pathname = usePathname();
   const { toast } = useToast();
   const [platform, setPlatform] = useState<InstallPlatform | null>(null);
   const [hasNativePrompt, setHasNativePrompt] = useState(false);
   const [visible, setVisible] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const stackAboveScouting = pathname === "/inicio";
+  const bottomStyle = useMemo(
+    () => ({ bottom: installPromptBottom(stackAboveScouting) }),
+    [stackAboveScouting]
+  );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isStandaloneDisplay() || recentlyDismissed()) return;
@@ -50,7 +68,7 @@ export function InstallPrompt() {
     [platform]
   );
 
-  if (!visible || !platform || !instructions) return null;
+  if (!mounted || !visible || !platform || !instructions) return null;
 
   const dismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
@@ -100,8 +118,11 @@ export function InstallPrompt() {
     }
   }
 
-  return (
-    <div className="fixed inset-x-3 bottom-[5.75rem] z-50 max-w-lg mx-auto rounded-xl border border-presi-cyan/20 bg-presi-elevated p-4 text-white shadow-xl shadow-black/40 safe-bottom sm:inset-x-4 sm:bottom-24">
+  const panel = (
+    <div
+      className="fixed inset-x-3 mx-auto max-w-lg rounded-xl border border-presi-cyan/20 bg-presi-elevated p-4 text-white shadow-xl shadow-black/40 sm:inset-x-4"
+      style={{ ...bottomStyle, zIndex: Z_INSTALL_PROMPT }}
+    >
       <button
         type="button"
         onClick={dismiss}
@@ -148,7 +169,7 @@ export function InstallPrompt() {
           ) : null}
 
           {!showNativeButton && platform !== "ios-chrome" ? (
-            <p className="text-[10px] text-white/45 self-center">
+            <p className="self-center text-[10px] text-white/45">
               Si no ves «Instalar», usa los pasos de arriba.
             </p>
           ) : null}
@@ -156,6 +177,8 @@ export function InstallPrompt() {
       </div>
     </div>
   );
+
+  return createPortal(panel, document.body);
 }
 
 /** Contenido reutilizable para el menú «Más». */
