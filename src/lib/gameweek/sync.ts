@@ -11,6 +11,12 @@ import {
 import { mapApiPlayerStatRow } from "@/lib/api-football/map-stats";
 import { buildTierAssignmentsFromApiRows } from "@/lib/game/player-rarity";
 import {
+  gameweekGroupKey,
+  getActiveTournamentPhase,
+  parseFixtureTournamentPhase,
+  type TournamentPhase,
+} from "@/lib/gameweek/tournament";
+import {
   processGameweekPointsAndContracts,
   tickGameweekStatuses,
 } from "@/lib/gameweek/processor";
@@ -104,16 +110,27 @@ export async function syncFixturesFromApi(
   }
 
   const fixtures = await fetchLeagueFixtures(leagueId, season);
-  const byRound = new Map<number, typeof fixtures>();
+  const byPhaseRound = new Map<
+    string,
+    { phase: TournamentPhase; round: number; fixtures: typeof fixtures }
+  >();
 
   for (const f of fixtures) {
     const round = parseRoundNumber(f.league.round);
-    if (!byRound.has(round)) byRound.set(round, []);
-    byRound.get(round)!.push(f);
+    const phase = parseFixtureTournamentPhase(f.league.round, f.fixture.date);
+    const key = gameweekGroupKey(phase, round);
+    if (!byPhaseRound.has(key)) {
+      byPhaseRound.set(key, { phase, round, fixtures: [] });
+    }
+    byPhaseRound.get(key)!.fixtures.push(f);
   }
 
-  for (const [round, roundFixtures] of Array.from(byRound.entries())) {
-    const kickoffs = roundFixtures.map((f) => new Date(f.fixture.date).getTime());
+  for (const { phase, round, fixtures: roundFixtures } of Array.from(
+    byPhaseRound.values()
+  )) {
+    const kickoffs = roundFixtures.map((f) =>
+      new Date(f.fixture.date).getTime()
+    );
     const firstKickoff = new Date(Math.min(...kickoffs));
     const lastKickoff = new Date(Math.max(...kickoffs));
 
@@ -122,12 +139,13 @@ export async function syncFixturesFromApi(
       .upsert(
         {
           season,
+          tournament_phase: phase,
           round,
           first_kickoff_at: firstKickoff.toISOString(),
           last_kickoff_at: lastKickoff.toISOString(),
           status: "upcoming",
         },
-        { onConflict: "season,round" }
+        { onConflict: "season,tournament_phase,round" }
       )
       .select()
       .single();
@@ -154,7 +172,7 @@ export async function syncFixturesFromApi(
     }
   }
 
-  return { mode: "api" as const, rounds: byRound.size };
+  return { mode: "api" as const, rounds: byPhaseRound.size };
 }
 
 export async function syncLiveStatsFromApi(supabase: SupabaseClient) {
@@ -217,7 +235,11 @@ export async function syncLiveStatsFromApi(supabase: SupabaseClient) {
 
 async function hasOpenGameweek(supabase: SupabaseClient): Promise<boolean> {
   const now = Date.now();
-  const { data: rows } = await supabase.from("gameweeks").select("first_kickoff_at");
+  const phase = getActiveTournamentPhase();
+  const { data: rows } = await supabase
+    .from("gameweeks")
+    .select("first_kickoff_at")
+    .eq("tournament_phase", phase);
   return (rows ?? []).some(
     (row) => new Date(row.first_kickoff_at).getTime() > now
   );
@@ -236,6 +258,7 @@ async function ensureOpenGameweek(supabase: SupabaseClient) {
   const { data: latest } = await supabase
     .from("gameweeks")
     .select("*")
+    .eq("tournament_phase", getActiveTournamentPhase())
     .order("round", { ascending: false })
     .limit(1)
     .maybeSingle();

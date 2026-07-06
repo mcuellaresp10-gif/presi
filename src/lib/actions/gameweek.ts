@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
 import { runPageLoadGameweekTick } from "@/lib/gameweek/sync";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
+import { getActiveTournamentPhase } from "@/lib/gameweek/tournament";
+import { DEFAULT_SEASON } from "@/lib/api-football/client";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,6 +14,7 @@ export type GameweekPublic = {
   id: string;
   season: number;
   round: number;
+  tournamentPhase: string;
   firstKickoffAt: string;
   lastKickoffAt: string | null;
   status: string;
@@ -20,10 +23,13 @@ export type GameweekPublic = {
 export async function getCurrentGameweek(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
   const now = new Date();
+  const tournamentPhase = getActiveTournamentPhase(now);
 
   const { data: rows } = await supabase
     .from("gameweeks")
     .select("*")
+    .eq("season", DEFAULT_SEASON)
+    .eq("tournament_phase", tournamentPhase)
     .order("round", { ascending: true });
 
   if (!rows?.length) return null;
@@ -60,6 +66,7 @@ function mapGameweek(
     id: string;
     season: number;
     round: number;
+    tournament_phase?: string;
     first_kickoff_at: string;
     last_kickoff_at: string | null;
     status: string;
@@ -70,6 +77,7 @@ function mapGameweek(
     id: row.id,
     season: row.season,
     round: row.round,
+    tournamentPhase: row.tournament_phase ?? getActiveTournamentPhase(now),
     firstKickoffAt: row.first_kickoff_at,
     lastKickoffAt: row.last_kickoff_at,
     status: deriveGameweekStatus(
@@ -83,10 +91,13 @@ function mapGameweek(
 export async function getEditableGameweek(): Promise<GameweekPublic | null> {
   const supabase = await createClient();
   const now = new Date().toISOString();
+  const tournamentPhase = getActiveTournamentPhase();
 
   const { data: row } = await supabase
     .from("gameweeks")
     .select("*")
+    .eq("season", DEFAULT_SEASON)
+    .eq("tournament_phase", tournamentPhase)
     .gt("first_kickoff_at", now)
     .order("first_kickoff_at", { ascending: true })
     .limit(1)

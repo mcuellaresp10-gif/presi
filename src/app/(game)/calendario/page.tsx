@@ -20,7 +20,8 @@ function fixtureScore(home: number | null, away: number | null): string | null {
 
 export default async function CalendarioPage() {
   await requireOnboardingComplete();
-  const { leagueName, season, gameweeks } = await getLeagueCalendar();
+  const { leagueName, season, tournamentLabel, gameweeks } =
+    await getLeagueCalendar();
 
   const defaultOpenRound =
     gameweeks.find((gw) => gw.status === "live" || gw.status === "upcoming")
@@ -30,7 +31,7 @@ export default async function CalendarioPage() {
     <div className="space-y-4 pb-8">
       <PageHeader
         title="Calendario"
-        subtitle={`${leagueName} · Temporada ${season}`}
+        subtitle={`${leagueName} · ${tournamentLabel} ${season}`}
       />
 
       {gameweeks.length === 0 ? (
