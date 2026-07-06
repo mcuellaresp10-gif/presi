@@ -43,10 +43,17 @@ export interface Facility {
   mejora_termina_en: string | null;
 }
 
+export type EscudoPattern = "solid" | "vertical" | "horizontal" | "diagonal";
+
 export interface EscudoConfig {
-  templateId: number;
+  shapeId: number;
+  iconId: number;
   primaryColor: string;
   secondaryColor: string;
+  accentColor?: string;
+  pattern?: EscudoPattern;
+  /** @deprecated v1 — use shapeId + iconId */
+  templateId?: number;
 }
 
 export const INITIAL_BUDGET = 50_000_000;

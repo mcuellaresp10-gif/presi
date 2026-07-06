@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
+import { PerfilClubHeader } from "@/components/perfil/PerfilClubHeader";
 import { PageHeader } from "@/components/ui/page-header";
 import { SectionLabel } from "@/components/ui/section-label";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -9,12 +9,12 @@ import { getMyLeagues } from "@/lib/actions/leagues";
 import { getWildCardInventory } from "@/lib/actions/wild-cards";
 import { getClubRoster } from "@/lib/db/queries";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
+import type { EscudoConfig } from "@/lib/game/types";
 import { formatCompactMoney } from "@/lib/utils";
 import {
   BarChart3,
   Building2,
   Gem,
-  MapPin,
   Trophy,
   Users,
 } from "lucide-react";
@@ -35,28 +35,16 @@ export default async function PerfilPage() {
       <PageHeader title="Mi perfil" subtitle={profile.email} />
 
       <SurfaceCard className="overflow-hidden p-0">
-        <div className="bg-gradient-to-br from-presi-navy via-presi-elevated to-presi-bg px-5 py-5">
-          <div className="flex items-start gap-4">
-            <EscudoRenderer
-              config={club.escudo_config as Parameters<
-                typeof EscudoRenderer
-              >[0]["config"]}
-              size={64}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-display text-xl text-presi-gold">
-                {profile.club?.nombre}
-              </p>
-              <p className="text-sm text-white/70">{profile.displayName}</p>
-              {profile.club?.ciudad_ficticia ? (
-                <p className="mt-2 flex items-center gap-1 text-xs text-white/50">
-                  <MapPin className="h-3 w-3" />
-                  {profile.club.ciudad_ficticia}
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </div>
+        <PerfilClubHeader
+          club={{
+            nombre: club.nombre,
+            apodo: (club as { apodo?: string | null }).apodo ?? null,
+            estilo: (club as { estilo?: string | null }).estilo ?? null,
+            ciudad_ficticia: club.ciudad_ficticia,
+            escudo_config: club.escudo_config as EscudoConfig,
+          }}
+          displayName={profile.displayName}
+        />
 
         <div className="grid grid-cols-2 gap-px bg-white/5 sm:grid-cols-4">
           <StatBlock

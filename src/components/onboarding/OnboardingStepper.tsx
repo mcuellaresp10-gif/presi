@@ -1,18 +1,27 @@
 import { cn } from "@/lib/utils";
 
-const STEPS = [
+const STEPS_ONBOARDING = [
   { id: 1, label: "Club" },
   { id: 2, label: "Escudo" },
   { id: 3, label: "Sobres" },
 ] as const;
 
+const STEPS_CLUB_WIZARD = [
+  { id: 1, label: "Club" },
+  { id: 2, label: "Escudo" },
+  { id: 3, label: "Confirmar" },
+] as const;
+
 export function OnboardingStepper({
   current,
   className,
+  variant = "onboarding",
 }: {
   current: 1 | 2 | 3;
   className?: string;
+  variant?: "onboarding" | "club-wizard";
 }) {
+  const STEPS = variant === "club-wizard" ? STEPS_CLUB_WIZARD : STEPS_ONBOARDING;
   return (
     <div className={cn("flex items-center justify-center gap-2", className)}>
       {STEPS.map((step, i) => {

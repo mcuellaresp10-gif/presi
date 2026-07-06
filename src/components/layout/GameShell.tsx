@@ -35,8 +35,8 @@ export function GameShell({
         className={
           immersive
             ? `relative mx-auto flex w-full max-w-lg flex-1 flex-col pb-24${
-                isInicio ? " min-h-0" : ""
-              }`
+                pathname.startsWith("/onboarding") ? " px-4 pt-4" : ""
+              }${isInicio ? " min-h-0" : ""}`
             : "relative mx-auto w-full max-w-lg flex-1 px-4 py-4 pb-24"
         }
       >

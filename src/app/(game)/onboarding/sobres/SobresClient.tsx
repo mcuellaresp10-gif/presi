@@ -9,9 +9,19 @@ import {
 import { OnboardingStepper } from "@/components/onboarding/OnboardingStepper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { openWelcomePack, selectPackPlayer } from "@/lib/actions/packs";
-import type { Player } from "@/lib/game/types";
+import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
+import { normalizeEscudoConfig } from "@/lib/game/escudo-sanitize";
+import type { EscudoConfig, Player } from "@/lib/game/types";
 
-export function SobresClient({ sobresRestantes }: { sobresRestantes: number }) {
+export function SobresClient({
+  sobresRestantes,
+  clubNombre,
+  escudoConfig,
+}: {
+  sobresRestantes: number;
+  clubNombre?: string;
+  escudoConfig?: EscudoConfig;
+}) {
   const router = useRouter();
   const [packNumber, setPackNumber] = useState(5 - sobresRestantes);
   const [options, setOptions] = useState<Player[]>([]);
@@ -102,6 +112,15 @@ export function SobresClient({ sobresRestantes }: { sobresRestantes: number }) {
     <div className="fixed inset-0 top-[52px] z-30 flex flex-col bg-presi-bg pb-8">
       <div className="px-4 pt-4">
         <OnboardingStepper current={3} />
+        {clubNombre && escudoConfig ? (
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <EscudoRenderer
+              config={normalizeEscudoConfig(escudoConfig)}
+              size={40}
+            />
+            <p className="text-sm font-bold text-presi-gold">{clubNombre}</p>
+          </div>
+        ) : null}
         <div className="mt-4 text-center">
           <p className="text-display text-2xl text-presi-gold">
             Sobre {currentPack} de {totalPacks}

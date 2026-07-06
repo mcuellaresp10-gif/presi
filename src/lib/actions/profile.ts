@@ -14,6 +14,8 @@ export type ProfileSummary = {
   userId: string;
   club: {
     nombre: string;
+    apodo: string | null;
+    estilo: string | null;
     escudo_config: EscudoConfig;
     ciudad_ficticia: string | null;
     presupuesto: number;
@@ -49,6 +51,8 @@ export async function getShellProfile(): Promise<ProfileSummary | null> {
     club: club
       ? {
           nombre: club.nombre,
+          apodo: (club as { apodo?: string | null }).apodo ?? null,
+          estilo: (club as { estilo?: string | null }).estilo ?? null,
           escudo_config: club.escudo_config as EscudoConfig,
           ciudad_ficticia: club.ciudad_ficticia,
           presupuesto: Number(club.presupuesto),
@@ -106,6 +110,8 @@ export async function getProfileSummary(): Promise<ProfileSummary | null> {
     club: club
       ? {
           nombre: club.nombre,
+          apodo: (club as { apodo?: string | null }).apodo ?? null,
+          estilo: (club as { estilo?: string | null }).estilo ?? null,
           escudo_config: club.escudo_config as EscudoConfig,
           ciudad_ficticia: club.ciudad_ficticia,
           presupuesto: Number(club.presupuesto),

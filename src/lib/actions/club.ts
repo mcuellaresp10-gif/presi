@@ -11,6 +11,7 @@ import {
   INITIAL_BUDGET,
 } from "@/lib/game";
 import { getNextLoanRefresh } from "@/lib/game/loan-market";
+import { sanitizeEscudoConfig } from "@/lib/game/escudo-sanitize";
 import type { EscudoConfig } from "@/lib/game/types";
 import { UPGRADE_FACILITY_TYPES } from "@/lib/game/types";
 import { createClient } from "@/lib/supabase/server";
@@ -28,6 +29,8 @@ export async function createClub(formData: {
   nombre: string;
   escudo_config: EscudoConfig;
   ciudad_ficticia?: string;
+  apodo?: string;
+  estilo?: string;
 }) {
   const supabase = await createClient();
   const {
@@ -48,6 +51,21 @@ export async function createClub(formData: {
     return { error: "El nombre debe tener entre 3 y 30 caracteres." };
   }
 
+  const apodo = formData.apodo?.trim().toUpperCase() ?? null;
+  if (apodo && (apodo.length < 2 || apodo.length > 6)) {
+    return { error: "El apodo debe tener entre 2 y 6 caracteres." };
+  }
+
+  const ciudad = formData.ciudad_ficticia?.trim() ?? null;
+  if (ciudad && ciudad.length > 40) {
+    return { error: "La ciudad no puede superar 40 caracteres." };
+  }
+
+  const escudoResult = sanitizeEscudoConfig(formData.escudo_config);
+  if (!escudoResult.ok) {
+    return { error: escudoResult.error };
+  }
+
   const allPlayers = await fetchApiPlayersMaster(supabase);
 
   if (!allPlayers.length) {
@@ -65,8 +83,10 @@ export async function createClub(formData: {
     .insert({
       user_id: user.id,
       nombre,
-      escudo_config: formData.escudo_config,
-      ciudad_ficticia: formData.ciudad_ficticia ?? null,
+      escudo_config: escudoResult.config,
+      ciudad_ficticia: ciudad,
+      apodo,
+      estilo: formData.estilo?.trim() || null,
       presupuesto: INITIAL_BUDGET - starterCost,
       gemas: 150,
       onboarding_completado: false,
@@ -141,4 +161,59 @@ export async function createClub(formData: {
 
   revalidatePath("/");
   redirect("/onboarding/sobres");
+}
+
+export async function updateClub(formData: {
+  nombre: string;
+  escudo_config: EscudoConfig;
+  ciudad_ficticia?: string;
+  apodo?: string;
+  estilo?: string;
+}) {
+  const supabase = await createClient();
+  const club = await getUserClub();
+  if (!club) {
+    return { error: "No tienes club." };
+  }
+
+  const nombre = formData.nombre.trim();
+  if (nombre.length < 3 || nombre.length > 30) {
+    return { error: "El nombre debe tener entre 3 y 30 caracteres." };
+  }
+
+  const apodo = formData.apodo?.trim().toUpperCase() ?? null;
+  if (apodo && (apodo.length < 2 || apodo.length > 6)) {
+    return { error: "El apodo debe tener entre 2 y 6 caracteres." };
+  }
+
+  const ciudad = formData.ciudad_ficticia?.trim() ?? null;
+  if (ciudad && ciudad.length > 40) {
+    return { error: "La ciudad no puede superar 40 caracteres." };
+  }
+
+  const escudoResult = sanitizeEscudoConfig(formData.escudo_config);
+  if (!escudoResult.ok) {
+    return { error: escudoResult.error };
+  }
+
+  const { error } = await supabase
+    .from("clubs")
+    .update({
+      nombre,
+      escudo_config: escudoResult.config,
+      ciudad_ficticia: ciudad,
+      apodo,
+      estilo: formData.estilo?.trim() || null,
+    })
+    .eq("id", club.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/inicio");
+  revalidatePath("/perfil");
+  revalidatePath("/ranking");
+  revalidatePath("/ligas");
+  return { success: true };
 }
