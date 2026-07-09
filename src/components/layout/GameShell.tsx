@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { MoreMenu } from "@/components/layout/MoreMenu";
 import { ResourceBar } from "@/components/layout/ResourceBar";
 import { InstallPrompt } from "@/components/layout/InstallPrompt";
+import { homeContentBottomPadding } from "@/lib/layout/bottom-dock";
 import type { ProfileSummary } from "@/lib/actions/profile";
 
 export function GameShell({
@@ -34,10 +35,15 @@ export function GameShell({
       <main
         className={
           immersive
-            ? `relative mx-auto flex w-full max-w-lg flex-1 flex-col pb-24${
+            ? `relative mx-auto flex w-full max-w-lg flex-1 flex-col${
+                isInicio ? " min-h-0" : " pb-24"
+              }${
                 pathname.startsWith("/onboarding") ? " px-4 pt-4" : ""
-              }${isInicio ? " min-h-0" : ""}`
+              }`
             : "relative mx-auto w-full max-w-lg flex-1 px-4 py-4 pb-24"
+        }
+        style={
+          isInicio ? { paddingBottom: homeContentBottomPadding } : undefined
         }
       >
         {children}

@@ -8,6 +8,9 @@ export const bottomNavOffset = `calc(${BOTTOM_NAV_HEIGHT} + env(safe-area-inset-
 
 export const scoutingDockBottom = bottomNavOffset;
 
+/** Padding inferior del main en /inicio (nav + barra scouting). */
+export const homeContentBottomPadding = `calc(${bottomNavOffset} + ${SCOUTING_DOCK_HEIGHT} + ${DOCK_STACK_GAP})`;
+
 export const installPromptBottom = (
   withScoutingDock: boolean
 ): string => {
