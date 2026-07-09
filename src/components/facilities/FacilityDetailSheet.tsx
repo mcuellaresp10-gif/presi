@@ -39,6 +39,7 @@ export function FacilityDetailSheet({
   academyUpgrading,
   scoutingUpgradeRemaining,
   academyUpgradeRemaining,
+  now,
   wildCards = [],
   rosterPlayers = [],
 }: {
@@ -56,6 +57,7 @@ export function FacilityDetailSheet({
   academyUpgrading: boolean;
   scoutingUpgradeRemaining: number;
   academyUpgradeRemaining: number;
+  now?: number;
   wildCards?: WildCardInventoryItem[];
   rosterPlayers?: Player[];
 }) {
@@ -77,6 +79,8 @@ export function FacilityDetailSheet({
 
   const config = CAMPUS_BUILDINGS.find((b) => b.tipo === tipo);
   const facility = facilities.find((f) => f.tipo === tipo);
+  const scoutingFacility = facilities.find((f) => f.tipo === "scouting");
+  const academyFacility = facilities.find((f) => f.tipo === "academia");
   const info = upgradeInfo[tipo];
 
   return (
@@ -117,6 +121,9 @@ export function FacilityDetailSheet({
                   upgradeLoading={loading === "scouting"}
                   isUpgrading={scoutingUpgrading}
                   upgradeRemaining={scoutingUpgradeRemaining}
+                  mejoraIniciaEn={scoutingFacility?.mejora_inicia_en ?? null}
+                  mejoraTerminaEn={scoutingFacility?.mejora_termina_en ?? null}
+                  upgradeNow={now}
                   upgradeCost={info?.cost ?? 0}
                   isMaxLevel={info?.isMaxLevel ?? false}
                   canAffordUpgrade={info?.canAfford ?? false}
@@ -144,6 +151,9 @@ export function FacilityDetailSheet({
                 upgradeLoading={loading === "academia"}
                 isUpgrading={academyUpgrading}
                 upgradeRemaining={academyUpgradeRemaining}
+                mejoraIniciaEn={academyFacility?.mejora_inicia_en ?? null}
+                mejoraTerminaEn={academyFacility?.mejora_termina_en ?? null}
+                upgradeNow={now}
                 upgradeCost={info?.cost ?? 0}
                 isMaxLevel={info?.isMaxLevel ?? false}
                 canAffordUpgrade={info?.canAfford ?? false}
@@ -158,6 +168,7 @@ export function FacilityDetailSheet({
                 presupuesto={presupuesto}
                 upgradeCost={info?.cost ?? 0}
                 onUpgrade={onUpgrade}
+                now={now}
               />
             )}
           </div>

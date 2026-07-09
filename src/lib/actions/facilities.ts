@@ -51,7 +51,24 @@ export async function getFacilitiesOverview() {
     return null;
   }
 
-  const facilityList = normalizeFacilities((facilities ?? []) as Facility[]);
+  let facilityList = normalizeFacilities((facilities ?? []) as Facility[]);
+
+  const hasOverdueUpgrades = facilityList.some(
+    (f) =>
+      f.mejora_termina_en &&
+      new Date(f.mejora_termina_en).getTime() <= Date.now()
+  );
+  if (hasOverdueUpgrades) {
+    await supabase.rpc("complete_facility_upgrades");
+    const { data: refreshedFacilities } = await supabase
+      .from("facilities")
+      .select("*")
+      .eq("club_id", club.id);
+    facilityList = normalizeFacilities(
+      (refreshedFacilities ?? []) as Facility[]
+    );
+  }
+
   const presupuesto = Number(club.presupuesto);
   const lastIncomeAt =
     (club as { ultimo_ingreso_en?: string }).ultimo_ingreso_en ??

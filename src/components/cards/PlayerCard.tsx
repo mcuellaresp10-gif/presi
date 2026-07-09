@@ -1,3 +1,4 @@
+import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
 import { cn, formatCOP } from "@/lib/utils";
 import type { Player, Rarity } from "@/lib/game/types";
 
@@ -74,13 +75,14 @@ export function PlayerCard({
 }) {
   const style = RARITY_STYLES[player.rareza];
   const isLegendFrame = player.rareza === "leyenda";
+  const photoHeight = compact ? "h-[5.5rem]" : "h-[7.5rem]";
 
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "geo-card relative w-full text-left transition-transform",
+        "geo-card relative w-full overflow-hidden text-left transition-transform",
         isLegendFrame ? style.frame : cn("border-2 bg-presi-surface", style.frame),
         selected && "scale-[1.02] ring-2 ring-presi-gold",
         onClick && "cursor-pointer hover:scale-[1.02]"
@@ -89,31 +91,48 @@ export function PlayerCard({
       <div
         className={cn(
           "relative overflow-hidden",
-          isLegendFrame ? cn("geo-card border-0", style.panel) : style.panel,
-          compact ? "p-2" : "p-3"
+          isLegendFrame ? cn("geo-card border-0", style.panel) : style.panel
         )}
       >
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b",
-            style.stripe
-          )}
-        />
-
-        <span
-          className={cn(
-            "absolute right-2 top-2 z-10 rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase",
-            style.badge
-          )}
-        >
-          {style.label}
-        </span>
-
-        <div className="relative z-[1] mt-4">
-          <p className={cn("text-display text-xs", style.position)}>
+        <div className={cn("relative w-full", photoHeight)}>
+          <PlayerPhoto
+            nombre={player.nombre}
+            photoUrl={player.photo_url}
+            sizes={compact ? "88px" : "160px"}
+            initialsClassName={compact ? "text-sm" : undefined}
+          />
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-black/5"
+            )}
+          />
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b",
+              style.stripe
+            )}
+          />
+          <span
+            className={cn(
+              "absolute left-2 top-2 z-10 rounded-sm bg-black/55 px-1.5 py-0.5 text-[10px] font-bold backdrop-blur-sm",
+              style.position
+            )}
+          >
             {player.posicion}
-          </p>
+          </span>
+          <span
+            className={cn(
+              "absolute right-2 top-2 z-10 rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase",
+              style.badge
+            )}
+          >
+            {style.label}
+          </span>
+        </div>
+
+        <div className={cn("relative z-[1]", compact ? "space-y-0.5 p-2 pt-1.5" : "space-y-0.5 p-3 pt-2")}>
           <p
             className={cn(
               "font-bold leading-tight",
@@ -126,11 +145,10 @@ export function PlayerCard({
           <p className={cn("text-xs leading-snug", style.meta)}>
             {player.equipo_real}
           </p>
+          <p className={cn("text-sm font-semibold", style.price)}>
+            {formatCOP(player.costo_base)}
+          </p>
         </div>
-
-        <p className={cn("relative z-[1] mt-2 text-sm font-semibold", style.price)}>
-          {formatCOP(player.costo_base)}
-        </p>
       </div>
     </button>
   );

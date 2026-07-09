@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlayerCard } from "@/components/cards/PlayerCard";
 import { WildCardRewardCard } from "@/components/wild-cards/WildCardRewardCard";
+import { FacilityUpgradeProgress } from "@/components/facilities/FacilityUpgradeProgress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -36,7 +37,9 @@ export function ScoutingPackCard({
   onUpgrade,
   upgradeLoading = false,
   isUpgrading = false,
-  upgradeRemaining = 0,
+  mejoraIniciaEn = null,
+  mejoraTerminaEn = null,
+  upgradeNow,
   upgradeCost = 0,
   isMaxLevel = false,
   canAffordUpgrade = true,
@@ -49,6 +52,9 @@ export function ScoutingPackCard({
   upgradeLoading?: boolean;
   isUpgrading?: boolean;
   upgradeRemaining?: number;
+  mejoraIniciaEn?: string | null;
+  mejoraTerminaEn?: string | null;
+  upgradeNow?: number;
   upgradeCost?: number;
   isMaxLevel?: boolean;
   canAffordUpgrade?: boolean;
@@ -189,15 +195,16 @@ export function ScoutingPackCard({
 
         {showUpgrade && (
           <div className="border-t border-white/10 pt-3">
-            {isUpgrading ? (
-              <div className="rounded-lg bg-white/5 p-3 text-center">
-                <p className="text-xs text-white/70">
-                  Mejorando instalación...
-                </p>
-                <p className="font-mono text-lg font-bold text-presi-cyan">
-                  {formatRemainingTime(upgradeRemaining)}
-                </p>
-              </div>
+            {isUpgrading || mejoraTerminaEn ? (
+              <FacilityUpgradeProgress
+                tipo="scouting"
+                nivel={state.scoutingNivel}
+                mejoraIniciaEn={mejoraIniciaEn}
+                mejoraTerminaEn={mejoraTerminaEn}
+                variant="card"
+                now={upgradeNow}
+                buildHours={upgradeBuildHours}
+              />
             ) : isMaxLevel ? (
               <p className="rounded-lg bg-presi-gold/10 p-3 text-center text-xs text-white/70">
                 Nivel máximo (10)

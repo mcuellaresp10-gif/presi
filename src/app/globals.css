@@ -149,8 +149,201 @@ body {
 
   .facilities-campus-ground {
     background:
+      radial-gradient(ellipse 50% 40% at 20% 70%, rgba(61, 107, 79, 0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 45% 35% at 80% 30%, rgba(61, 107, 79, 0.25) 0%, transparent 55%),
       radial-gradient(ellipse 80% 60% at 50% 40%, #2d5a3d 0%, transparent 70%),
       linear-gradient(160deg, #1a3328 0%, #0c1424 40%, #070b18 100%);
+  }
+
+  .facilities-campus {
+    --campus-raster-base-filter: drop-shadow(0 5px 10px rgba(12, 35, 18, 0.42))
+      drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
+  }
+
+  .facilities-campus[data-rich-bg="true"] {
+    --campus-raster-base-filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55))
+      drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  }
+
+  .facilities-campus[data-rich-bg="true"] .campus-ia-raster {
+    image-rendering: auto;
+  }
+
+  .campus-raster-mask {
+    -webkit-mask-image: radial-gradient(
+      ellipse 88% 82% at 50% 62%,
+      #000 52%,
+      rgba(0, 0, 0, 0.85) 68%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 88% 82% at 50% 62%,
+      #000 52%,
+      rgba(0, 0, 0, 0.85) 68%,
+      transparent 100%
+    );
+  }
+
+  .facilities-campus[data-rich-bg="true"] .campus-pin-slot .campus-ia-raster {
+    mix-blend-mode: normal;
+  }
+
+  @keyframes campus-crane-sway {
+    0%,
+    100% {
+      transform: rotate(-4deg);
+    }
+    50% {
+      transform: rotate(4deg);
+    }
+  }
+
+  @keyframes campus-flag-wave {
+    0%,
+    100% {
+      transform: rotate(-6deg);
+    }
+    50% {
+      transform: rotate(6deg);
+    }
+  }
+
+  @keyframes campus-ball-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+
+  @keyframes campus-light-pulse {
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes campus-window-glow {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+
+  @keyframes campus-dust-float {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 0.6;
+      transform: translateY(-2px);
+    }
+  }
+
+  @keyframes campus-car-drive {
+    0% {
+      transform: translateX(-10%);
+    }
+    100% {
+      transform: translateX(110vw);
+    }
+  }
+
+  @keyframes campus-excavator-dig {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: calc(-1 * var(--excavator-sheet-width, 192px)) 0;
+    }
+  }
+
+  @keyframes campus-dump-truck-drive {
+    0%,
+    100% {
+      transform: translateX(var(--truck-start, 5%));
+    }
+    50% {
+      transform: translateX(var(--truck-end, 75%));
+    }
+  }
+
+  .campus-excavator {
+    animation: campus-excavator-dig 1.2s steps(4) infinite;
+  }
+
+  .campus-dump-truck {
+    animation: campus-dump-truck-drive 10s ease-in-out infinite;
+    background-position: 0 0;
+  }
+
+  .campus-crane-sway {
+    animation: campus-crane-sway 4s ease-in-out infinite;
+  }
+
+  .campus-flag-wave {
+    transform-origin: 44px 14px;
+    animation: campus-flag-wave 3s ease-in-out infinite;
+  }
+
+  .campus-ball-bounce {
+    animation: campus-ball-bounce 2s ease-in-out infinite;
+  }
+
+  .campus-light-pulse {
+    animation: campus-light-pulse 2.5s ease-in-out infinite;
+  }
+
+  .campus-window-glow {
+    animation: campus-window-glow 3s ease-in-out infinite;
+  }
+
+  .campus-dust {
+    animation: campus-dust-float 2s ease-in-out infinite;
+  }
+
+  .campus-car {
+    top: 0;
+    animation: campus-car-drive linear infinite;
+  }
+
+  .campus-car-a {
+    animation-duration: 18s;
+    animation-delay: 0s;
+  }
+
+  .campus-car-b {
+    animation-duration: 24s;
+    animation-delay: -8s;
+  }
+
+  .campus-car-c {
+    animation-duration: 30s;
+    animation-delay: -14s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .campus-crane-sway,
+    .campus-flag-wave,
+    .campus-ball-bounce,
+    .campus-light-pulse,
+    .campus-window-glow,
+    .campus-dust,
+    .campus-car,
+    .campus-excavator,
+    .campus-dump-truck {
+      animation: none !important;
+    }
   }
 
   .player-photo-duotone {

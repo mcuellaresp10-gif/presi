@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><ellipse cx="128" cy="215" rx="56" ry="12" fill="#000" opacity="0.35"/>
+    <polygon points="128,120 157,136 128,152 99,136" fill="#64748b"/>
+    <polygon points="99,136 128,152 128,186 99,170" fill="#475569"/>
+    <polygon points="157,136 128,152 128,186 157,170" fill="#94a3b8"/>
+  <polygon points="99,120 128,105 157,120 128,135" fill="#334155"/><circle cx="75" cy="175" r="10" fill="none" stroke="#94a3b8" stroke-width="3"/><rect x="175" y="168" width="20" height="4" fill="#94a3b8"/><rect x="183" y="160" width="4" height="16" fill="#94a3b8"/></svg>

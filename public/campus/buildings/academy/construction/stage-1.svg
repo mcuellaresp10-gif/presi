@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><ellipse cx="128" cy="210" rx="55" ry="12" fill="#000" opacity="0.35"/>
+    <defs>
+      <pattern id="tape-28-105" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="8" height="8" fill="#fbbf24"/>
+        <rect width="4" height="8" fill="#1e293b"/>
+      </pattern>
+    </defs>
+    <rect x="28" y="105" width="200" height="4" fill="url(#tape-28-105)"/>
+    <rect x="28" y="196" width="200" height="4" fill="url(#tape-28-105)"/>
+    <rect x="28" y="105" width="4" height="95" fill="url(#tape-28-105)"/>
+    <rect x="224" y="105" width="4" height="95" fill="url(#tape-28-105)"/>
+  
+    <ellipse cx="55" cy="178" rx="18" ry="8" fill="#4a3728"/>
+    <ellipse cx="47" cy="174" rx="12" ry="6" fill="#5c4033"/>
+    <ellipse cx="65" cy="176" rx="10" ry="5" fill="#6b4c35"/>
+  
+    <ellipse cx="200" cy="180" rx="18" ry="8" fill="#4a3728"/>
+    <ellipse cx="192" cy="176" rx="12" ry="6" fill="#5c4033"/>
+    <ellipse cx="210" cy="178" rx="10" ry="5" fill="#6b4c35"/>
+  </svg>

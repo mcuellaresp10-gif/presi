@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Gem } from "lucide-react";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
+import { ProgressRing } from "@/components/ui/ProgressRing";
 import { useToast } from "@/components/ui/use-toast";
 import { collectPassiveIncome } from "@/lib/actions/facilities";
 import { formatRemainingTime } from "@/lib/game";
@@ -13,8 +14,6 @@ import { cn } from "@/lib/utils";
 
 const SIZE = 112;
 const STROKE = 5;
-const RADIUS = (SIZE - STROKE) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function StadiumIncomePin({
   escudoConfig,
@@ -71,7 +70,6 @@ export function StadiumIncomePin({
     return { progress: p, remainingMs: remaining };
   }, [now, nextIncomeTickAt, intervalMs, hasPending]);
 
-  const dashOffset = CIRCUMFERENCE * (1 - progress);
 
   async function handleCollect() {
     if (!hasPending || loading) return;
@@ -131,41 +129,19 @@ export function StadiumIncomePin({
           : "Progreso de recarga de ingresos"
       }
     >
-      <div className="relative" style={{ width: SIZE, height: SIZE }}>
-        <svg
-          width={SIZE}
-          height={SIZE}
-          className="-rotate-90"
-          aria-hidden
-        >
-          <circle
-            cx={SIZE / 2}
-            cy={SIZE / 2}
-            r={RADIUS}
-            fill="none"
-            stroke="rgba(255,255,255,0.12)"
-            strokeWidth={STROKE}
-          />
-          <circle
-            cx={SIZE / 2}
-            cy={SIZE / 2}
-            r={RADIUS}
-            fill="none"
-            stroke="url(#incomeGradient)"
-            strokeWidth={STROKE}
-            strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
-            strokeDashoffset={dashOffset}
-            className="transition-[stroke-dashoffset] duration-1000 ease-linear"
-          />
-          <defs>
-            <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#F5C518" />
-              <stop offset="100%" stopColor="#22D3EE" />
-            </linearGradient>
-          </defs>
-        </svg>
-
+      <ProgressRing
+        size={SIZE}
+        stroke={STROKE}
+        progress={progress}
+        gradientId="incomeGradient"
+        badge={
+          hasPending ? (
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-presi-gold text-[10px] font-bold text-presi-bg">
+              !
+            </span>
+          ) : null
+        }
+      >
         <div
           className={cn(
             "absolute inset-[10px] flex items-center justify-center rounded-full bg-presi-cyan/90 shadow-xl transition-all",
@@ -175,13 +151,7 @@ export function StadiumIncomePin({
         >
           <EscudoRenderer config={escudoConfig} size={52} />
         </div>
-
-        {hasPending ? (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-presi-gold text-[10px] font-bold text-presi-bg">
-            !
-          </span>
-        ) : null}
-      </div>
+      </ProgressRing>
 
       <div className="text-center">
         <span className="rounded-full bg-black/50 px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/70 backdrop-blur">

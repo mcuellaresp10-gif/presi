@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 128" width="256" height="128">
+    <g transform="translate(0,0)">
+      <rect x="8" y="58" width="28" height="22" rx="3" fill="#3b82f6"/>
+      <rect x="36" y="52" width="30" height="28" rx="2" fill="#64748b" transform="rotate(0 36 52)"/>
+      <circle cx="18" cy="82" r="8" fill="#1e293b"/><circle cx="18" cy="82" r="4" fill="#475569"/>
+      <circle cx="52" cy="82" r="8" fill="#1e293b"/><circle cx="52" cy="82" r="4" fill="#475569"/>
+    </g>
+  
+    <g transform="translate(64,0)">
+      <rect x="8" y="58" width="28" height="22" rx="3" fill="#3b82f6"/>
+      <rect x="36" y="52" width="30" height="28" rx="2" fill="#64748b" transform="rotate(5 36 52)"/>
+      <circle cx="18" cy="82" r="8" fill="#1e293b"/><circle cx="18" cy="82" r="4" fill="#475569"/>
+      <circle cx="52" cy="82" r="8" fill="#1e293b"/><circle cx="52" cy="82" r="4" fill="#475569"/>
+    </g>
+  
+    <g transform="translate(128,0)">
+      <rect x="8" y="58" width="28" height="22" rx="3" fill="#3b82f6"/>
+      <rect x="36" y="52" width="30" height="28" rx="2" fill="#64748b" transform="rotate(10 36 52)"/>
+      <circle cx="18" cy="82" r="8" fill="#1e293b"/><circle cx="18" cy="82" r="4" fill="#475569"/>
+      <circle cx="52" cy="82" r="8" fill="#1e293b"/><circle cx="52" cy="82" r="4" fill="#475569"/>
+    </g>
+  
+    <g transform="translate(192,0)">
+      <rect x="8" y="58" width="28" height="22" rx="3" fill="#3b82f6"/>
+      <rect x="36" y="52" width="30" height="28" rx="2" fill="#64748b" transform="rotate(5 36 52)"/>
+      <circle cx="18" cy="82" r="8" fill="#1e293b"/><circle cx="18" cy="82" r="4" fill="#475569"/>
+      <circle cx="52" cy="82" r="8" fill="#1e293b"/><circle cx="52" cy="82" r="4" fill="#475569"/>
+    </g>
+  </svg>

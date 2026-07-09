@@ -50,6 +50,51 @@ export {
   MAX_CONCURRENT_UPGRADES,
 } from "./facilities";
 export {
+  getFacilityUpgradeProgress,
+  getUpgradeStatusCopy,
+  formatUpgradeEndTime,
+} from "./facility-upgrade-progress";
+export type { FacilityUpgradeProgressState } from "./facility-upgrade-progress";
+export {
+  getCampusBuildingScale,
+  getCampusVisualTier,
+  getCampusVisualTierLabel,
+  getConstructionStage,
+  getFacilityCampusVariant,
+  getTargetCampusVisualTier,
+  FACILITY_CAMPUS_VARIANT,
+} from "./campus-visual-tiers";
+export {
+  AI_IDLE_VERIFIED_CAMPUS_VARIANTS,
+  AI_VERIFIED_CAMPUS_VARIANTS,
+  getCampusAsset,
+  getCampusAssetFormat,
+  getCampusAssetPath,
+  getCampusMasterBackground,
+  getVehicleSpritePath,
+  hasAiIdleAssets,
+  hasAiMasterBackground,
+  hasAiVerifiedAssets,
+  hasAiVehicleSprites,
+  hasIllustratedAssets,
+  ILLUSTRATED_CAMPUS_VARIANTS,
+  resolveCampusAssetSrc,
+  shouldUseAiCampusArt,
+  CAMPUS_SLOT_CALIBRATION,
+  VEHICLE_PATHS,
+} from "./campus-asset-manifest";
+export type {
+  CampusAssetMode,
+  CampusAssetQuery,
+  CampusAssetFormat,
+  VehicleAnimationKind,
+} from "./campus-asset-manifest";
+export type {
+  CampusBuildingVariant,
+  CampusVisualTier,
+  ConstructionStage,
+} from "./campus-visual-tiers";
+export {
   MAX_FACILITY_LEVEL,
   clampFacilityLevel,
   getLevelTimerHours,

@@ -1,18 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AcademyUIState } from "@/components/facilities/AcademyPackCard";
 import {
   CampusBottomNav,
   CAMPUS_BUILDINGS,
   FacilitiesCampusMap,
+  type CampusBuildingStatus,
 } from "@/components/facilities/FacilitiesCampusMap";
+import { ActiveUpgradesDock } from "@/components/facilities/ActiveUpgradesDock";
 import { FacilityDetailSheet } from "@/components/facilities/FacilityDetailSheet";
 import { PassiveIncomeBanner } from "@/components/facilities/PassiveIncomeBanner";
 import type { ScoutingUIState } from "@/components/scouting/ScoutingPackCard";
 import { startFacilityUpgrade } from "@/lib/actions/facilities";
-import { MAX_CONCURRENT_UPGRADES, getRemainingMs } from "@/lib/game";
+import {
+  MAX_CONCURRENT_UPGRADES,
+  getFacilityUpgradeProgress,
+  getRemainingMs,
+} from "@/lib/game";
 import type { Facility, FacilityType } from "@/lib/game/types";
 
 type UpgradeInfo = {
@@ -36,7 +42,6 @@ export function FacilitiesClient({
   nextIncomeTickAt,
   weeklyIncome,
   weeklyGems,
-  activeUpgradesCount,
   upgradeInfo,
   wildCards = [],
   rosterPlayers = [],
@@ -60,6 +65,7 @@ export function FacilitiesClient({
   rosterPlayers?: import("@/lib/game/types").Player[];
 }) {
   const router = useRouter();
+  const refreshedUpgradesRef = useRef<Set<string>>(new Set());
   const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -81,18 +87,34 @@ export function FacilitiesClient({
   }, []);
 
   useEffect(() => {
-    const hasActive = facilities.some(
-      (f) =>
-        f.mejora_termina_en &&
-        new Date(f.mejora_termina_en).getTime() > now
-    );
+    for (const facility of facilities) {
+      if (!facility.mejora_termina_en) continue;
+      const key = `${facility.tipo}-${facility.mejora_termina_en}`;
+      const end = new Date(facility.mejora_termina_en).getTime();
+      if (end <= now && !refreshedUpgradesRef.current.has(key)) {
+        refreshedUpgradesRef.current.add(key);
+        router.refresh();
+      }
+      if (!facility.mejora_termina_en) {
+        refreshedUpgradesRef.current.delete(key);
+      }
+    }
+  }, [facilities, now, router]);
+
+  useEffect(() => {
+    const hasTimedUpgrade = facilities.some((f) => {
+      if (!f.mejora_termina_en) return false;
+      const end = new Date(f.mejora_termina_en).getTime();
+      return end > now;
+    });
+
     const packTimer =
       (scoutingState.estado === "timer" &&
         new Date(scoutingState.generaEn).getTime() > now) ||
       (academyState.estado === "timer" &&
         new Date(academyState.generaEn).getTime() > now);
 
-    if (!hasActive && !packTimer) return;
+    if (!hasTimedUpgrade && !packTimer) return;
 
     const poll = setInterval(() => router.refresh(), 30000);
     return () => clearInterval(poll);
@@ -130,12 +152,14 @@ export function FacilitiesClient({
     });
   }
 
-  const scoutingUpgrading =
-    !!scoutingFacility?.mejora_termina_en &&
-    new Date(scoutingFacility.mejora_termina_en).getTime() > now;
-  const academyUpgrading =
-    !!academyFacility?.mejora_termina_en &&
-    new Date(academyFacility.mejora_termina_en).getTime() > now;
+  const scoutingUpgradeProgress = scoutingFacility
+    ? getFacilityUpgradeProgress(scoutingFacility, now)
+    : null;
+  const academyUpgradeProgress = academyFacility
+    ? getFacilityUpgradeProgress(academyFacility, now)
+    : null;
+  const scoutingUpgrading = !!scoutingUpgradeProgress;
+  const academyUpgrading = !!academyUpgradeProgress;
 
   const scoutingReady =
     scoutingState.estado === "listo" &&
@@ -144,29 +168,42 @@ export function FacilitiesClient({
     academyState.estado === "listo" && !!academyState.player;
 
   const buildingStatus = useMemo(() => {
-    const status = {} as Record<
-      FacilityType,
-      { nivel: number; upgrading: boolean; ready?: boolean }
-    >;
+    const status = {} as Record<FacilityType, CampusBuildingStatus>;
 
     for (const b of CAMPUS_BUILDINGS) {
       const f = facilities.find((fac) => fac.tipo === b.tipo);
+      const upgradeProgress = f
+        ? getFacilityUpgradeProgress(f, now)
+        : null;
+      const upgrading = !!upgradeProgress;
+
       status[b.tipo] = {
         nivel: f?.nivel ?? 1,
-        upgrading: !!(
-          f?.mejora_termina_en &&
-          new Date(f.mejora_termina_en).getTime() > now
-        ),
+        upgrading,
         ready:
           b.tipo === "scouting"
             ? scoutingReady
             : b.tipo === "academia"
               ? academyReady
               : undefined,
+        progress: upgradeProgress?.progress,
+        remainingMs: upgradeProgress?.remainingMs,
+        isCompletePending: upgradeProgress?.isCompletePending,
+        targetLevel: upgradeProgress?.targetLevel,
+        mejoraIniciaEn: f?.mejora_inicia_en ?? null,
+        mejoraTerminaEn: f?.mejora_termina_en ?? null,
       };
     }
     return status;
   }, [facilities, scoutingReady, academyReady, now]);
+
+  const activeUpgradesDisplayCount = useMemo(
+    () =>
+      facilities.filter((f) =>
+        getFacilityUpgradeProgress(f, now)
+      ).length,
+    [facilities, now]
+  );
 
   return (
     <>
@@ -174,8 +211,8 @@ export function FacilitiesClient({
         <div className="mb-4">
           <h1 className="text-display text-xl text-presi-gold">Instalaciones</h1>
           <p className="text-xs text-white/50">
-            Toca un edificio · Mejoras {activeUpgradesCount}/
-            {MAX_CONCURRENT_UPGRADES}
+            Toca un edificio · Pellizca o ± para zoom en el mapa · Mejoras{" "}
+            {activeUpgradesDisplayCount}/{MAX_CONCURRENT_UPGRADES}
           </p>
         </div>
 
@@ -195,6 +232,13 @@ export function FacilitiesClient({
           />
         </div>
 
+        <ActiveUpgradesDock
+          facilities={facilities}
+          activeUpgradesCount={activeUpgradesDisplayCount}
+          now={now}
+          onSelect={selectBuilding}
+        />
+
         <FacilitiesCampusMap
           selected={selected}
           onSelect={selectBuilding}
@@ -202,11 +246,15 @@ export function FacilitiesClient({
         />
 
         <div className="mt-3">
-          <CampusBottomNav selected={selected} onSelect={selectBuilding} />
+          <CampusBottomNav
+            selected={selected}
+            onSelect={selectBuilding}
+            buildingStatus={buildingStatus}
+          />
         </div>
 
         <p className="mt-3 text-center text-[10px] text-white/40">
-          Estadio · Sede deportiva · Oficinas · Médico · Gimnasio
+          Estadio · Academia · Scouting · Oficina · Médico · Gimnasio
         </p>
       </div>
 
@@ -225,6 +273,7 @@ export function FacilitiesClient({
         academyUpgrading={academyUpgrading}
         scoutingUpgradeRemaining={getUpgradeRemaining(scoutingFacility)}
         academyUpgradeRemaining={getUpgradeRemaining(academyFacility)}
+        now={now}
         wildCards={wildCards}
         rosterPlayers={rosterPlayers}
       />

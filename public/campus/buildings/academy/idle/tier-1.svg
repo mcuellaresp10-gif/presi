@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><ellipse cx="128" cy="212" rx="56" ry="12" fill="#000" opacity="0.35"/>
+    <rect x="35" y="155" width="75" height="45" fill="#2d6a4f" rx="2"/>
+    <rect x="39" y="159" width="67" height="37" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+    <line x1="72.5" y1="159" x2="72.5" y2="196" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+    <circle cx="72.5" cy="177.5" r="8" fill="none" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  
+    <rect x="145" y="155" width="75" height="45" fill="#2d6a4f" rx="2"/>
+    <rect x="149" y="159" width="67" height="37" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+    <line x1="182.5" y1="159" x2="182.5" y2="196" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+    <circle cx="182.5" cy="177.5" r="8" fill="none" stroke="#fff" stroke-width="0.8" opacity="0.4"/>
+  
+    <polygon points="95,115 128,132 95,149 62,132" fill="#b45309"/>
+    <polygon points="62,132 95,149 95,171 62,154" fill="#92400e"/>
+    <polygon points="128,132 95,149 95,171 128,154" fill="#d97706"/>
+  <polygon points="95,115 128,98 161,115 128,132" fill="#78350f"/></svg>

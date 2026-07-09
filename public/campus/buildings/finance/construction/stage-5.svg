@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><ellipse cx="128" cy="215" rx="58" ry="13" fill="#000" opacity="0.35"/>
+    <polygon points="128,120 155.5,135 128,150 100.5,135" fill="#f8fafc"/>
+    <polygon points="100.5,135 128,150 128,192 100.5,177" fill="#94a3b8"/>
+    <polygon points="155.5,135 128,150 128,192 155.5,177" fill="#e2e8f0"/>
+  <text x="128" y="124" text-anchor="middle" font-size="22" font-weight="bold" fill="#22d3ee">$</text>
+    <polygon points="100,105 112.5,112.5 100,120 87.5,112.5" fill="#e2e8f0"/>
+    <polygon points="87.5,112.5 100,120 100,138 87.5,130.5" fill="#94a3b8"/>
+    <polygon points="112.5,112.5 100,120 100,138 112.5,130.5" fill="#cbd5e0"/>
+  
+    <polygon points="156,105 168.5,112.5 156,120 143.5,112.5" fill="#e2e8f0"/>
+    <polygon points="143.5,112.5 156,120 156,138 143.5,130.5" fill="#94a3b8"/>
+    <polygon points="168.5,112.5 156,120 156,138 168.5,130.5" fill="#cbd5e0"/>
+  </svg>

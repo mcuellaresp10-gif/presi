@@ -35,3 +35,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# campus asset processing originals (keep locally)
+public/campus/**/*.backup
+public/campus/bg/master-day.backup.png
+
+# supabase cli temp
+supabase/.temp/

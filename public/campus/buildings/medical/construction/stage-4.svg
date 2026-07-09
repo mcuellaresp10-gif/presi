@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><ellipse cx="128" cy="210" rx="55" ry="12" fill="#000" opacity="0.35"/>
+    <defs>
+      <pattern id="tape-68-100" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="8" height="8" fill="#fbbf24"/>
+        <rect width="4" height="8" fill="#1e293b"/>
+      </pattern>
+    </defs>
+    <rect x="68" y="100" width="120" height="4" fill="url(#tape-68-100)"/>
+    <rect x="68" y="191" width="120" height="4" fill="url(#tape-68-100)"/>
+    <rect x="68" y="100" width="4" height="95" fill="url(#tape-68-100)"/>
+    <rect x="184" y="100" width="4" height="95" fill="url(#tape-68-100)"/>
+  
+    <ellipse cx="85" cy="180" rx="18" ry="8" fill="#4a3728"/>
+    <ellipse cx="77" cy="176" rx="12" ry="6" fill="#5c4033"/>
+    <ellipse cx="95" cy="178" rx="10" ry="5" fill="#6b4c35"/>
+  
+    <g transform="translate(180,105)">
+      <rect x="-2" y="0" width="4" height="50" fill="#64748b"/>
+      <rect x="-2" y="20" width="40" height="3" fill="#94a3b8"/>
+      <line x1="0" y1="20" x2="30" y2="5" stroke="#64748b" stroke-width="2"/>
+      <rect x="27.500000000000004" y="2" width="8" height="6" fill="#f59e0b" rx="1"/>
+    </g>
+  <rect x="82" y="165" width="92" height="6" fill="#5c4033"/>
+    <g opacity="0.85">
+      <rect x="98" y="112" width="3" height="42" fill="#94a3b8"/>
+      <rect x="155" y="112" width="3" height="42" fill="#94a3b8"/>
+      <rect x="98" y="112" width="60" height="3" fill="#cbd5e0"/>
+      <rect x="98" y="133" width="60" height="2" fill="#cbd5e0"/>
+      <rect x="98" y="151" width="60" height="3" fill="#cbd5e0"/>
+    </g>
+  
+    <polygon points="128,128 152,141 128,154 104,141" fill="#f8fafc"/>
+    <polygon points="104,141 128,154 128,176 104,163" fill="#cbd5e0"/>
+    <polygon points="152,141 128,154 128,176 152,163" fill="#e2e8f0"/>
+  <rect x="118" y="132" width="20" height="5" fill="#ef4444"/></svg>
