@@ -11,14 +11,16 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getTouchDistance(touches: TouchList) {
+type TouchPoint = Pick<Touch, "clientX" | "clientY">;
+
+function getTouchDistance(touches: ArrayLike<TouchPoint>) {
   if (touches.length < 2) return 0;
   const dx = touches[0].clientX - touches[1].clientX;
   const dy = touches[0].clientY - touches[1].clientY;
   return Math.hypot(dx, dy);
 }
 
-function getTouchCenter(touches: TouchList, rect: DOMRect) {
+function getTouchCenter(touches: ArrayLike<TouchPoint>, rect: DOMRect) {
   const x = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
   const y = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
   return { x, y };

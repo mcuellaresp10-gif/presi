@@ -54,11 +54,16 @@ function getSlotState(query: CampusAssetQuery) {
   return inventory.construction[`stage${stage}` as "stage1" | "stage2" | "stage3" | "stage4" | "stage5"];
 }
 
+function rasterToExt(raster: string | null | undefined): CampusAssetFormat {
+  if (!raster) return "svg";
+  if (raster === "webp") return "webp";
+  if (raster === "png" || raster === "webp.png") return "png";
+  return "svg";
+}
+
 export function getCampusAssetFormat(query: CampusAssetQuery): CampusAssetFormat {
   const slot = getSlotState(query);
-  if (slot.raster === "webp") return "webp";
-  if (slot.raster === "png" || slot.raster === "webp.png") return "png";
-  return "svg";
+  return rasterToExt(slot.raster);
 }
 
 export function getCampusAssetPath(
@@ -90,10 +95,9 @@ export function shouldUseAiCampusArt(
 
 export function getCampusMasterBackground(): string {
   const master = CAMPUS_ASSET_INVENTORY.masterBackground;
-  if (master.raster) {
-    return `${CAMPUS_BASE}/bg/master.${master.raster === "webp.png" ? "png" : master.raster}`;
-  }
-  return `${CAMPUS_BASE}/bg/master.svg`;
+  const ext = rasterToExt(master.raster);
+  if (ext === "svg") return `${CAMPUS_BASE}/bg/master.svg`;
+  return `${CAMPUS_BASE}/bg/master.${ext}`;
 }
 
 export function getCampusAsset(query: CampusAssetQuery): {
