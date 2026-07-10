@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlayerCard } from "@/components/cards/PlayerCard";
-import { WildCardTile } from "@/components/wild-cards/WildCardRewardCard";
+import {
+  WildCardDetailSheet,
+  WildCardTile,
+} from "@/components/wild-cards/WildCardRewardCard";
 import { Button } from "@/components/ui/button";
+import { CloseButton } from "@/components/ui/close-button";
 import {
   activateWildCard,
   getFreeSignPool,
 } from "@/lib/actions/wild-cards";
 import type { WildCardInventoryItem } from "@/lib/actions/wild-cards";
-import {
-  getWildCardDefinition,
-} from "@/lib/game/wild-cards";
 import type { Player } from "@/lib/game/types";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -26,6 +27,7 @@ export function WildCardInventory({
   const router = useRouter();
   const { toast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<WildCardInventoryItem | null>(null);
   const [picker, setPicker] = useState<{
     cardId: string;
     mode: "free_sign" | "free_renewal";
@@ -55,6 +57,7 @@ export function WildCardInventory({
         return;
       }
     }
+    setSelected(null);
     setPicker({ cardId, mode });
   }
 
@@ -80,9 +83,7 @@ export function WildCardInventory({
   }
 
   async function handleActivate(card: WildCardInventoryItem) {
-    if (card.status === "active") return;
-
-    const def = getWildCardDefinition(card.cardType);
+    if (card.status !== "available") return;
 
     if (card.cardType === "free_sign") {
       await openPicker(card.id, "free_sign");
@@ -98,14 +99,6 @@ export function WildCardInventory({
       return;
     }
 
-    if (
-      !confirm(
-        `¿Activar "${def.name}"?\n\n${def.description}`
-      )
-    ) {
-      return;
-    }
-
     setLoadingId(card.id);
     const result = await activateWildCard(card.id);
     if ("error" in result && result.error) {
@@ -115,6 +108,7 @@ export function WildCardInventory({
         title: "Carta activada",
         description: result.cardName ?? "Wild Card activada",
       });
+      setSelected(null);
       router.refresh();
     }
     setLoadingId(null);
@@ -125,59 +119,87 @@ export function WildCardInventory({
 
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {cards.map((card) => (
           <WildCardTile
             key={card.id}
             cardType={card.cardType}
             status={card.status}
-            onActivate={
-              card.status === "available"
-                ? () => handleActivate(card)
-                : undefined
-            }
-            loading={loadingId === card.id}
+            onOpen={() => setSelected(card)}
           />
         ))}
       </div>
 
-      {picker && (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-4 sm:items-center">
-          <div className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 shadow-xl">
-            <h3 className="text-lg font-bold text-white">
-              {picker.mode === "free_sign"
-                ? "Elige jugador a fichar"
-                : "Elige jugador a renovar"}
-            </h3>
-            {poolLoading ? (
-              <p className="py-8 text-center text-sm text-white/60">
-                Cargando...
-              </p>
-            ) : (
-              <div className="mt-4 space-y-2">
-                {pickerPlayers.map((player) => (
-                  <button
-                    key={player.id}
-                    type="button"
-                    className="w-full text-left"
-                    onClick={() => confirmActivate(picker.cardId, player.id)}
-                    disabled={loadingId === picker.cardId}
-                  >
-                    <PlayerCard player={player} compact />
-                  </button>
-                ))}
-              </div>
-            )}
-            <Button
-              variant="outline"
-              className="mt-4 w-full"
-              onClick={() => setPicker(null)}
-            >
-              Cancelar
-            </Button>
+      {selected ? (
+        <WildCardDetailSheet
+          open
+          cardType={selected.cardType}
+          status={selected.status}
+          onClose={() => setSelected(null)}
+          onActivate={
+            selected.status === "available"
+              ? () => handleActivate(selected)
+              : undefined
+          }
+          loading={loadingId === selected.id}
+        />
+      ) : null}
+
+      {picker ? (
+        <div className="fixed inset-0 z-[85] flex items-end justify-center sm:items-center">
+          <button
+            type="button"
+            aria-label="Cerrar"
+            className="absolute inset-0 bg-black/65 backdrop-blur-sm"
+            onClick={() => setPicker(null)}
+          />
+          <div className="relative z-10 mx-4 mb-6 flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-presi-surface shadow-2xl sm:mb-0">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <h3 className="text-display text-sm text-presi-gold">
+                {picker.mode === "free_sign"
+                  ? "Elige jugador a fichar"
+                  : "Elige jugador a renovar"}
+              </h3>
+              <CloseButton
+                onClick={() => setPicker(null)}
+                variant="inline"
+                className="h-9 w-9"
+                iconClassName="h-4 w-4"
+              />
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              {poolLoading ? (
+                <p className="py-8 text-center text-sm text-white/60">
+                  Cargando...
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {pickerPlayers.map((player) => (
+                    <button
+                      key={player.id}
+                      type="button"
+                      className="w-full text-left"
+                      onClick={() => confirmActivate(picker.cardId, player.id)}
+                      disabled={loadingId === picker.cardId}
+                    >
+                      <PlayerCard player={player} compact />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="border-t border-white/10 px-4 py-3">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setPicker(null)}
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 }

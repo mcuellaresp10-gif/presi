@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
 import { getGymLeagueBonusForClub } from "@/lib/actions/facilities";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service";
 import { generateInviteCode } from "@/lib/utils";
 
 export async function createPrivateLeague(nombre: string) {
@@ -101,52 +102,74 @@ export const getGlobalRanking = cache(async function getGlobalRanking() {
   const club = await getUserClub();
   const season = new Date().getFullYear();
 
-  const { data: realRows } = await supabase
-    .from("club_season_points")
-    .select("total_points, clubs(id, nombre, escudo_config)")
-    .eq("season", season)
-    .order("total_points", { ascending: false });
+  // Prefer service role so ranking includes every active club even if RLS
+  // on nested joins is restrictive in older environments.
+  let reader = supabase;
+  try {
+    reader = createServiceRoleClient();
+  } catch {
+    // Fall back to user client (works once ranking RLS / view is applied).
+  }
 
-  if (realRows && realRows.length > 0) {
-    const bonusPct = club ? await getGymLeagueBonusForClub(club.id) : 0;
-    const multiplier = 1 + bonusPct / 100;
+  const [{ data: clubs }, { data: pointsRows }] = await Promise.all([
+    reader
+      .from("clubs")
+      .select("id, nombre, escudo_config")
+      .eq("onboarding_completado", true),
+    reader
+      .from("club_season_points")
+      .select("club_id, total_points")
+      .eq("season", season),
+  ]);
 
-    const validRows = realRows.filter((row) => row.clubs != null);
-
-    if (validRows.length > 0) {
-      return validRows.map((row, index) => {
-        const clubData = row.clubs as unknown as {
-          id: string;
-          nombre: string;
-          escudo_config: unknown;
-        };
-        const isUser = club && clubData.nombre === club.nombre;
-        const basePoints = Number(row.total_points);
-        return {
-          id: clubData.id,
-          club_nombre: clubData.nombre,
-          escudo_config: clubData.escudo_config,
-          puntos: isUser ? Math.round(basePoints * multiplier) : basePoints,
-          posicion: index + 1,
-          gym_bonus_pct: isUser ? bonusPct : 0,
-        };
-      });
+  // Fallback to public view if clubs table still hides other rows.
+  let activeClubs = clubs ?? [];
+  if (activeClubs.length <= 1) {
+    const { data: publicClubs, error: viewError } = await reader
+      .from("clubs_public_ranking")
+      .select("id, nombre, escudo_config");
+    if (
+      !viewError &&
+      publicClubs &&
+      publicClubs.length > activeClubs.length
+    ) {
+      activeClubs = publicClubs;
     }
   }
 
-  const { data: clubs } = await supabase
-    .from("clubs")
-    .select("id, nombre, escudo_config")
-    .order("nombre", { ascending: true });
+  const pointsByClub = new Map<string, number>();
+  for (const row of pointsRows ?? []) {
+    pointsByClub.set(row.club_id as string, Number(row.total_points) || 0);
+  }
 
-  const bonusPct = club ? await getGymLeagueBonusForClub(club.id) : 0;
+  const userBonusPct = club ? await getGymLeagueBonusForClub(club.id) : 0;
 
-  return (clubs ?? []).map((row, index) => ({
-    id: row.id,
-    club_nombre: row.nombre,
-    escudo_config: row.escudo_config,
-    puntos: 0,
-    posicion: index + 1,
-    gym_bonus_pct: row.nombre === club?.nombre ? bonusPct : 0,
-  }));
+  const ranked = activeClubs
+    .map((row) => {
+      const basePoints = pointsByClub.get(row.id) ?? 0;
+      const isUser = club?.id === row.id;
+      return {
+        id: row.id,
+        club_nombre: row.nombre as string,
+        escudo_config: row.escudo_config,
+        /** Season points obtained (gym % shown separately for the viewer). */
+        puntos: basePoints,
+        sortPoints: basePoints,
+        gym_bonus_pct: isUser ? userBonusPct : 0,
+      };
+    })
+    .sort((a, b) => {
+      if (b.sortPoints !== a.sortPoints) return b.sortPoints - a.sortPoints;
+      return a.club_nombre.localeCompare(b.club_nombre, "es");
+    })
+    .map((row, index) => ({
+      id: row.id,
+      club_nombre: row.club_nombre,
+      escudo_config: row.escudo_config,
+      puntos: row.puntos,
+      posicion: index + 1,
+      gym_bonus_pct: row.gym_bonus_pct,
+    }));
+
+  return ranked;
 });

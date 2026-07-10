@@ -240,7 +240,7 @@ export const HELP_SECTIONS: HelpSection[] = [
         type: "ul",
         items: [
           "Mis ligas: crea una liga o únete con código.",
-          "Ranking global: posición de tu club por puntos de temporada.",
+          "Ranking global: todos los clubes activos, ordenados por puntos de temporada.",
           "El gimnasio puede dar un bonus porcentual a puntos en ligas y ranking.",
         ],
       },

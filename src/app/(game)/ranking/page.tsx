@@ -22,7 +22,7 @@ export default async function RankingPage() {
     <div className="space-y-6">
       <PageHeader
         title="Ranking global"
-        subtitle="Clasificación Liga Global PRESI"
+        subtitle="Todos los clubes activos, ordenados por puntos de temporada"
       />
 
       {ranking.length === 0 ? (
