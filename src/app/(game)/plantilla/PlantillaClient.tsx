@@ -26,6 +26,8 @@ import { formatCompactMoney, cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { PlantillaCoachHint } from "@/components/plantilla/PlantillaCoachHint";
 import { HelpTip } from "@/components/help/HelpTip";
+import { WildCardInventory } from "@/components/wild-cards/WildCardInventory";
+import type { WildCardInventoryItem } from "@/lib/actions/wild-cards";
 
 export function PlantillaClient({
   players = [],
@@ -41,6 +43,7 @@ export function PlantillaClient({
   initialCaptainId,
   initialFormation = "4-4-2",
   editingGameweekId = null,
+  wildCards = [],
 }: {
   players: RosterPlayer[];
   usedBudget: number;
@@ -55,8 +58,10 @@ export function PlantillaClient({
   initialCaptainId: string | null;
   initialFormation?: string;
   editingGameweekId?: string | null;
+  wildCards?: WildCardInventoryItem[];
 }) {
   const { toast } = useToast();
+  const [tab, setTab] = useState<"alineacion" | "wildcards">("alineacion");
   const subsRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -452,14 +457,73 @@ export function PlantillaClient({
               )}
             </div>
           )}
-          {captainPlayer && !isLineupLocked && (
+          {captainPlayer && !isLineupLocked && tab === "alineacion" ? (
             <p className="mt-2 text-[11px] text-presi-gold/90">
               Capitán:{" "}
               <span className="font-bold">{captainPlayer.nombre}</span> (×2 pts)
             </p>
-          )}
+          ) : null}
+
+          <div
+            className="mt-3 flex gap-1 rounded-lg border border-white/15 bg-white/5 p-1"
+            role="tablist"
+            aria-label="Secciones de plantilla"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "alineacion"}
+              onClick={() => setTab("alineacion")}
+              className={cn(
+                "min-h-[40px] flex-1 rounded-md px-3 text-xs font-bold transition",
+                tab === "alineacion"
+                  ? "bg-presi-cyan text-presi-bg"
+                  : "text-white/70 hover:bg-white/10"
+              )}
+            >
+              Alineación
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "wildcards"}
+              onClick={() => setTab("wildcards")}
+              className={cn(
+                "min-h-[40px] flex-1 rounded-md px-3 text-xs font-bold transition",
+                tab === "wildcards"
+                  ? "bg-presi-cyan text-presi-bg"
+                  : "text-white/70 hover:bg-white/10"
+              )}
+            >
+              Wild Cards
+              {wildCards.length > 0 ? (
+                <span
+                  className={cn(
+                    "ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-black",
+                    tab === "wildcards"
+                      ? "bg-presi-bg/20 text-presi-bg"
+                      : "bg-presi-gold/20 text-presi-gold"
+                  )}
+                >
+                  {wildCards.length}
+                </span>
+              ) : null}
+            </button>
+          </div>
         </div>
 
+        {tab === "wildcards" ? (
+          <div className="space-y-3 px-3 py-4 pb-28">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-white/50">
+                Toca una carta para ver el efecto y activarla.
+              </p>
+              <HelpTip sectionId="wild-cards" />
+            </div>
+            <WildCardInventory cards={wildCards} rosterPlayers={players} />
+          </div>
+        ) : (
+          <>
         <div className="space-y-2 border-b border-white/10 px-3 py-2.5">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1.5">
@@ -671,6 +735,8 @@ export function PlantillaClient({
             ) : null}
           </div>
         </div>
+          </>
+        )}
       </div>
 
       <PlayerDetailPanel

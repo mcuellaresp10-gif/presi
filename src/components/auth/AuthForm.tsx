@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,10 +14,16 @@ export function AuthForm({
   mode: "login" | "register";
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() =>
+    searchParams.get("error") === "auth"
+      ? "No se pudo iniciar sesión con Google. Intenta de nuevo o usa email."
+      : null
+  );
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const isLogin = mode === "login";
 
@@ -48,14 +54,25 @@ export function AuthForm({
   }
 
   async function handleGoogle() {
+    setGoogleLoading(true);
+    setError(null);
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithOAuth({
+    const { data, error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: false,
       },
     });
-    if (authError) setError(authError.message);
+    if (authError) {
+      setError(authError.message);
+      setGoogleLoading(false);
+      return;
+    }
+    // Fallback if the client did not navigate (some browsers / SSR edge cases).
+    if (data.url) {
+      window.location.assign(data.url);
+    }
   }
 
   return (
@@ -124,8 +141,13 @@ export function AuthForm({
           variant="outline"
           className="w-full"
           onClick={handleGoogle}
+          disabled={googleLoading}
         >
-          {isLogin ? "Continuar con Google" : "Registrarse con Google"}
+          {googleLoading
+            ? "Redirigiendo..."
+            : isLogin
+              ? "Continuar con Google"
+              : "Registrarse con Google"}
         </Button>
 
         <p className="mt-5 text-center text-sm text-white/60">

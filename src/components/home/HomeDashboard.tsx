@@ -11,6 +11,8 @@ import { formatRemainingTime } from "@/lib/game";
 import { gameweekPhaseLabel } from "@/lib/gameweek/status";
 import { StadiumIncomePin } from "@/components/home/StadiumIncomePin";
 import { HelpTip } from "@/components/help/HelpTip";
+import { RivalLineupSheet } from "@/components/home/RivalLineupSheet";
+import type { RivalLineupPreview } from "@/lib/actions/rival-lineup";
 
 export function HomeDashboard({
   clubNombre,
@@ -22,9 +24,11 @@ export function HomeDashboard({
   deadlineAt,
   isLineupLocked,
   hasValidDraft,
+  rivalClubId,
   rivalNombre,
   rivalPoints,
   rivalEscudo,
+  rivalLineupPreview,
   contractsExpiringSoon,
   nextIncomeTickAt,
   incomeIntervalHours,
@@ -43,9 +47,11 @@ export function HomeDashboard({
   deadlineAt: string | null;
   isLineupLocked: boolean;
   hasValidDraft: boolean;
+  rivalClubId: string | null;
   rivalNombre: string | null;
   rivalPoints: number;
   rivalEscudo: EscudoConfig | null;
+  rivalLineupPreview: RivalLineupPreview | null;
   contractsExpiringSoon: number;
   nextIncomeTickAt: string | null;
   incomeIntervalHours: number;
@@ -56,6 +62,7 @@ export function HomeDashboard({
   pendingTicks: number;
 }) {
   const [now, setNow] = useState<number | null>(null);
+  const [rivalOpen, setRivalOpen] = useState(false);
 
   useEffect(() => {
     setNow(Date.now());
@@ -82,6 +89,7 @@ export function HomeDashboard({
   const phaseLabel = gameweekPhaseLabel(
     phase as "upcoming" | "live" | "finished"
   );
+  const canOpenRival = !!rivalClubId && !!rivalNombre;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -124,7 +132,17 @@ export function HomeDashboard({
               ) : null}
             </div>
 
-            <div className="flex flex-col items-center gap-1 text-center">
+            <button
+              type="button"
+              disabled={!canOpenRival}
+              onClick={() => canOpenRival && setRivalOpen(true)}
+              className="flex flex-col items-center gap-1 rounded-lg p-1 text-center outline-none transition enabled:hover:bg-white/5 enabled:active:scale-[0.98] disabled:cursor-default"
+              aria-label={
+                canOpenRival
+                  ? `Ver plantilla de ${rivalNombre}`
+                  : "Sin rival"
+              }
+            >
               {rivalEscudo ? (
                 <EscudoRenderer config={rivalEscudo} size={36} />
               ) : (
@@ -138,8 +156,10 @@ export function HomeDashboard({
               <p className="text-2xl font-black text-display text-white/80">
                 {rivalPoints}
               </p>
-              <p className="text-[9px] text-white/40">Temporada</p>
-            </div>
+              <p className="text-[9px] text-white/40">
+                {canOpenRival ? "Ver plantilla" : "Temporada"}
+              </p>
+            </button>
           </div>
 
           <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-black/30 px-3 py-2 text-xs">
@@ -207,6 +227,12 @@ export function HomeDashboard({
           ) : null}
         </div>
       </div>
+
+      <RivalLineupSheet
+        open={rivalOpen}
+        preview={rivalLineupPreview}
+        onClose={() => setRivalOpen(false)}
+      />
     </div>
   );
 }

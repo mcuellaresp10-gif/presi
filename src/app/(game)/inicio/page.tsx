@@ -6,6 +6,7 @@ import { getContractsSummary } from "@/lib/actions/contracts";
 import { getFacilitiesOverview } from "@/lib/actions/facilities";
 import { getClubGameweekSummary } from "@/lib/actions/gameweek";
 import { getGlobalRanking } from "@/lib/actions/leagues";
+import { getRivalLineupPreview } from "@/lib/actions/rival-lineup";
 import { getScoutingState } from "@/lib/actions/scouting";
 import { getNextScoutingDeadline } from "@/lib/game";
 import type { EscudoConfig, Player } from "@/lib/game/types";
@@ -34,6 +35,10 @@ export default async function InicioPage() {
       : ranking.length > 1
         ? ranking[1]
         : null;
+
+  const rivalPreview = rivalEntry?.id
+    ? await getRivalLineupPreview(rivalEntry.id)
+    : null;
 
   const scoutingState = scouting?.pack
     ? {
@@ -66,9 +71,11 @@ export default async function InicioPage() {
         deadlineAt={gwSummary?.deadlineAt ?? null}
         isLineupLocked={gwSummary?.isLineupLocked ?? false}
         hasValidDraft={gwSummary?.hasValidDraft ?? false}
+        rivalClubId={rivalEntry?.id ?? null}
         rivalNombre={rivalEntry?.club_nombre ?? null}
         rivalPoints={rivalEntry?.puntos ?? 0}
         rivalEscudo={(rivalEntry?.escudo_config as EscudoConfig) ?? null}
+        rivalLineupPreview={rivalPreview}
         contractsExpiringSoon={contractsSummary?.expiringSoon ?? 0}
         nextIncomeTickAt={overview?.nextIncomeTickAt ?? null}
         incomeIntervalHours={overview?.incomeIntervalHours ?? 6}

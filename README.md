@@ -38,7 +38,13 @@ Solo configura Google si lo quieres:
 1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth Client ID (Web)
 2. Authorized redirect URI: `https://TU_PROYECTO.supabase.co/auth/v1/callback`
 3. Supabase Dashboard → Authentication → Providers → Google → pega Client ID y Secret
-4. Authentication → URL Configuration → Redirect URLs: añade `http://localhost:3000/auth/callback`
+4. Authentication → URL Configuration:
+   - **Site URL** (producción): `https://TU-APP.onrender.com`
+   - **Redirect URLs** (añade ambas):
+     - `http://localhost:3000/auth/callback`
+     - `https://TU-APP.onrender.com/auth/callback`
+
+Si Google está en modo **Testing**, solo entran los emails listados en **Test users**.
 
 ### 4. Arrancar la app
 

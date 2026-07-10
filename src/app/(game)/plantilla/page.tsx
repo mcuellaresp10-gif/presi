@@ -5,19 +5,23 @@ import {
   getLineupDraftForClub,
   getPlantillaLineupState,
 } from "@/lib/actions/gameweek";
+import { getWildCardInventory } from "@/lib/actions/wild-cards";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
 import { getClubRoster } from "@/lib/db/queries";
 
 export default async function PlantillaPage() {
   await requireOnboardingComplete();
 
-  const data = await getClubRoster();
+  const [data, lineupState, wildCards] = await Promise.all([
+    getClubRoster(),
+    getPlantillaLineupState(),
+    getWildCardInventory(),
+  ]);
 
   if (!data) {
     redirect("/onboarding/crear-club");
   }
 
-  const lineupState = await getPlantillaLineupState();
   const draft = lineupState?.editingGameweek
     ? await getLineupDraftForClub(lineupState.editingGameweek.id)
     : null;
@@ -25,20 +29,21 @@ export default async function PlantillaPage() {
   return (
     <>
       <PlantillaClient
-      players={data.players}
-      usedBudget={data.usedBudget}
-      totalBudget={data.totalBudget}
-      remainingBudget={data.remainingBudget}
-      gameweekRound={lineupState?.displayRound ?? null}
-      editingGameweekRound={lineupState?.editingRound ?? null}
-      deadlineAt={lineupState?.deadlineAt ?? null}
-      isLineupLocked={lineupState?.isLineupLocked ?? false}
-      initialStarterIds={draft?.starterIds ?? []}
-      initialBenchIds={draft?.benchIds ?? []}
-      initialCaptainId={draft?.captainId ?? null}
-      initialFormation={draft?.formation ?? "4-4-2"}
-      editingGameweekId={lineupState?.editingGameweek?.id ?? null}
-    />
+        players={data.players}
+        usedBudget={data.usedBudget}
+        totalBudget={data.totalBudget}
+        remainingBudget={data.remainingBudget}
+        gameweekRound={lineupState?.displayRound ?? null}
+        editingGameweekRound={lineupState?.editingRound ?? null}
+        deadlineAt={lineupState?.deadlineAt ?? null}
+        isLineupLocked={lineupState?.isLineupLocked ?? false}
+        initialStarterIds={draft?.starterIds ?? []}
+        initialBenchIds={draft?.benchIds ?? []}
+        initialCaptainId={draft?.captainId ?? null}
+        initialFormation={draft?.formation ?? "4-4-2"}
+        editingGameweekId={lineupState?.editingGameweek?.id ?? null}
+        wildCards={wildCards}
+      />
       <GameweekBackgroundSync />
     </>
   );
