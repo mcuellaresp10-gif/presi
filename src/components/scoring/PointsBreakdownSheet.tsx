@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Crown } from "lucide-react";
 import { CloseButton } from "@/components/ui/close-button";
+import { HelpTip } from "@/components/help/HelpTip";
 import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
 import type { ScoringBreakdownLine } from "@/lib/game/scoring";
 import type { Player, Position } from "@/lib/game/types";
@@ -81,7 +82,10 @@ export function PointsBreakdownSheet({
               <ArrowLeft className="h-4 w-4" />
               Volver
             </button>
-            <CloseButton onClick={onClose} className="-mr-1 shrink-0" />
+            <div className="flex items-center gap-1">
+              <HelpTip sectionId="puntuacion" />
+              <CloseButton onClick={onClose} className="-mr-1 shrink-0" />
+            </div>
           </div>
           {gameweekRound && (
             <p className="text-[10px] uppercase tracking-widest text-white/50">

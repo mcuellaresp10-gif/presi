@@ -3,10 +3,12 @@
 import Link from "next/link";
 import {
   BarChart3,
+  BookOpen,
   CalendarDays,
   Copy,
   Download,
   LogOut,
+  Sparkles,
   Smartphone,
   Trophy,
   User,
@@ -18,8 +20,10 @@ import { InstallAppInstructions } from "@/components/layout/InstallAppInstructio
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { isStandaloneDisplay } from "@/lib/pwa/install-prompt";
+import { requestHowToTourReplay } from "@/lib/help/tour-storage";
 
 const MORE_ITEMS = [
+  { href: "/ayuda", label: "Cómo se juega", icon: BookOpen },
   { href: "/ligas", label: "Mis ligas", icon: Trophy },
   { href: "/calendario", label: "Calendario Liga Colombiana", icon: CalendarDays },
   { href: "/ranking", label: "Ranking global", icon: BarChart3 },
@@ -102,6 +106,18 @@ export function MoreMenu({
               </Link>
             );
           })}
+
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              requestHowToTourReplay();
+            }}
+            className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/5"
+          >
+            <Sparkles className="h-5 w-5 shrink-0 text-presi-cyan/70" />
+            Repetir tour
+          </button>
 
           {showInstallEntry ? (
             <button

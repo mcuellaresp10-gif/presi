@@ -8,6 +8,7 @@ import {
 export interface LineupSelection {
   starterIds: string[];
   benchIds: string[];
+  /** Complete 11+5+formation — used for UI CTAs, not for zeroing points. */
   isValid: boolean;
   captainId?: string | null;
 }
@@ -38,9 +39,9 @@ export function computeEffectiveLineup(
   statsByPlayerId: Map<string, MatchStatLine>,
   options: EffectiveLineupOptions = {}
 ): EffectiveLineupResult {
-  if (!selection.isValid) {
-    return { scoringPlayers: [], contractPlayerIds: [] };
-  }
+  // Incomplete lineups still score: only selected players earn points.
+  // Empty slots / missing players simply contribute 0. `isValid` is UI-only
+  // (complete 11+5+formation) and no longer zeroes the whole gameweek.
 
   const scoringOptions = {
     penaltyReduction: options.penaltyReduction,
@@ -50,6 +51,7 @@ export function computeEffectiveLineup(
   const contractPlayerIds = new Set<string>();
 
   for (const starterId of selection.starterIds) {
+    if (!starterId) continue;
     const starter = playersById.get(starterId);
     if (!starter) continue;
 

@@ -13,6 +13,7 @@ import type { EscudoConfig } from "@/lib/game/types";
 import { formatCompactMoney } from "@/lib/utils";
 import {
   BarChart3,
+  BookOpen,
   Building2,
   Gem,
   Trophy,
@@ -96,6 +97,12 @@ export default async function PerfilPage() {
             title="Instalaciones"
             value="Ver"
             href="/instalaciones"
+          />
+          <OverviewCard
+            icon={BookOpen}
+            title="Cómo se juega"
+            value="Reglas"
+            href="/ayuda"
           />
         </div>
       </section>

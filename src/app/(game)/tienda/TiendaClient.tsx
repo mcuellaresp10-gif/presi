@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/ui/page-header";
+import { HelpTip } from "@/components/help/HelpTip";
 import { LoanMarketSection } from "@/components/tienda/LoanMarketSection";
 import { WildCardPackSection } from "@/components/tienda/WildCardPackSection";
 import type { TiendaState } from "@/lib/tienda/types";
@@ -17,6 +18,7 @@ export function TiendaClient({ initialState }: { initialState: TiendaState }) {
       <PageHeader
         title="Tienda"
         subtitle="Préstamos temporales y sobres Wild Card con gemas"
+        action={<HelpTip sectionId="tienda" />}
       />
 
       <LoanMarketSection

@@ -14,7 +14,10 @@ import {
   aggregateGameweekStats,
   type MatchStatLine,
 } from "@/lib/game/scoring";
-import { validateLineupDraft } from "@/lib/game/squad-limits";
+import {
+  sanitizeLineupDraft,
+  validateLineupDraft,
+} from "@/lib/game/squad-limits";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
 import { getMedicalPenaltyReduction } from "@/lib/game/facility-effects";
 import type { Player } from "@/lib/game/types";
@@ -74,9 +77,23 @@ export async function lockLineupSnapshots(
     let captainId: string | null = null;
 
     if (draft) {
-      starterIds = draft.starter_ids as string[];
-      benchIds = draft.bench_ids as string[];
-      captainId = (draft.captain_id as string | null) ?? null;
+      const sanitized = sanitizeLineupDraft(
+        (draft.starter_ids as string[]) ?? [],
+        (draft.bench_ids as string[]) ?? [],
+        (draft.captain_id as string | null) ?? null,
+        rosterPlayers
+      );
+      starterIds = sanitized.starterIds;
+      benchIds = sanitized.benchIds;
+      formation = sanitized.formation;
+
+      // Only keep an explicit captain who is still a starter — no auto-pick on lock.
+      const draftCaptain = (draft.captain_id as string | null) ?? null;
+      captainId =
+        draftCaptain && starterIds.includes(draftCaptain)
+          ? draftCaptain
+          : null;
+
       const validation = validateLineupDraft(
         starterIds,
         benchIds,
@@ -85,8 +102,9 @@ export async function lockLineupSnapshots(
       if (validation.ok) {
         isValid = true;
         formation = validation.formation;
-        if (captainId && !starterIds.includes(captainId)) {
-          captainId = null;
+        // Complete lineup: ensure there is a captain (fallback to first starter).
+        if (!captainId && starterIds.length > 0) {
+          captainId = starterIds[0];
         }
       }
     }

@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { MoreMenu } from "@/components/layout/MoreMenu";
 import { ResourceBar } from "@/components/layout/ResourceBar";
 import { InstallPrompt } from "@/components/layout/InstallPrompt";
+import { HowToPlayTour } from "@/components/help/HowToPlayTour";
 import { homeContentBottomPadding } from "@/lib/layout/bottom-dock";
 import type { ProfileSummary } from "@/lib/actions/profile";
 
@@ -61,6 +62,7 @@ export function GameShell({
       ) : null}
 
       <InstallPrompt />
+      {profile && !hideNav ? <HowToPlayTour /> : null}
     </div>
   );
 }

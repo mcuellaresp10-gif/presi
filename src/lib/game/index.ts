@@ -210,4 +210,16 @@ export type {
   WildCardKind,
   WildCardType,
 } from "./wild-cards";
+export {
+  HELP_SECTIONS,
+  HELP_SECTION_BY_ID,
+  HOWTO_TOUR_STEPS,
+  getHelpSection,
+  isHelpSectionId,
+} from "./help-content";
+export type {
+  HelpBlock,
+  HelpSection,
+  HelpSectionId,
+} from "./help-content";
 export * from "./types";

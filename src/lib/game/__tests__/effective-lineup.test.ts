@@ -61,9 +61,49 @@ describe("effective-lineup", () => {
     benchIds: ["bgk", "bd1", "bm1", "bm2", "bf1"],
   };
 
-  it("returns zero points when snapshot is invalid", () => {
+  it("scores selected players even when lineup is incomplete (isValid false)", () => {
+    const stats = new Map([
+      [
+        "f1",
+        testStat("f1", "DEL", {
+          minutes: 90,
+          goals: 1,
+          started: true,
+        }),
+      ],
+      [
+        "gk1",
+        testStat("gk1", "GK", {
+          minutes: 90,
+          started: true,
+          teamResult: "win",
+        }),
+      ],
+    ]);
+
     const result = computeEffectiveLineup(
-      { ...selection, isValid: false },
+      {
+        isValid: false,
+        starterIds: ["gk1", "f1"],
+        benchIds: [],
+        captainId: "f1",
+      },
+      playersById,
+      stats
+    );
+
+    expect(result.scoringPlayers).toHaveLength(2);
+    const f1 = result.scoringPlayers.find((p) => p.playerId === "f1");
+    expect(f1?.points).toBeGreaterThan(0);
+    expect(f1?.isCaptain).toBe(true);
+    expect(result.contractPlayerIds).toEqual(
+      expect.arrayContaining(["gk1", "f1"])
+    );
+  });
+
+  it("returns zero points when no players are selected", () => {
+    const result = computeEffectiveLineup(
+      { isValid: false, starterIds: [], benchIds: [] },
       playersById,
       new Map()
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Gem } from "lucide-react";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
@@ -114,14 +114,25 @@ export function StadiumIncomePin({
     }
   }
 
+  function onKeyDown(e: KeyboardEvent) {
+    if (!hasPending || loading) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      void handleCollect();
+    }
+  }
+
   return (
-    <button
-      type="button"
-      onClick={hasPending ? handleCollect : undefined}
-      disabled={loading}
+    <div
+      role={hasPending ? "button" : undefined}
+      tabIndex={hasPending ? 0 : undefined}
+      onClick={hasPending ? () => void handleCollect() : undefined}
+      onKeyDown={hasPending ? onKeyDown : undefined}
+      aria-disabled={loading || undefined}
       className={cn(
         "group relative flex flex-col items-center gap-2 outline-none",
-        hasPending && "cursor-pointer"
+        hasPending && "cursor-pointer",
+        loading && "pointer-events-none opacity-70"
       )}
       aria-label={
         hasPending
@@ -160,10 +171,10 @@ export function StadiumIncomePin({
 
         {hasPending ? (
           <div className="mt-2 space-y-0.5">
-            <p className="text-xs font-bold text-presi-gold">
+            <span className="block text-xs font-bold text-presi-gold">
               {loading ? "Cobrando..." : "¡Listo para cobrar!"}
-            </p>
-            <p className="flex items-center justify-center gap-1.5 text-[11px] text-white/80">
+            </span>
+            <span className="flex items-center justify-center gap-1.5 text-[11px] text-white/80">
               {pendingAmount > 0 ? (
                 <span>{formatCompactMoney(pendingAmount)}</span>
               ) : null}
@@ -176,31 +187,31 @@ export function StadiumIncomePin({
                   {pendingGems}
                 </span>
               ) : null}
-            </p>
+            </span>
             {pendingTicks > 1 ? (
-              <p className="text-[9px] text-white/40">
+              <span className="block text-[9px] text-white/40">
                 {pendingTicks} cobros acumulados
-              </p>
+              </span>
             ) : null}
           </div>
         ) : (
           <div className="mt-2 space-y-0.5" suppressHydrationWarning>
-            <p className="text-[11px] text-white/50">
+            <span className="block text-[11px] text-white/50">
               Próximo cobro{" "}
               <span className="font-mono font-semibold text-presi-cyan">
                 {remainingMs !== null
                   ? formatRemainingTime(remainingMs)
                   : "—"}
               </span>
-            </p>
-            <p className="text-[9px] text-white/35">
+            </span>
+            <span className="block text-[9px] text-white/35">
               {formatCompactMoney(incomePerTick)} + {gemsPerTick}{" "}
               <Gem className="inline h-2.5 w-2.5 text-presi-cyan" /> · ~
               {Math.round(incomeIntervalHours)}h
-            </p>
+            </span>
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 }

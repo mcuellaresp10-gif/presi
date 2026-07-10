@@ -10,6 +10,7 @@ import { Clock } from "lucide-react";
 import { formatRemainingTime } from "@/lib/game";
 import { gameweekPhaseLabel } from "@/lib/gameweek/status";
 import { StadiumIncomePin } from "@/components/home/StadiumIncomePin";
+import { HelpTip } from "@/components/help/HelpTip";
 
 export function HomeDashboard({
   clubNombre,
@@ -168,12 +169,15 @@ export function HomeDashboard({
           </div>
         </div>
 
-        <p className="mt-2 text-center text-[10px] text-white/40">
-          Temporada:{" "}
-          <span className="font-bold text-presi-cyan">
-            {seasonPoints.toLocaleString("es-CO")} pts
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-center text-[10px] text-white/40">
+          <span>
+            Temporada:{" "}
+            <span className="font-bold text-presi-cyan">
+              {seasonPoints.toLocaleString("es-CO")} pts
+            </span>
           </span>
-        </p>
+          <HelpTip sectionId="objetivo" />
+        </div>
 
         <div className="flex flex-1 items-center justify-center py-6">
           <StadiumIncomePin

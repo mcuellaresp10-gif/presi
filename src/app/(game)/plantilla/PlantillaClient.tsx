@@ -25,6 +25,7 @@ import type { Player, RosterPlayer } from "@/lib/game/types";
 import { formatCompactMoney, cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { PlantillaCoachHint } from "@/components/plantilla/PlantillaCoachHint";
+import { HelpTip } from "@/components/help/HelpTip";
 
 export function PlantillaClient({
   players = [],
@@ -401,6 +402,7 @@ export function PlantillaClient({
                 <h1 className="text-display text-xl text-presi-gold">
                   Plantilla
                 </h1>
+                <HelpTip sectionId="plantilla" />
                 {!isLineupLocked ? <PlantillaCoachHint /> : null}
               </div>
               <p className="text-xs text-white/50">

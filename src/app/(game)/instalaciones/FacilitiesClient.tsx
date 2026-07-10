@@ -20,6 +20,7 @@ import {
   getRemainingMs,
 } from "@/lib/game";
 import type { Facility, FacilityType } from "@/lib/game/types";
+import { HelpTip } from "@/components/help/HelpTip";
 
 type UpgradeInfo = {
   cost: number;
@@ -209,7 +210,13 @@ export function FacilitiesClient({
     <>
       <div className="-mx-4 min-h-[calc(100vh-8rem)] bg-presi-bg px-3 pb-6 pt-2 text-white">
         <div className="mb-4">
-          <h1 className="text-display text-xl text-presi-gold">Instalaciones</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-display text-xl text-presi-gold">
+              Instalaciones
+            </h1>
+            <HelpTip sectionId="instalaciones" />
+            <HelpTip sectionId="scouting" label="Ayuda: Scouting" />
+          </div>
           <p className="text-xs text-white/50">
             Toca un edificio · Pellizca o ± para zoom en el mapa · Mejoras{" "}
             {activeUpgradesDisplayCount}/{MAX_CONCURRENT_UPGRADES}
