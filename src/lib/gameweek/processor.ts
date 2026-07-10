@@ -83,28 +83,30 @@ export async function lockLineupSnapshots(
         (draft.captain_id as string | null) ?? null,
         rosterPlayers
       );
-      starterIds = sanitized.starterIds;
-      benchIds = sanitized.benchIds;
-      formation = sanitized.formation;
+      if (sanitized.ok) {
+        starterIds = sanitized.starterIds;
+        benchIds = sanitized.benchIds;
+        formation = sanitized.formation;
 
-      // Only keep an explicit captain who is still a starter — no auto-pick on lock.
-      const draftCaptain = (draft.captain_id as string | null) ?? null;
-      captainId =
-        draftCaptain && starterIds.includes(draftCaptain)
-          ? draftCaptain
-          : null;
+        // Only keep an explicit captain who is still a starter — no auto-pick on lock.
+        const draftCaptain = (draft.captain_id as string | null) ?? null;
+        captainId =
+          draftCaptain && starterIds.includes(draftCaptain)
+            ? draftCaptain
+            : null;
 
-      const validation = validateLineupDraft(
-        starterIds,
-        benchIds,
-        rosterPlayers
-      );
-      if (validation.ok) {
-        isValid = true;
-        formation = validation.formation;
-        // Complete lineup: ensure there is a captain (fallback to first starter).
-        if (!captainId && starterIds.length > 0) {
-          captainId = starterIds[0];
+        const validation = validateLineupDraft(
+          starterIds,
+          benchIds,
+          rosterPlayers
+        );
+        if (validation.ok) {
+          isValid = true;
+          formation = validation.formation;
+          // Complete lineup: ensure there is a captain (fallback to first starter).
+          if (!captainId && starterIds.length > 0) {
+            captainId = starterIds[0];
+          }
         }
       }
     }
