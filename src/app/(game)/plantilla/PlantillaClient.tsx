@@ -21,7 +21,7 @@ import {
   MAX_SQUAD,
   STARTER_COUNT,
 } from "@/lib/game/squad-limits";
-import type { Player, RosterPlayer } from "@/lib/game/types";
+import type { EscudoConfig, Player, RosterPlayer } from "@/lib/game/types";
 import { formatCompactMoney, cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { PlantillaCoachHint } from "@/components/plantilla/PlantillaCoachHint";
@@ -31,6 +31,7 @@ import type { WildCardInventoryItem } from "@/lib/actions/wild-cards";
 
 export function PlantillaClient({
   players = [],
+  escudoConfig = null,
   usedBudget,
   totalBudget,
   remainingBudget,
@@ -46,6 +47,7 @@ export function PlantillaClient({
   wildCards = [],
 }: {
   players: RosterPlayer[];
+  escudoConfig?: EscudoConfig | null;
   usedBudget: number;
   totalBudget: number;
   remainingBudget: number;
@@ -520,7 +522,11 @@ export function PlantillaClient({
               </p>
               <HelpTip sectionId="wild-cards" />
             </div>
-            <WildCardInventory cards={wildCards} rosterPlayers={players} />
+            <WildCardInventory
+              cards={wildCards}
+              rosterPlayers={players}
+              escudoConfig={escudoConfig}
+            />
           </div>
         ) : (
           <>
@@ -577,6 +583,7 @@ export function PlantillaClient({
             formation={formation}
             starterSlotMap={starterSlotMap}
             playersById={playersById}
+            escudoConfig={escudoConfig}
             captainId={captainId}
             lineupLocked={isLineupLocked}
             draggingPlayerId={draggingPlayerId}
@@ -626,6 +633,7 @@ export function PlantillaClient({
                   {player ? (
                     <PitchPlayerCard
                       player={player}
+                      escudoConfig={escudoConfig}
                       size="sm"
                       draggable={!isLineupLocked}
                       onDragStart={(e) =>
@@ -685,6 +693,7 @@ export function PlantillaClient({
                   <div key={player.id} className="w-[5.5rem] shrink-0 snap-start">
                   <PitchPlayerCard
                     player={player}
+                    escudoConfig={escudoConfig}
                     size="sm"
                     draggable={!isLineupLocked}
                     onDragStart={(e) =>
@@ -741,6 +750,7 @@ export function PlantillaClient({
 
       <PlayerDetailPanel
         player={detailPlayer}
+        escudoConfig={escudoConfig}
         isStarter={detailPlayer ? selectedIds.includes(detailPlayer.id) : false}
         isBench={detailPlayer ? benchIds.includes(detailPlayer.id) : false}
         isCaptain={detailPlayer ? detailPlayer.id === captainId : false}

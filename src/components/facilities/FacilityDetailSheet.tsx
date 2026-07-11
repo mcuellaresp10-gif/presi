@@ -13,9 +13,8 @@ import {
 } from "@/components/scouting/ScoutingPackCard";
 import { WildCardInventory } from "@/components/wild-cards/WildCardInventory";
 import type { WildCardInventoryItem } from "@/lib/actions/wild-cards";
-import type { Facility, FacilityType } from "@/lib/game/types";
+import type { EscudoConfig, Facility, FacilityType, Player } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
-import type { Player } from "@/lib/game/types";
 
 type UpgradeInfo = {
   cost: number;
@@ -42,6 +41,7 @@ export function FacilityDetailSheet({
   now,
   wildCards = [],
   rosterPlayers = [],
+  escudoConfig = null,
 }: {
   open: boolean;
   tipo: FacilityType | null;
@@ -60,6 +60,7 @@ export function FacilityDetailSheet({
   now?: number;
   wildCards?: WildCardInventoryItem[];
   rosterPlayers?: Player[];
+  escudoConfig?: EscudoConfig | null;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -116,6 +117,7 @@ export function FacilityDetailSheet({
               <>
                 <ScoutingPackCard
                   state={scoutingState}
+                  escudoConfig={escudoConfig}
                   showUpgrade
                   onUpgrade={() => onUpgrade("scouting")}
                   upgradeLoading={loading === "scouting"}
@@ -137,6 +139,7 @@ export function FacilityDetailSheet({
                     <WildCardInventory
                       cards={wildCards}
                       rosterPlayers={rosterPlayers}
+                      escudoConfig={escudoConfig}
                     />
                   </div>
                 )}
@@ -146,6 +149,7 @@ export function FacilityDetailSheet({
             {tipo === "academia" && (
               <AcademyPackCard
                 state={academyState}
+                escudoConfig={escudoConfig}
                 showUpgrade
                 onUpgrade={() => onUpgrade("academia")}
                 upgradeLoading={loading === "academia"}

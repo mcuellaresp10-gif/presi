@@ -1,6 +1,6 @@
-import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
+import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import { cn, formatCOP } from "@/lib/utils";
-import type { Player, Rarity } from "@/lib/game/types";
+import type { EscudoConfig, Player, Rarity } from "@/lib/game/types";
 
 const RARITY_STYLES: Record<
   Rarity,
@@ -64,18 +64,21 @@ const RARITY_STYLES: Record<
 
 export function PlayerCard({
   player,
+  escudoConfig,
   selected,
   onClick,
   compact = false,
 }: {
   player: Player;
+  escudoConfig?: EscudoConfig | null;
   selected?: boolean;
   onClick?: () => void;
   compact?: boolean;
 }) {
   const style = RARITY_STYLES[player.rareza];
   const isLegendFrame = player.rareza === "leyenda";
-  const photoHeight = compact ? "h-[5.5rem]" : "h-[7.5rem]";
+  const kitAreaHeight = compact ? "h-[5.5rem]" : "h-[7.5rem]";
+  const kitSize = compact ? 56 : 72;
 
   return (
     <button
@@ -94,19 +97,13 @@ export function PlayerCard({
           isLegendFrame ? cn("geo-card border-0", style.panel) : style.panel
         )}
       >
-        <div className={cn("relative w-full", photoHeight)}>
-          <PlayerPhoto
-            nombre={player.nombre}
-            photoUrl={player.photo_url}
-            sizes={compact ? "88px" : "160px"}
-            initialsClassName={compact ? "text-sm" : undefined}
-          />
-          <div
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-black/5"
-            )}
-          />
+        <div
+          className={cn(
+            "relative flex w-full items-center justify-center bg-gradient-to-b from-black/40 to-black/70",
+            kitAreaHeight
+          )}
+        >
+          <ClubKitRenderer config={escudoConfig} size={kitSize} />
           <div
             aria-hidden
             className={cn(

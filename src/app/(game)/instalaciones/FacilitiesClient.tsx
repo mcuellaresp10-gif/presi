@@ -46,6 +46,7 @@ export function FacilitiesClient({
   upgradeInfo,
   wildCards = [],
   rosterPlayers = [],
+  escudoConfig = null,
 }: {
   facilities: Facility[];
   scoutingState: ScoutingUIState;
@@ -64,6 +65,7 @@ export function FacilitiesClient({
   upgradeInfo: Partial<Record<FacilityType, UpgradeInfo>>;
   wildCards?: import("@/lib/actions/wild-cards").WildCardInventoryItem[];
   rosterPlayers?: import("@/lib/game/types").Player[];
+  escudoConfig?: import("@/lib/game/types").EscudoConfig | null;
 }) {
   const router = useRouter();
   const refreshedUpgradesRef = useRef<Set<string>>(new Set());
@@ -283,6 +285,7 @@ export function FacilitiesClient({
         now={now}
         wildCards={wildCards}
         rosterPlayers={rosterPlayers}
+        escudoConfig={escudoConfig}
       />
     </>
   );

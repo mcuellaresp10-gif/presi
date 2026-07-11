@@ -7,7 +7,7 @@ import { getWildCardInventory } from "@/lib/actions/wild-cards";
 import { getClubRoster } from "@/lib/db/queries";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
 import { getNextScoutingDeadline } from "@/lib/game";
-import type { Player } from "@/lib/game/types";
+import type { EscudoConfig, Player } from "@/lib/game/types";
 
 export default async function InstalacionesPage() {
   await requireOnboardingComplete();
@@ -75,6 +75,7 @@ export default async function InstalacionesPage() {
       upgradeInfo={overview.upgradeInfo}
       wildCards={wildCards}
       rosterPlayers={rosterData?.players ?? []}
+      escudoConfig={(rosterData?.club.escudo_config as EscudoConfig) ?? null}
     />
   );
 }

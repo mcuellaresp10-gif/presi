@@ -21,9 +21,9 @@ import {
   POSITION_PITCH_COLOR,
   POSITION_SHORT,
 } from "@/lib/game/player-display";
-import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
+import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import { POSITION_LABELS } from "@/lib/game/types";
-import type { RosterPlayer } from "@/lib/game/types";
+import type { EscudoConfig, RosterPlayer } from "@/lib/game/types";
 import { cn, formatCOP, formatCompactMoney } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -48,6 +48,7 @@ const SQUAD_STATUS_OPTIONS: {
 
 export function PlayerDetailPanel({
   player,
+  escudoConfig,
   isStarter,
   isBench = false,
   isCaptain = false,
@@ -63,6 +64,7 @@ export function PlayerDetailPanel({
   oficinaNivel = 1,
 }: {
   player: RosterPlayer | null;
+  escudoConfig?: EscudoConfig | null;
   isStarter: boolean;
   isBench?: boolean;
   isCaptain?: boolean;
@@ -184,13 +186,8 @@ export function PlayerDetailPanel({
               </div>
             </div>
 
-            <div className="relative ml-auto h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-white/20 shadow-xl">
-              <PlayerPhoto
-                nombre={player.nombre}
-                photoUrl={player.photo_url}
-                sizes="112px"
-                initialsClassName="text-2xl"
-              />
+            <div className="relative ml-auto flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-white/20 bg-black/30 shadow-xl">
+              <ClubKitRenderer config={escudoConfig} size={88} />
             </div>
           </div>
         </div>

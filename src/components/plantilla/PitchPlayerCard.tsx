@@ -1,7 +1,7 @@
 "use client";
 
+import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import { cn } from "@/lib/utils";
-import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
 import {
   getPlayerRating,
   getPlayerSurname,
@@ -9,11 +9,12 @@ import {
   POSITION_SHORT,
 } from "@/lib/game/player-display";
 import type { LineupDragSource } from "@/lib/game/lineup-slots";
-import type { Position, RosterPlayer } from "@/lib/game/types";
+import type { EscudoConfig, Position, RosterPlayer } from "@/lib/game/types";
 import { isContractExpiringSoon } from "@/lib/game";
 
 export function PitchPlayerCard({
   player,
+  escudoConfig,
   onClick,
   size = "md",
   isCaptain = false,
@@ -23,6 +24,7 @@ export function PitchPlayerCard({
   isDragging = false,
 }: {
   player: RosterPlayer;
+  escudoConfig?: EscudoConfig | null;
   onClick?: () => void;
   size?: "sm" | "md";
   isCaptain?: boolean;
@@ -37,8 +39,8 @@ export function PitchPlayerCard({
   const jornadas = player.jornadas_restantes ?? 99;
   const expiringSoon = !player.es_prestamo && isContractExpiringSoon(jornadas);
   const loanJornadas = player.prestamo_jornadas_restantes ?? 0;
-  const cardWidth = size === "sm" ? "w-[4.5rem]" : "w-[5rem]";
-  const cardHeight = size === "sm" ? "h-[7rem]" : "h-[7.5rem]";
+  const cardWidth = size === "sm" ? "w-[4.25rem]" : "w-[4.75rem]";
+  const kitSize = size === "sm" ? 40 : 48;
 
   return (
     <div
@@ -66,67 +68,52 @@ export function PitchPlayerCard({
         cardWidth
       )}
     >
-      <div
-        className={cn(
-          "relative w-full overflow-hidden rounded-sm border border-white/15 shadow-lg geo-card",
-          cardHeight,
-          draggable && "ring-0 ring-presi-cyan/0 group-hover:ring-2 group-hover:ring-presi-cyan/40"
-        )}
-      >
-        <div className="absolute inset-0">
-          <div className="relative h-full w-full">
-            <PlayerPhoto
-              nombre={player.nombre}
-              photoUrl={player.photo_url}
-              sizes={size === "sm" ? "72px" : "80px"}
-            />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
-        </div>
+      <div className="relative">
+        <ClubKitRenderer config={escudoConfig} size={kitSize} />
 
-        <div
-          className={cn(
-            "relative z-10 flex items-start justify-between px-1.5 py-1",
-            POSITION_PITCH_COLOR[pos]
-          )}
-        >
-          <span className="text-sm font-black leading-none drop-shadow">
-            {rating}
-          </span>
-          <div className="flex items-center gap-0.5">
-            {player.es_prestamo && (
-              <span
-                className="rounded bg-cyan-400/90 px-1 text-[7px] font-black leading-none text-cyan-950"
-                title="Jugador en préstamo"
-              >
-                P
-              </span>
-            )}
-            {isCaptain && (
-              <span
-                className="rounded bg-amber-400 px-1 text-[8px] font-black leading-none text-amber-950 ring-1 ring-amber-200"
-                title="Capitán — puntos dobles"
-              >
-                C
-              </span>
-            )}
-            {expiringSoon && (
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-300 ring-1 ring-amber-100" />
-            )}
-            <span className="text-[9px] font-bold leading-none">
-              {POSITION_SHORT[pos]}
+        <div className="absolute -right-0.5 -top-0.5 flex flex-col items-end gap-0.5">
+          {isCaptain ? (
+            <span
+              className="rounded bg-amber-400 px-1 text-[8px] font-black leading-none text-amber-950 ring-1 ring-amber-200"
+              title="Capitán — puntos dobles"
+            >
+              C
             </span>
-          </div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 z-10 px-1 pb-1 pt-6">
-          <p className="truncate text-[9px] font-bold uppercase tracking-wide text-white drop-shadow">
-            {surname}
-          </p>
+          ) : null}
+          {player.es_prestamo ? (
+            <span
+              className="rounded bg-cyan-400/90 px-1 text-[7px] font-black leading-none text-cyan-950"
+              title="Jugador en préstamo"
+            >
+              P
+            </span>
+          ) : null}
+          {expiringSoon ? (
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-amber-300 ring-1 ring-amber-100"
+              title="Contrato por vencer"
+            />
+          ) : null}
         </div>
       </div>
 
-      <span className="mt-1 max-w-full truncate rounded-full bg-white/10 px-1.5 py-0.5 text-[8px] font-medium uppercase text-white/60">
+      <div className="mt-0.5 w-full overflow-hidden rounded-t-sm bg-black/85 px-1 py-0.5 shadow ring-1 ring-white/10">
+        <p className="truncate text-[9px] font-black uppercase tracking-wide text-white">
+          {surname}
+        </p>
+      </div>
+      <div
+        className={cn(
+          "flex w-full items-center justify-center gap-1 rounded-b-sm px-1 py-0.5 text-[8px] font-black shadow",
+          POSITION_PITCH_COLOR[pos]
+        )}
+      >
+        <span>{POSITION_SHORT[pos]}</span>
+        <span className="opacity-80">·</span>
+        <span>{rating}</span>
+      </div>
+
+      <span className="mt-0.5 max-w-full truncate text-[7px] font-semibold uppercase tracking-wide text-white/80">
         {player.es_prestamo
           ? `Préstamo ${loanJornadas}J`
           : (player.equipo_real ?? "—").split(" ").slice(0, 2).join(" ")}
@@ -162,7 +149,7 @@ export function PitchEmptySlot({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        "flex w-[5rem] flex-col items-center rounded-lg transition-colors",
+        "flex w-[4.75rem] flex-col items-center rounded-lg transition-colors",
         isDropTarget &&
           isDragOver &&
           isValidDrop &&
@@ -175,7 +162,7 @@ export function PitchEmptySlot({
     >
       <div
         className={cn(
-          "flex h-[7.5rem] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white/5",
+          "flex h-[5.5rem] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white/5",
           isDropTarget && isDragOver && isValidDrop
             ? "border-presi-cyan/70"
             : isDropTarget && isDragOver && !isValidDrop

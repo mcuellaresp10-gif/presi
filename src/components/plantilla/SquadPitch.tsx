@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Player, Position } from "@/lib/game/types";
+import type { EscudoConfig, Player, Position } from "@/lib/game/types";
 import { getFormationSlots } from "@/lib/game/formation";
 import { canPlacePlayerOnStarterSlot } from "@/lib/game/lineup-slots";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ export function SquadPitch({
   formation,
   starterSlotMap,
   playersById,
+  escudoConfig,
   captainId,
   lineupLocked,
   draggingPlayerId,
@@ -30,6 +31,7 @@ export function SquadPitch({
   formation: string;
   starterSlotMap: Record<string, string | null>;
   playersById: Map<string, Player>;
+  escudoConfig?: EscudoConfig | null;
   captainId?: string | null;
   lineupLocked?: boolean;
   draggingPlayerId?: string | null;
@@ -98,6 +100,7 @@ export function SquadPitch({
                   >
                     <PitchPlayerCard
                       player={player as Player & { equipo_real: string }}
+                      escudoConfig={escudoConfig}
                       isCaptain={player.id === captainId}
                       draggable={!lineupLocked}
                       onDragStart={(e) =>

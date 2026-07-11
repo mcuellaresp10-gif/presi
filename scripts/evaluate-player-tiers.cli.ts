@@ -154,7 +154,7 @@ async function applyAssignments(
       costo_base: player.costo_base,
       performance_score: player.performance_score,
       stats_updated_at: now,
-      photo_url: player.photo,
+      photo_url: null,
       updated_at: now,
     };
 

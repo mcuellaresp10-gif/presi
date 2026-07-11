@@ -17,7 +17,7 @@ import {
   getScoutingPremiumRarityPct,
 } from "@/lib/game";
 import type { WildCardType } from "@/lib/game/wild-cards";
-import type { Player } from "@/lib/game/types";
+import type { EscudoConfig, Player } from "@/lib/game/types";
 import { formatCompactMoney } from "@/lib/utils";
 
 export type ScoutingUIState = {
@@ -32,6 +32,7 @@ export type ScoutingUIState = {
 
 export function ScoutingPackCard({
   state,
+  escudoConfig = null,
   compact = false,
   showUpgrade = false,
   onUpgrade,
@@ -46,6 +47,7 @@ export function ScoutingPackCard({
   upgradeBuildHours = 24,
 }: {
   state: ScoutingUIState;
+  escudoConfig?: EscudoConfig | null;
   compact?: boolean;
   showUpgrade?: boolean;
   onUpgrade?: () => void;
@@ -163,7 +165,7 @@ export function ScoutingPackCard({
             <p className="text-center text-sm font-medium text-white">
               ¡Sobre listo! Ficha o rechaza al jugador
             </p>
-            <PlayerCard player={state.player} />
+            <PlayerCard player={state.player} escudoConfig={escudoConfig} />
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={handleClaim}

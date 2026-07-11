@@ -114,6 +114,9 @@ export default async function PerfilPage() {
         <WildCardInventory
           cards={wildCards}
           rosterPlayers={rosterData?.players ?? []}
+          escudoConfig={
+            (profile.club?.escudo_config as EscudoConfig | undefined) ?? null
+          }
         />
       </section>
 

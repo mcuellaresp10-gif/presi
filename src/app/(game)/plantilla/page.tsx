@@ -8,6 +8,7 @@ import {
 import { getWildCardInventory } from "@/lib/actions/wild-cards";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
 import { getClubRoster } from "@/lib/db/queries";
+import type { EscudoConfig } from "@/lib/game/types";
 
 export default async function PlantillaPage() {
   await requireOnboardingComplete();
@@ -30,6 +31,7 @@ export default async function PlantillaPage() {
     <>
       <PlantillaClient
         players={data.players}
+        escudoConfig={(data.club.escudo_config as EscudoConfig) ?? null}
         usedBudget={data.usedBudget}
         totalBudget={data.totalBudget}
         remainingBudget={data.remainingBudget}

@@ -110,7 +110,7 @@ async function syncPlayersFromApi() {
             nombre: row.player.name,
             equipo_real: equipo,
             posicion,
-            photo_url: row.player.photo,
+            photo_url: null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", existing.id);
@@ -122,7 +122,7 @@ async function syncPlayersFromApi() {
           posicion,
           rareza: "bronce",
           costo_base: 3_000_000,
-          photo_url: row.player.photo,
+          photo_url: null,
         });
       }
       synced += 1;

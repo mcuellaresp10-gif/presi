@@ -3,9 +3,9 @@
 import { ArrowLeft, Crown } from "lucide-react";
 import { CloseButton } from "@/components/ui/close-button";
 import { HelpTip } from "@/components/help/HelpTip";
-import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
+import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import type { ScoringBreakdownLine } from "@/lib/game/scoring";
-import type { Player, Position } from "@/lib/game/types";
+import type { EscudoConfig, Player, Position } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 
 export type GameweekPlayerBreakdown = {
@@ -48,12 +48,14 @@ export function PointsBreakdownSheet({
   open,
   gameweekRound,
   playerBreakdown,
+  escudoConfig,
   onBack,
   onClose,
 }: {
   open: boolean;
   gameweekRound: number | null;
   playerBreakdown: GameweekPlayerBreakdown | null;
+  escudoConfig?: EscudoConfig | null;
   onBack: () => void;
   onClose: () => void;
 }) {
@@ -94,12 +96,8 @@ export function PointsBreakdownSheet({
           )}
           <div className="mt-2 flex items-center gap-3">
             {player ? (
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/20">
-                <PlayerPhoto
-                  photoUrl={player.photo_url}
-                  nombre={player.nombre}
-                  sizes="56px"
-                />
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/30">
+                <ClubKitRenderer config={escudoConfig} size={48} />
               </div>
             ) : (
               <div className="h-14 w-14 rounded-full bg-white/10" />

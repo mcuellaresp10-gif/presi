@@ -11,7 +11,7 @@ import {
   rejectAcademyPlayer,
 } from "@/lib/actions/academy";
 import { formatRemainingTime, getAcademyDurationHours } from "@/lib/game";
-import type { Player } from "@/lib/game/types";
+import type { EscudoConfig, Player } from "@/lib/game/types";
 import { formatCompactMoney } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -25,6 +25,7 @@ export type AcademyUIState = {
 
 export function AcademyPackCard({
   state,
+  escudoConfig = null,
   showUpgrade = false,
   onUpgrade,
   upgradeLoading = false,
@@ -38,6 +39,7 @@ export function AcademyPackCard({
   upgradeBuildHours = 24,
 }: {
   state: AcademyUIState;
+  escudoConfig?: EscudoConfig | null;
   showUpgrade?: boolean;
   onUpgrade?: () => void;
   upgradeLoading?: boolean;
@@ -120,7 +122,7 @@ export function AcademyPackCard({
             <p className="text-center text-sm font-medium text-white">
               ¡Promesa lista! Ficha o rechaza al juvenil
             </p>
-            <PlayerCard player={state.player} />
+            <PlayerCard player={state.player} escudoConfig={escudoConfig} />
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={handleClaim}

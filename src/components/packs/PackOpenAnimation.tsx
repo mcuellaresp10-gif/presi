@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import { PlayerCard } from "@/components/cards/PlayerCard";
-import type { Player } from "@/lib/game/types";
+import type { EscudoConfig, Player } from "@/lib/game/types";
 import { Button } from "@/components/ui/button";
 
 export function PackOpenAnimation({
   options,
   onSelect,
   packNumber,
+  escudoConfig,
 }: {
   options: Player[];
   onSelect: (playerId: string) => void;
   packNumber: number;
+  escudoConfig?: EscudoConfig | null;
 }) {
   const [phase, setPhase] = useState<"closed" | "opening" | "open">("closed");
 
@@ -66,6 +68,7 @@ export function PackOpenAnimation({
             >
               <PlayerCard
                 player={player}
+                escudoConfig={escudoConfig}
                 onClick={() => onSelect(player.id)}
               />
             </div>

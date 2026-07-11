@@ -21,61 +21,64 @@ export type CampusBuildingConfig = {
   scale?: number;
 };
 
-/** Slots aligned to master.png clearings along the crossroads */
+/**
+ * Slots on the campus map (x/y = % of container; pin grows downward from y).
+ * Spread as a 2×3 grid so large sprites (esp. stadium) don't overlap.
+ */
 export const CAMPUS_BUILDINGS: CampusBuildingConfig[] = [
   {
     tipo: "hinchas",
     label: "Estadio",
     shortLabel: "Estadio",
     x: 50,
-    y: 36,
+    y: 22,
     variant: "stadium",
-    scale: 0.94,
+    scale: 0.78,
   },
   {
     tipo: "academia",
     label: "Sede deportiva",
     shortLabel: "Academia",
-    x: 24,
-    y: 30,
+    x: 16,
+    y: 24,
     variant: "academy",
-    scale: 0.84,
+    scale: 0.72,
   },
   {
     tipo: "scouting",
     label: "Oficina scouting",
     shortLabel: "Scouting",
-    x: 76,
-    y: 28,
+    x: 84,
+    y: 22,
     variant: "office",
-    scale: 0.78,
+    scale: 0.68,
   },
   {
     tipo: "oficina",
     label: "Zona financiera",
     shortLabel: "Oficina",
-    x: 78,
-    y: 68,
+    x: 84,
+    y: 78,
     variant: "finance",
-    scale: 0.76,
+    scale: 0.68,
   },
   {
     tipo: "cuerpo_medico",
     label: "Centro médico",
     shortLabel: "Médico",
-    x: 56,
-    y: 72,
+    x: 50,
+    y: 80,
     variant: "medical",
-    scale: 0.78,
+    scale: 0.68,
   },
   {
     tipo: "gimnasio",
     label: "Gimnasio",
     shortLabel: "Gimnasio",
-    x: 24,
-    y: 70,
+    x: 16,
+    y: 78,
     variant: "gym",
-    scale: 0.74,
+    scale: 0.66,
   },
 ];
 

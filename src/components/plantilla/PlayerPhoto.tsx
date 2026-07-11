@@ -1,39 +1,33 @@
-import Image from "next/image";
 import { getPlayerInitials } from "@/lib/game/player-display";
 import { cn } from "@/lib/utils";
 
+/**
+ * Avatar genérico (iniciales). No mostramos fotos reales de jugadores
+ * por derechos de imagen / posibles reclamaciones.
+ */
 export function PlayerPhoto({
   nombre,
-  photoUrl,
+  photoUrl: _photoUrl,
   className,
   initialsClassName,
-  sizes = "80px",
+  sizes: _sizes,
 }: {
   nombre: string;
+  /** Ignorado: las fotos reales no se muestran. */
   photoUrl?: string | null;
   className?: string;
   initialsClassName?: string;
   sizes?: string;
 }) {
-  if (photoUrl) {
-    return (
-      <div className="player-photo-duotone relative h-full w-full overflow-hidden">
-        <Image
-          src={photoUrl}
-          alt={nombre}
-          fill
-          sizes={sizes}
-          className={cn("object-cover object-[center_12%]", className)}
-        />
-      </div>
-    );
-  }
+  void _photoUrl;
+  void _sizes;
 
   return (
     <div
       className={cn(
         "flex h-full w-full items-center justify-center bg-gradient-to-br from-presi-cyan/80 to-presi-bg",
-        initialsClassName
+        initialsClassName,
+        className
       )}
     >
       <span className="text-lg font-bold text-white">

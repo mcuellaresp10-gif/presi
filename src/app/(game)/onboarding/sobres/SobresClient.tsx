@@ -140,6 +140,7 @@ export function SobresClient({
           <PackOpenAnimation
             options={options}
             packNumber={packNumber}
+            escudoConfig={escudoConfig}
             onSelect={handleSelect}
           />
         ) : (

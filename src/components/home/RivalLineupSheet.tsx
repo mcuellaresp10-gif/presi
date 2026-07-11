@@ -3,11 +3,12 @@
 import { useEffect } from "react";
 import { Crown } from "lucide-react";
 import { CloseButton } from "@/components/ui/close-button";
+import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
-import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
 import { getWildCardIcon } from "@/components/wild-cards/wild-card-icons";
 import type { RivalLineupPreview } from "@/lib/actions/rival-lineup";
 import { POSITION_SHORT } from "@/lib/game/player-display";
+import type { EscudoConfig } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 
 export function RivalLineupSheet({
@@ -102,7 +103,11 @@ export function RivalLineupSheet({
                 </p>
                 <ul className="space-y-1.5">
                   {preview.starters.map((p) => (
-                    <RivalPlayerRow key={p.id} player={p} />
+                    <RivalPlayerRow
+                      key={p.id}
+                      player={p}
+                      escudoConfig={preview.escudoConfig}
+                    />
                   ))}
                 </ul>
               </section>
@@ -114,7 +119,11 @@ export function RivalLineupSheet({
                   </p>
                   <ul className="space-y-1.5">
                     {preview.bench.map((p) => (
-                      <RivalPlayerRow key={p.id} player={p} />
+                      <RivalPlayerRow
+                        key={p.id}
+                        player={p}
+                        escudoConfig={preview.escudoConfig}
+                      />
                     ))}
                   </ul>
                 </section>
@@ -164,8 +173,10 @@ export function RivalLineupSheet({
 
 function RivalPlayerRow({
   player,
+  escudoConfig,
 }: {
   player: RivalLineupPreview["starters"][number];
+  escudoConfig?: EscudoConfig | null;
 }) {
   return (
     <li
@@ -176,12 +187,8 @@ function RivalPlayerRow({
           : "border-white/10 bg-white/5"
       )}
     >
-      <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/15">
-        <PlayerPhoto
-          photoUrl={player.photo_url}
-          nombre={player.nombre}
-          sizes="36px"
-        />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+        <ClubKitRenderer config={escudoConfig} size={36} />
       </div>
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-white">

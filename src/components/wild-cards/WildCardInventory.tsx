@@ -14,15 +14,17 @@ import {
   getFreeSignPool,
 } from "@/lib/actions/wild-cards";
 import type { WildCardInventoryItem } from "@/lib/actions/wild-cards";
-import type { Player } from "@/lib/game/types";
+import type { EscudoConfig, Player } from "@/lib/game/types";
 import { useToast } from "@/components/ui/use-toast";
 
 export function WildCardInventory({
   cards,
   rosterPlayers = [],
+  escudoConfig = null,
 }: {
   cards: WildCardInventoryItem[];
   rosterPlayers?: Player[];
+  escudoConfig?: EscudoConfig | null;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -182,7 +184,11 @@ export function WildCardInventory({
                       onClick={() => confirmActivate(picker.cardId, player.id)}
                       disabled={loadingId === picker.cardId}
                     >
-                      <PlayerCard player={player} compact />
+                      <PlayerCard
+                        player={player}
+                        escudoConfig={escudoConfig}
+                        compact
+                      />
                     </button>
                   ))}
                 </div>

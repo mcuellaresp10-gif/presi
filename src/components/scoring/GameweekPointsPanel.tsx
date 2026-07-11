@@ -7,8 +7,9 @@ import {
   type GameweekPlayerBreakdown,
 } from "@/components/scoring/PointsBreakdownSheet";
 import { CloseButton } from "@/components/ui/close-button";
-import { PlayerPhoto } from "@/components/plantilla/PlayerPhoto";
+import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import { getGameweekPointsBreakdown } from "@/lib/actions/gameweek";
+import type { EscudoConfig } from "@/lib/game/types";
 
 const SOURCE_LABEL: Record<GameweekPlayerBreakdown["source"], string> = {
   starter: "Titular",
@@ -20,10 +21,12 @@ export function GameweekPointsPanel({
   gameweekId,
   gameweekRound,
   gameweekPoints,
+  escudoConfig,
 }: {
   gameweekId: string | null;
   gameweekRound: number | null;
   gameweekPoints: number;
+  escudoConfig?: EscudoConfig | null;
 }) {
   const [open, setOpen] = useState(false);
   const [players, setPlayers] = useState<GameweekPlayerBreakdown[]>([]);
@@ -101,12 +104,8 @@ export function GameweekPointsPanel({
                       onClick={() => setSelected(row)}
                     >
                       {row.player ? (
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/15">
-                          <PlayerPhoto
-                            photoUrl={row.player.photo_url}
-                            nombre={row.player.nombre}
-                            sizes="40px"
-                          />
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+                          <ClubKitRenderer config={escudoConfig} size={36} />
                         </div>
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-white/10" />
@@ -142,6 +141,7 @@ export function GameweekPointsPanel({
         open={open && !!selected}
         gameweekRound={gameweekRound}
         playerBreakdown={selected}
+        escudoConfig={escudoConfig}
         onBack={() => setSelected(null)}
         onClose={() => {
           setSelected(null);
