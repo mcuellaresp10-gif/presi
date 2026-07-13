@@ -3,8 +3,6 @@
 import Image from "next/image";
 import { CampusBuildingPin } from "@/components/facilities/campus/CampusBuildingPin";
 import { CampusEnvironment } from "@/components/facilities/campus/CampusEnvironment";
-import { CampusMapZoomControls } from "@/components/facilities/campus/CampusMapZoomControls";
-import { useCampusMapZoom } from "@/components/facilities/campus/useCampusMapZoom";
 import { getCampusMasterBackground, hasAiMasterBackground } from "@/lib/game/campus-asset-manifest";
 import type { CampusBuildingVariant } from "@/lib/game/campus-visual-tiers";
 import type { FacilityType } from "@/lib/game/types";
@@ -105,35 +103,14 @@ export function FacilitiesCampusMap({
 }) {
   const richBackground = hasAiMasterBackground();
   const masterSrc = `${getCampusMasterBackground()}?v=4`;
-  const zoom = useCampusMapZoom();
 
   return (
     <div
-      ref={zoom.viewportRef}
-      className="facilities-campus relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 shadow-[inset_0_0_40px_rgba(0,0,0,0.35)] touch-none"
+      className="facilities-campus relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 shadow-[inset_0_0_40px_rgba(0,0,0,0.35)]"
       data-rich-bg={richBackground ? "true" : undefined}
-      onWheel={zoom.handleWheel}
-      aria-label="Mapa del campus. Usa pellizco o los botones para acercar."
+      aria-label="Mapa del campus"
     >
-      <div
-        className={cn(
-          "relative h-full w-full will-change-transform",
-          zoom.isPanning ? "cursor-grabbing" : zoom.canPan ? "cursor-grab" : "cursor-default"
-        )}
-        style={{
-          transform: `translate(${zoom.translate.x}px, ${zoom.translate.y}px) scale(${zoom.scale})`,
-          transformOrigin: "0 0",
-        }}
-        onPointerDown={zoom.handlePointerDown}
-        onPointerMove={zoom.handlePointerMove}
-        onPointerUp={zoom.handlePointerUp}
-        onPointerCancel={zoom.handlePointerUp}
-        onTouchStart={zoom.handleTouchStart}
-        onTouchMove={zoom.handleTouchMove}
-        onTouchEnd={zoom.handleTouchEnd}
-        onTouchCancel={zoom.handleTouchEnd}
-        onDoubleClick={zoom.handleDoubleClick}
-      >
+      <div className="relative h-full w-full">
       <Image
         src={masterSrc}
         alt=""
@@ -212,15 +189,6 @@ export function FacilitiesCampusMap({
         />
       ))}
       </div>
-
-      <CampusMapZoomControls
-        scale={zoom.scale}
-        minScale={zoom.minScale}
-        maxScale={zoom.maxScale}
-        onZoomIn={zoom.zoomIn}
-        onZoomOut={zoom.zoomOut}
-        onReset={zoom.resetZoom}
-      />
     </div>
   );
 }

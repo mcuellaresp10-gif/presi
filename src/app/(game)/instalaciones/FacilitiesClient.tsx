@@ -220,7 +220,7 @@ export function FacilitiesClient({
             <HelpTip sectionId="scouting" label="Ayuda: Scouting" />
           </div>
           <p className="text-xs text-white/50">
-            Toca un edificio · Pellizca o ± para zoom en el mapa · Mejoras{" "}
+            Toca un edificio para ver detalles y mejorar · Mejoras{" "}
             {activeUpgradesDisplayCount}/{MAX_CONCURRENT_UPGRADES}
           </p>
         </div>
