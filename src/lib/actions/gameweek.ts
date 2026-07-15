@@ -296,7 +296,8 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
       draft.bench_ids?.length === 5 &&
       !!draft.captain_id,
     snapshotValid: snapshot?.is_valid ?? false,
-    gameweekId: displayGameweek.id,
+    /** Gameweek used for points / breakdown (live/finished preferred). */
+    gameweekId: pointsGameweekId,
   };
 });
 

@@ -9,13 +9,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-presi-gold text-presi-bg hover:bg-presi-gold/90",
-        cta: "bg-gradient-to-r from-presi-gold to-amber-400 text-presi-bg hover:from-presi-gold/90 hover:to-amber-400/90 shadow-lg shadow-presi-gold/20",
+        cta: "bg-gradient-to-r from-presi-gold to-presi-coral text-presi-bg hover:from-presi-gold/90 hover:to-presi-coral/90 shadow-lg shadow-presi-gold/25",
         secondary: "bg-presi-cyan text-presi-bg hover:bg-presi-cyan/90",
-        gem: "bg-presi-cyan/15 border border-presi-cyan/40 text-presi-cyan hover:bg-presi-cyan/25",
+        gem: "bg-presi-violet/20 border border-presi-violet/45 text-presi-cyan hover:bg-presi-violet/30",
         outline:
-          "border border-presi-cyan/30 bg-transparent text-white hover:bg-presi-cyan/10",
-        ghost: "text-white/80 hover:bg-white/10 hover:text-presi-cyan min-h-[44px]",
-        destructive: "bg-presi-red text-white hover:bg-presi-red/90",
+          "border border-presi-sand/30 bg-transparent text-presi-sand hover:bg-presi-sand/10 hover:text-white",
+        ghost: "text-presi-sand/80 hover:bg-presi-sand/10 hover:text-presi-cyan min-h-[44px]",
+        destructive: "bg-presi-coral text-white hover:bg-presi-coral/90",
       },
       size: {
         default: "h-10 px-4 py-2",

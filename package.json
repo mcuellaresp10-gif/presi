@@ -21,6 +21,7 @@
     "test:watch": "vitest",
     "check:env": "node scripts/check-env.mjs",
     "evaluate:tiers": "node scripts/evaluate-player-tiers.mjs",
+    "seed:npc": "node scripts/seed-npc-clubs.mjs",
     "cron:gameweek": "node scripts/gameweek-cron-loop.mjs"
   },
   "dependencies": {

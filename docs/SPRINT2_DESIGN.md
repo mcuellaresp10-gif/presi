@@ -54,9 +54,9 @@ Conectar PRESI a **jornadas reales de Liga Colombiana**:
 
 ### Deadline de alineación
 
-- El usuario debe guardar **11 inicial + banca (5)** **antes del primer partido** de la jornada.
+- El usuario debe guardar **11 inicial + banca (5)** **antes del primer partido** de la jornada (UX / CTA `isValid`).
 - **Al primer pitido**: snapshot bloqueado (`lineup_snapshot`). No se puede editar 11 ni banca hasta la siguiente jornada.
-- **Sin snapshot válido** (11 + formación válida + 5 en banca) → el club **no suma puntos** esa jornada.
+- Una alineación incompleta **sí puntúa** los jugadores que estén seleccionados; slots vacíos aportan 0. `isValid` es solo guía de UI, no anula el club.
 
 ### Durante la jornada
 
@@ -71,7 +71,7 @@ Si un titular del 11 **no juega** (0 minutos según stats en DB):
 1. Recorrer la banca en orden **1 → 5**.
 2. El primer suplente con la **misma posición** (GK→GK, DEF→DEF, MED→MED, DEL→DEL) entra a la **línea efectiva** para puntos.
 3. Cada suplente cubre **como máximo un** hueco.
-4. Sin suplente compatible → ese hueco **no puntúa**.
+4. Sin suplente compatible → ese hueco **0 puntos**.
 
 La reserva **nunca** entra por auto-sustitución.
 
@@ -83,7 +83,8 @@ La reserva **nunca** entra por auto-sustitución.
 | Titular 0 min → banca entra (misma posición), ≥ 1 min | Sí (stats del suplente) |
 | Banca que no entra | No |
 | Reserva | **Nunca** |
-| Club sin snapshot válido pre-deadline | **0 puntos** (toda la jornada) |
+| Alineación incompleta | Sí, solo jugadores alineados (slots vacíos = 0) |
+| Gimnasio | +N% sobre el **total de la jornada** (no se muestra en ranking global) |
 
 - Actualización **en vivo**: cada sync de stats dispara recálculo (o job incremental).
 - Reglas de puntuación fantasy: definir en `src/lib/game/scoring.ts` (goles, asistencias, clean sheet, etc.) — tabla en § Puntuación.
@@ -405,19 +406,20 @@ Tests obligatorios para auto-sub, 0 puntos sin snapshot, contrato con 1 min, res
 
 ---
 
-## Checklist de cierre Sprint 2 (borrador)
+## Checklist de cierre Sprint 2
 
-- [ ] API-Football sync jugadores Liga Colombiana
-- [ ] Fixtures y jornadas en DB
-- [ ] UI plantilla 11 + banca 5 + reserva 8
-- [ ] Snapshot automático al primer pitido
-- [ ] Sin snapshot → 0 puntos verificado
-- [ ] Auto-sub estricta por posición
-- [ ] Puntos en vivo en `/inicio`
-- [ ] Contratos automáticos (≥ 1 min, excluye reserva)
-- [ ] Ranking/ligas con puntos reales
-- [ ] Eliminado botón confirmar jornada
-- [ ] Tests de lógica + build + QA manual jornada completa
+- [x] API-Football sync jugadores Liga Colombiana
+- [x] Fixtures y jornadas en DB
+- [x] UI plantilla 11 + banca 5 + reserva 8
+- [x] Snapshot automático al primer pitido
+- [x] Alineación parcial puntúa jugadores alineados + auto-sub
+- [x] Auto-sub estricta por posición
+- [x] Puntos en vivo en `/inicio` (+ desglose)
+- [x] Contratos automáticos (≥ 1 min, excluye reserva)
+- [x] Ranking con `club_season_points` (sin badge gimnasio)
+- [x] Gimnasio aplica % al total de jornada
+- [x] Eliminado botón confirmar jornada
+- [ ] QA manual jornada live post-deploy (ver `docs/SPRINT2_CHECKLIST.md`)
 
 ---
 
@@ -427,10 +429,10 @@ Tests obligatorios para auto-sub, 0 puntos sin snapshot, contrato con 1 min, res
 |------|---------|
 | Formaciones válidas | `src/lib/game/formation.ts` |
 | Contratos | `src/lib/game/contracts.ts` |
-| Caps actuales (Sprint 1) | `src/lib/game/types.ts` |
+| Caps plantilla | `src/lib/game/squad-limits.ts` |
 | Efectos instalaciones | `src/lib/game/facility-effects.ts` |
-| Plan API (Sprint 1) | `.cursor/plans/presi_sprint_1_e335e808.plan.md` |
+| Cron production | `.github/workflows/gameweek-cron.yml` |
 
 ---
 
-*Última actualización: decisiones de producto acordadas en chat — plantilla 11+5+8, auto-sub estricta, puntos/contratos automáticos en vivo, sin confirmar jornada manual.*
+*Última actualización: cierre Sprint 2 — puntuación parcial + auto-sub, gimnasio en jornada (oculto en ranking), cron GHA.*

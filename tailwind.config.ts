@@ -1,5 +1,10 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * PRESI palette (neon + happy hybrid):
+ * #47F5D7 cyan · #F5F147 gold · #9247F5 violet · #F57847 coral · #8C955D olive · #E0CBB2 sand
+ * Dark purple bases + sand-tinted surfaces + neon accents.
+ */
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -12,16 +17,20 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         presi: {
-          bg: "#070B18",
-          surface: "#0C1424",
-          elevated: "#111B2E",
-          navy: "#1A1040",
-          "navy-deep": "#142238",
-          gold: "#F5C518",
-          cyan: "#22D3EE",
-          red: "#FF3355",
-          success: "#34D399",
-          warning: "#FBBF24",
+          bg: "#0E0718",
+          surface: "#1A1028",
+          elevated: "#26183A",
+          navy: "#3B1D6E",
+          "navy-deep": "#1A0B2E",
+          violet: "#9247F5",
+          gold: "#F5F147",
+          cyan: "#47F5D7",
+          coral: "#F57847",
+          red: "#F57847",
+          olive: "#8C955D",
+          sand: "#E0CBB2",
+          success: "#8C955D",
+          warning: "#F57847",
         },
       },
       fontFamily: {

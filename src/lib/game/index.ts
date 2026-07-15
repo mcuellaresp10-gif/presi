@@ -25,6 +25,7 @@ export {
   getAcademyDurationMs,
   getEstimatedWeeklyPassiveIncome,
   getFacilityNivel,
+  applyGymGameweekBonus,
   getGymLeagueBonusPct,
   getHinchasWeeklyIncome,
   getHinchasWildCardBonusPct,
@@ -131,6 +132,14 @@ export {
   POSITION_PITCH_COLOR,
   POSITION_SHORT,
 } from "./player-display";
+export {
+  isNpcClubEstilo,
+  isNpcEmail,
+  NPC_CLUB_ESTILO,
+  NPC_CONTRACT_JORNADAS,
+  NPC_EMAIL_DOMAIN,
+  npcEmail,
+} from "./npc";
 export { createMathRng, createSeededRng } from "./rng";
 export {
   BENCH_COUNT,

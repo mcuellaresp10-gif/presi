@@ -19,7 +19,11 @@ import {
   validateLineupDraft,
 } from "@/lib/game/squad-limits";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
-import { getMedicalPenaltyReduction } from "@/lib/game/facility-effects";
+import {
+  applyGymGameweekBonus,
+  getMedicalPenaltyReduction,
+} from "@/lib/game/facility-effects";
+import { NPC_CLUB_ESTILO } from "@/lib/game/npc";
 import type { Player } from "@/lib/game/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -206,6 +210,21 @@ export async function processGameweekPointsAndContracts(
   }
 
   let clubsProcessed = 0;
+  const npcClubIds = new Set<string>();
+  {
+    const clubIds = Array.from(
+      new Set((snapshots ?? []).map((s) => s.club_id as string))
+    );
+    if (clubIds.length > 0) {
+      const { data: clubRows } = await supabase
+        .from("clubs")
+        .select("id, estilo")
+        .in("id", clubIds);
+      for (const row of clubRows ?? []) {
+        if (row.estilo === NPC_CLUB_ESTILO) npcClubIds.add(row.id);
+      }
+    }
+  }
 
   for (const snap of snapshots ?? []) {
     const { data: rosterRows } = await supabase
@@ -226,14 +245,18 @@ export async function processGameweekPointsAndContracts(
     );
     const wildEffects = effectsFromActiveCards(activeCardTypes);
 
-    const { data: medico } = await supabase
+    const { data: facilities } = await supabase
       .from("facilities")
-      .select("nivel")
+      .select("tipo, nivel")
       .eq("club_id", snap.club_id)
-      .eq("tipo", "cuerpo_medico")
-      .maybeSingle();
+      .in("tipo", ["cuerpo_medico", "gimnasio"]);
 
-    const penaltyReduction = getMedicalPenaltyReduction(medico?.nivel ?? 1);
+    const medicoNivel =
+      facilities?.find((f) => f.tipo === "cuerpo_medico")?.nivel ?? 1;
+    const gymNivel =
+      facilities?.find((f) => f.tipo === "gimnasio")?.nivel ?? 1;
+
+    const penaltyReduction = getMedicalPenaltyReduction(medicoNivel);
 
     const effective = computeEffectiveLineup(
       {
@@ -251,6 +274,7 @@ export async function processGameweekPointsAndContracts(
     if (wildEffects.doubleGameweek) {
       totalPoints *= 2;
     }
+    totalPoints = applyGymGameweekBonus(totalPoints, gymNivel);
 
     await supabase.from("club_gameweek_points").upsert({
       club_id: snap.club_id,
@@ -262,6 +286,7 @@ export async function processGameweekPointsAndContracts(
 
     for (const playerId of effective.contractPlayerIds) {
       if (wildEffects.contractShield) continue;
+      if (npcClubIds.has(snap.club_id)) continue;
       const { data: already } = await supabase
         .from("contract_gameweek_log")
         .select("player_id")
@@ -301,22 +326,26 @@ export async function processGameweekPointsAndContracts(
       });
     }
 
-    const { data: expiredRows } = await supabase
-      .from("club_roster")
-      .select("player_id")
-      .eq("club_id", snap.club_id)
-      .eq("es_prestamo", false)
-      .lte("jornadas_restantes", 0);
-
-    for (const row of expiredRows ?? []) {
-      await supabase
+    if (!npcClubIds.has(snap.club_id)) {
+      const { data: expiredRows } = await supabase
         .from("club_roster")
-        .delete()
+        .select("player_id")
         .eq("club_id", snap.club_id)
-        .eq("player_id", row.player_id);
+        .eq("es_prestamo", false)
+        .lte("jornadas_restantes", 0);
+
+      for (const row of expiredRows ?? []) {
+        await supabase
+          .from("club_roster")
+          .delete()
+          .eq("club_id", snap.club_id)
+          .eq("player_id", row.player_id);
+      }
     }
 
-    await tickLoanPlayersForGameweek(supabase, snap.club_id);
+    if (!npcClubIds.has(snap.club_id)) {
+      await tickLoanPlayersForGameweek(supabase, snap.club_id);
+    }
 
     clubsProcessed += 1;
   }

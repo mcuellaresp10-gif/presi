@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyGymGameweekBonus,
   calculatePassiveGems,
   calculatePassiveIncome,
   getAcademyDurationHours,
@@ -42,6 +43,15 @@ describe("facility-effects", () => {
 
   it("scales gym bonus to 20% at level 10", () => {
     expect(getGymLeagueBonusPct(10)).toBe(20);
+  });
+
+  it("applies gym % to gameweek total points", () => {
+    // L1 = +2% → 100 → 102
+    expect(applyGymGameweekBonus(100, 1)).toBe(102);
+    // L10 = +20% → 50 → 60
+    expect(applyGymGameweekBonus(50, 10)).toBe(60);
+    // rounds half-up via Math.round
+    expect(applyGymGameweekBonus(33, 1)).toBe(34);
   });
 
   it("office signing discount scales to 15% at level 10", () => {

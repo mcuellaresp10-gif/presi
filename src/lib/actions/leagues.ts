@@ -3,7 +3,6 @@
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
-import { getGymLeagueBonusForClub } from "@/lib/actions/facilities";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { generateInviteCode } from "@/lib/utils";
@@ -98,13 +97,11 @@ export async function getMyLeagues() {
 }
 
 export const getGlobalRanking = cache(async function getGlobalRanking() {
-  const supabase = await createClient();
-  const club = await getUserClub();
   const season = new Date().getFullYear();
 
   // Prefer service role so ranking includes every active club even if RLS
   // on nested joins is restrictive in older environments.
-  let reader = supabase;
+  let reader = await createClient();
   try {
     reader = createServiceRoleClient();
   } catch {
@@ -142,24 +139,18 @@ export const getGlobalRanking = cache(async function getGlobalRanking() {
     pointsByClub.set(row.club_id as string, Number(row.total_points) || 0);
   }
 
-  const userBonusPct = club ? await getGymLeagueBonusForClub(club.id) : 0;
-
   const ranked = activeClubs
     .map((row) => {
       const basePoints = pointsByClub.get(row.id) ?? 0;
-      const isUser = club?.id === row.id;
       return {
         id: row.id,
         club_nombre: row.nombre as string,
         escudo_config: row.escudo_config,
-        /** Season points obtained (gym % shown separately for the viewer). */
         puntos: basePoints,
-        sortPoints: basePoints,
-        gym_bonus_pct: isUser ? userBonusPct : 0,
       };
     })
     .sort((a, b) => {
-      if (b.sortPoints !== a.sortPoints) return b.sortPoints - a.sortPoints;
+      if (b.puntos !== a.puntos) return b.puntos - a.puntos;
       return a.club_nombre.localeCompare(b.club_nombre, "es");
     })
     .map((row, index) => ({
@@ -168,7 +159,6 @@ export const getGlobalRanking = cache(async function getGlobalRanking() {
       escudo_config: row.escudo_config,
       puntos: row.puntos,
       posicion: index + 1,
-      gym_bonus_pct: row.gym_bonus_pct,
     }));
 
   return ranked;

@@ -23,7 +23,7 @@ export function BottomNav({ onMoreClick }: { onMoreClick: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-presi-elevated/95 backdrop-blur-md safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-presi-sand/15 bg-presi-elevated/95 backdrop-blur-md safe-bottom">
       <div className="mx-auto flex max-w-lg items-end justify-around px-1 pt-1 pb-2">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;

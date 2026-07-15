@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --background: #070b18;
+  --background: #0e0718;
   --foreground: #f8fafc;
-  --surface: #0c1424;
-  --surface-elevated: #111b2e;
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --text-muted: rgba(255, 255, 255, 0.6);
-  --presi-gold: #f5c518;
-  --presi-cyan: #22d3ee;
-  --presi-red: #ff3355;
-  --presi-success: #34d399;
-  --presi-warning: #fbbf24;
+  --surface: #1a1028;
+  --surface-elevated: #26183a;
+  --border-subtle: rgba(224, 203, 178, 0.18);
+  --text-muted: rgba(224, 203, 178, 0.72);
+  --presi-gold: #f5f147;
+  --presi-cyan: #47f5d7;
+  --presi-violet: #9247f5;
+  --presi-coral: #f57847;
+  --presi-olive: #8c955d;
+  --presi-sand: #e0cbb2;
+  --presi-red: #f57847;
+  --presi-success: #8c955d;
+  --presi-warning: #f57847;
 }
 
 body {
@@ -23,11 +27,12 @@ body {
 }
 
 .poster-bg {
-  background-color: #070b18;
+  background-color: #0e0718;
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(34, 211, 238, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 197, 24, 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, #070b18 0%, #0c1424 100%);
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(71, 245, 215, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 85% 15%, rgba(146, 71, 245, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 241, 71, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #0e0718 0%, #1a1028 100%);
 }
 
 .poster-shards {
@@ -65,14 +70,23 @@ body {
 }
 
 .paper-texture {
-  background-color: #070b18;
+  background-color: #0e0718;
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(34, 211, 238, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 197, 24, 0.06) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(71, 245, 215, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 35% at 80% 10%, rgba(224, 203, 178, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 241, 71, 0.07) 0%, transparent 50%);
 }
 
 .legend-holo {
-  background: linear-gradient(135deg, #1a1040, #f5c518, #22d3ee, #070b18, #f5c518);
+  background: linear-gradient(
+    135deg,
+    #9247f5,
+    #f5f147,
+    #47f5d7,
+    #0e0718,
+    #f57847,
+    #f5f147
+  );
   background-size: 300% 300%;
   animation: holo-shift 4s ease infinite;
 }
@@ -121,20 +135,20 @@ body {
   .squad-pitch {
     background: linear-gradient(
       180deg,
-      #1a1040 0%,
-      #142238 35%,
-      #0c1424 70%,
-      #070b18 100%
+      #3b1d6e 0%,
+      #1a0b2e 35%,
+      #1a1028 70%,
+      #0e0718 100%
     );
     min-height: 22rem;
-    border-color: rgba(34, 211, 238, 0.2);
+    border-color: rgba(71, 245, 215, 0.22);
   }
 
   .squad-pitch-lines::before {
     content: "";
     position: absolute;
     inset: 8%;
-    border: 2px solid rgba(34, 211, 238, 0.2);
+    border: 2px solid rgba(71, 245, 215, 0.22);
     border-radius: 2px;
   }
 
@@ -144,15 +158,15 @@ body {
     left: 8%;
     right: 8%;
     top: 50%;
-    border-top: 2px solid rgba(34, 211, 238, 0.15);
+    border-top: 2px solid rgba(71, 245, 215, 0.16);
   }
 
   .facilities-campus-ground {
     background:
-      radial-gradient(ellipse 50% 40% at 20% 70%, rgba(61, 107, 79, 0.35) 0%, transparent 60%),
-      radial-gradient(ellipse 45% 35% at 80% 30%, rgba(61, 107, 79, 0.25) 0%, transparent 55%),
-      radial-gradient(ellipse 80% 60% at 50% 40%, #2d5a3d 0%, transparent 70%),
-      linear-gradient(160deg, #1a3328 0%, #0c1424 40%, #070b18 100%);
+      radial-gradient(ellipse 50% 40% at 20% 70%, rgba(140, 149, 93, 0.4) 0%, transparent 60%),
+      radial-gradient(ellipse 45% 35% at 80% 30%, rgba(140, 149, 93, 0.28) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 50% 40%, #5c6340 0%, transparent 70%),
+      linear-gradient(160deg, #2a301c 0%, #1a1028 40%, #0e0718 100%);
   }
 
   .facilities-campus {
@@ -356,9 +370,9 @@ body {
     inset: 0;
     background: linear-gradient(
       160deg,
-      rgba(26, 16, 64, 0.45) 0%,
-      rgba(34, 211, 238, 0.15) 50%,
-      rgba(245, 197, 24, 0.1) 100%
+      rgba(146, 71, 245, 0.4) 0%,
+      rgba(71, 245, 215, 0.18) 50%,
+      rgba(245, 241, 71, 0.12) 100%
     );
     mix-blend-mode: overlay;
     pointer-events: none;
@@ -369,13 +383,14 @@ body {
   }
 
   .nav-glow {
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
+    box-shadow: 0 0 20px rgba(71, 245, 215, 0.4);
   }
 
   .card-poster {
     border: 1px solid transparent;
     background:
       linear-gradient(var(--surface), var(--surface)) padding-box,
-      linear-gradient(135deg, rgba(245, 197, 24, 0.3), rgba(34, 211, 238, 0.2)) border-box;
+      linear-gradient(135deg, rgba(245, 241, 71, 0.35), rgba(71, 245, 215, 0.25), rgba(146, 71, 245, 0.2))
+        border-box;
   }
 }

@@ -65,11 +65,6 @@ export default async function RankingPage() {
                         </span>
                       ) : null}
                     </p>
-                    {entry.gym_bonus_pct ? (
-                      <p className="text-[10px] text-presi-cyan">
-                        +{entry.gym_bonus_pct}% gimnasio
-                      </p>
-                    ) : null}
                   </div>
                   <p className="text-lg font-black tabular-nums text-presi-gold">
                     {entry.puntos.toLocaleString("es-CO")}

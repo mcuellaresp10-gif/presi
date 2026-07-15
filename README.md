@@ -1,10 +1,10 @@
 # PRESI
 
-Fantasy ownership game for Liga Colombiana (Colombia). Sprint 1 — mock data loop.
+Fantasy ownership game for **Liga Colombiana**. Sprint 2: jornadas reales (API-Football), plantilla 11+5+reserva, puntos y contratos automáticos.
 
 ## Setup rápido
 
-### 1. Variables de entorno ✅
+### 1. Variables de entorno
 
 Copia `.env.example` → `.env.local` y completa las keys desde **Supabase Dashboard → Project Settings → API**:
 
@@ -13,38 +13,31 @@ Copia `.env.example` → `.env.local` y completa las keys desde **Supabase Dashb
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **anon** o **publishable** (`eyJ...` o `sb_publishable_...`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **service_role** (solo servidor, nunca `NEXT_PUBLIC_`) |
+| `API_FOOTBALL_KEY` | Key API-Football (sync jugadores/fixtures) |
+| `API_FOOTBALL_LEAGUE_ID` | `239` (Liga Colombiana) |
+| `API_FOOTBALL_SEASON` | Temporada API (ej. `2025`) |
+| `CRON_SECRET` | Obligatorio en producción para `/api/cron/gameweek` |
 
 ```bash
-npm run check:env   # valida que las keys tengan el formato correcto
+npm run check:env   # valida Supabase; avisa API_FOOTBALL_* / CRON_SECRET
 ```
 
-> ⚠️ **Error común:** poner `sb_secret_...` en `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Esa es la clave privada y no debe exponerse en el navegador. Si lo hiciste, cámbiala por la anon/publishable y rota la secret en Supabase.
+> ⚠️ **Error común:** poner `sb_secret_...` en `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Esa es la clave privada y no debe exponerse en el navegador.
 
-### 2. Base de datos ✅
+### 2. Base de datos
 
-Ejecuta en **SQL Editor** (en orden):
+Ejecuta en **SQL Editor** las migraciones de `supabase/migrations/` en orden (empezando por `20260101000000_initial_schema.sql`).
 
-1. `supabase/migrations/20260101000000_initial_schema.sql`
-2. `supabase/seed.sql`
+Ver checklist: [`docs/SPRINT2_CHECKLIST.md`](docs/SPRINT2_CHECKLIST.md).
 
-Verifica: Table Editor → `players_master` debe tener 40 filas.
+### 3. Google OAuth — opcional
 
-### 3. Google OAuth — **OPCIONAL**
+El registro con **email + contraseña** funciona sin Google.
 
-No es necesario para probar el juego. El registro con **email + contraseña** funciona sin Google.
-
-Solo configura Google si lo quieres:
-
-1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth Client ID (Web)
+1. [Google Cloud Console](https://console.cloud.google.com/) → OAuth Client ID (Web)
 2. Authorized redirect URI: `https://TU_PROYECTO.supabase.co/auth/v1/callback`
-3. Supabase Dashboard → Authentication → Providers → Google → pega Client ID y Secret
-4. Authentication → URL Configuration:
-   - **Site URL** (producción): `https://TU-APP.onrender.com`
-   - **Redirect URLs** (añade ambas):
-     - `http://localhost:3000/auth/callback`
-     - `https://TU-APP.onrender.com/auth/callback`
-
-Si Google está en modo **Testing**, solo entran los emails listados en **Test users**.
+3. Supabase → Authentication → Providers → Google
+4. URL Configuration: Site URL + Redirect URLs (`localhost` y producción)
 
 ### 4. Arrancar la app
 
@@ -53,38 +46,36 @@ npm install
 npm run dev
 ```
 
-Abre http://localhost:3000 → Regístrate con email/contraseña.
+Abre http://localhost:3000
 
-**Si falla el registro:** Supabase Dashboard → Authentication → Providers → Email → desactiva **Confirm email** (para desarrollo).
+### 5. Cron de jornadas
 
-### 5. Cron de instalaciones — **sin CLI**
+- **Local:** `npm run cron:gameweek` (POST cada 30s a `/api/cron/gameweek`)
+- **Producción:** GitHub Actions [`.github/workflows/gameweek-cron.yml`](.github/workflows/gameweek-cron.yml) cada 5 min (`PROD_BASE_URL` + `CRON_SECRET` secrets). Para ~30s en live, usa cron-job.org al mismo endpoint.
 
-No necesitas `supabase functions deploy` para el Sprint 1.
+### 6. Cron de instalaciones
 
-**Opción A (recomendada, solo SQL):**
+1. Dashboard → Database → Extensions → **pg_cron**
+2. SQL Editor → `supabase/migrations/20260101000002_facility_cron_direct.sql`
 
-1. Dashboard → Database → Extensions → activa **pg_cron**
-2. SQL Editor → ejecuta `supabase/migrations/20260101000002_facility_cron_direct.sql`
+## Flow del juego
 
-Eso llama `complete_facility_upgrades()` cada minuto directamente en Postgres.
+Registro → Crear club → Sobres → Plantilla (11+banca) → Instalaciones → Ligas → Ranking
 
-**Opción B (Edge Function, requiere Supabase CLI):**
+Durante la jornada: el cron sync stats → lock alineación → puntos en vivo (incl. % gimnasio) → contratos → season totals.
 
-```bash
-npm i -g supabase
-supabase login
-supabase link --project-ref TU_PROJECT_REF
-supabase functions deploy facility-upgrade-cron
-```
+## Documentación
 
-Luego programa el cron HTTP en `supabase/migrations/20260101000001_facility_cron.sql`.
+| Tema | Doc |
+|------|-----|
+| Diseño Sprint 2 | [`docs/SPRINT2_DESIGN.md`](docs/SPRINT2_DESIGN.md) |
+| Checklist / QA | [`docs/SPRINT2_CHECKLIST.md`](docs/SPRINT2_CHECKLIST.md), [`docs/SPRINT2_QA.md`](docs/SPRINT2_QA.md) |
+| Puntuación | [`docs/SCORING.md`](docs/SCORING.md) |
+| Instalaciones | [`docs/FACILITIES.md`](docs/FACILITIES.md) |
 
 ## Tests
 
 ```bash
 npm test
+npm run build
 ```
-
-## Sprint 1 flow
-
-Registro → Crear club → 4 sobres → Plantilla → Alineación → Instalaciones → Ligas → Ranking

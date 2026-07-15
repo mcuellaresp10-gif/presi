@@ -1,0 +1,40 @@
+# Ping production gameweek cron every 5 minutes (GitHub Actions minimum).
+# For ~30s intervals during live matchdays, use cron-job.org (or similar)
+# against the same endpoint with the CRON_SECRET header.
+#
+# Required repo secrets:
+#   PROD_BASE_URL  — e.g. https://your-app.onrender.com
+#   CRON_SECRET    — must match process.env.CRON_SECRET on the server
+
+name: Gameweek cron
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST /api/cron/gameweek
+        env:
+          PROD_BASE_URL: ${{ secrets.PROD_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$PROD_BASE_URL" ]; then
+            echo "Missing secret PROD_BASE_URL"
+            exit 1
+          fi
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Missing secret CRON_SECRET"
+            exit 1
+          fi
+          CODE=$(curl -sS -o /tmp/gw-cron.json -w "%{http_code}" \
+            -X POST "${PROD_BASE_URL%/}/api/cron/gameweek" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+          echo "HTTP $CODE"
+          cat /tmp/gw-cron.json
+          echo
+          test "$CODE" = "200"

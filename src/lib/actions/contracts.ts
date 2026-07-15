@@ -13,6 +13,7 @@ import { getCurrentGameweek } from "@/lib/actions/gameweek";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
+import { isNpcClubEstilo } from "@/lib/game/npc";
 
 async function deleteRosterPlayer(clubId: string, playerId: string) {
   const admin = createServiceRoleClient();
@@ -48,6 +49,17 @@ export async function expireRosterContracts(clubId?: string) {
     const c = await getUserClub();
     if (!c) return { expired: [] as string[] };
     targetClubId = c.id;
+  }
+
+  {
+    const { data: clubMeta } = await supabase
+      .from("clubs")
+      .select("estilo")
+      .eq("id", targetClubId)
+      .maybeSingle();
+    if (isNpcClubEstilo(clubMeta?.estilo)) {
+      return { expired: [] as string[] };
+    }
   }
 
   const { data: rows, error } = await supabase

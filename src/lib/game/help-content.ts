@@ -164,7 +164,7 @@ export const HELP_SECTIONS: HelpSection[] = [
           "Scouting: timer y rareza de sobres.",
           "Academia: promesas juveniles.",
           "Cuerpo médico: menos penalizaciones en puntos.",
-          "Gimnasio: bonus de puntos en ligas y ranking.",
+          "Gimnasio: bonus porcentual sobre los puntos de cada jornada.",
           "Máximo 2 mejoras simultáneas.",
         ],
       },
@@ -241,7 +241,7 @@ export const HELP_SECTIONS: HelpSection[] = [
         items: [
           "Mis ligas: crea una liga o únete con código.",
           "Ranking global: todos los clubes activos, ordenados por puntos de temporada.",
-          "El gimnasio puede dar un bonus porcentual a puntos en ligas y ranking.",
+          "El gimnasio aplica un bonus porcentual al total de puntos de cada jornada (no aparece como etiqueta en el ranking).",
         ],
       },
     ],

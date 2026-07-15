@@ -66,6 +66,7 @@ export default async function InicioPage() {
         escudoConfig={club.escudo_config as EscudoConfig}
         seasonPoints={seasonPoints}
         gameweekPoints={gwSummary?.gameweekPoints ?? 0}
+        gameweekId={gwSummary?.gameweekId ?? null}
         gameweekRound={gwSummary?.displayGameweek?.round ?? null}
         gameweekStatus={gwSummary?.displayGameweek?.status ?? null}
         deadlineAt={gwSummary?.deadlineAt ?? null}

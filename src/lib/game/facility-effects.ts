@@ -23,9 +23,18 @@ export function getHinchasWildCardBonusPct(nivel: number): number {
   return HINCHAS_WILD_CARD_BONUS_PER_LEVEL * clampFacilityLevel(nivel);
 }
 
-/** +N% puntos en ligas y ranking global (por nivel de gimnasio). */
+/** +N% puntos de jornada (por nivel de gimnasio). No se muestra en ranking. */
 export function getGymLeagueBonusPct(nivel: number): number {
   return GYM_LEAGUE_BONUS_PER_LEVEL * clampFacilityLevel(nivel);
+}
+
+/** Aplica el % del gimnasio al total de puntos de una jornada. */
+export function applyGymGameweekBonus(
+  totalPoints: number,
+  gymNivel: number
+): number {
+  const pct = getGymLeagueBonusPct(gymNivel);
+  return Math.round(totalPoints * (1 + pct / 100));
 }
 
 /** Estimated weekly income from oficina alone (hinchas at L1). */

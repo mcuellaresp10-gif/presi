@@ -46,7 +46,7 @@ export function getFacilityEffectDescription(
     case "cuerpo_medico":
       return `-${Math.round(getMedicalPenaltyReduction(nivel) * 100)}% penalizaciones (tarjetas, GC)`;
     case "gimnasio":
-      return `+${getGymLeagueBonusPct(nivel)}% puntos en ligas y ranking`;
+      return `+${getGymLeagueBonusPct(nivel)}% puntos de jornada`;
     default:
       return "";
   }

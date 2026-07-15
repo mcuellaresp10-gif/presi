@@ -52,7 +52,7 @@ oficinaTick = 50_000 × nivelOficina × (12 / intervaloHoras)
 | Scouting | 12h, rareza baja | 4h, ~45% oro/leyenda |
 | Academia | 48h | 16h |
 | Cuerpo médico | −5% penalizaciones | −50% |
-| Gimnasio | +2% puntos liga | +20% |
+| Gimnasio | +2% puntos de jornada | +20% |
 
 ## Reglas
 
