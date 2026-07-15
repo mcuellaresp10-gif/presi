@@ -153,7 +153,7 @@ export function PitchEmptySlot({
         isDropTarget &&
           isDragOver &&
           isValidDrop &&
-          "bg-presi-cyan/20 ring-2 ring-presi-cyan/60",
+          "bg-presi-gold/20 ring-2 ring-presi-gold/60",
         isDropTarget &&
           isDragOver &&
           !isValidDrop &&
@@ -164,7 +164,7 @@ export function PitchEmptySlot({
         className={cn(
           "flex h-[5.5rem] w-full flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white/5",
           isDropTarget && isDragOver && isValidDrop
-            ? "border-presi-cyan/70"
+            ? "border-presi-gold/70"
             : isDropTarget && isDragOver && !isValidDrop
               ? "border-presi-red/60"
               : "border-white/25"

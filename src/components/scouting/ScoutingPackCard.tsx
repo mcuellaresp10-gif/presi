@@ -119,7 +119,7 @@ export function ScoutingPackCard({
   return (
     <Card
       id="scouting"
-      className={compact ? "border-presi-cyan/30 bg-presi-cyan/5" : ""}
+      className={compact ? "border-presi-gold/30 bg-presi-gold/5" : ""}
     >
       <CardHeader className={compact ? "pb-2" : undefined}>
         <CardTitle className="flex items-center justify-between text-base">
@@ -185,9 +185,9 @@ export function ScoutingPackCard({
             </div>
           </>
         ) : (
-          <div className="rounded-lg bg-presi-cyan/10 p-4 text-center">
+          <div className="rounded-lg bg-presi-gold/10 p-4 text-center">
             <p className="text-xs text-white/70">Próximo sobre en</p>
-            <p className="font-mono text-2xl font-bold text-presi-cyan">
+            <p className="font-mono text-2xl font-bold text-presi-gold">
               {formatRemainingTime(remainingMs)}
             </p>
           </div>

@@ -13,7 +13,7 @@ export default function NotFound() {
           </p>
           <a
             href="/"
-            className="mt-4 inline-block text-sm font-medium text-presi-cyan hover:underline"
+            className="mt-4 inline-block text-sm font-medium text-presi-gold hover:underline"
           >
             Volver al inicio
           </a>

@@ -56,13 +56,13 @@ export function AyudaClient() {
 
       <nav
         aria-label="Índice de reglas"
-        className="sticky top-[3.25rem] z-10 -mx-1 flex gap-2 overflow-x-auto bg-presi-bg/95 px-1 py-2 backdrop-blur-md"
+        className="sticky top-[3.25rem] z-10 -mx-1 flex gap-2 overflow-x-auto bg-presi-elevated/90 px-1 py-2 backdrop-blur-md"
       >
         {HELP_SECTIONS.map((s) => (
           <a
             key={s.id}
             href={`#${s.id}`}
-            className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white/70 transition hover:border-presi-cyan/40 hover:text-presi-cyan"
+            className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-white/70 transition hover:border-presi-gold/40 hover:text-presi-gold"
           >
             {s.title}
           </a>
@@ -89,13 +89,13 @@ export function AyudaClient() {
 
       <p className="text-center text-[11px] text-white/40">
         ¿Dudas? Revisa también{" "}
-        <Link href="/plantilla" className="text-presi-cyan hover:underline">
+        <Link href="/plantilla" className="text-presi-gold hover:underline">
           Plantilla
         </Link>{" "}
         e{" "}
         <Link
           href="/instalaciones"
-          className="text-presi-cyan hover:underline"
+          className="text-presi-gold hover:underline"
         >
           Instalaciones
         </Link>

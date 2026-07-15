@@ -153,7 +153,7 @@ export function PlayerDetailPanel({
       />
 
       <div className="relative z-10 max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-presi-surface text-white shadow-2xl">
-        <div className="relative overflow-hidden bg-gradient-to-br from-presi-navy via-presi-cyan/90 to-presi-bg px-4 pb-16 pt-5">
+        <div className="relative overflow-hidden bg-gradient-to-br from-presi-navy via-presi-gold/90 to-presi-bg px-4 pb-16 pt-5">
           <CloseButton
             onClick={onClose}
             variant="overlay"
@@ -234,7 +234,7 @@ export function PlayerDetailPanel({
                 : "Toca 11 inicial, Banca o Reserva para mover al jugador. Su rol en campo (delantero, defensa…) no se puede cambiar."}
             </p>
 
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-presi-cyan/80">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-presi-gold/80">
               Estado en plantilla
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -254,10 +254,10 @@ export function PlayerDetailPanel({
                     squadStatus === value
                       ? lineupLocked
                         ? "border-amber-400/50 bg-amber-500/20 text-amber-100"
-                        : "border-presi-cyan bg-presi-cyan text-presi-bg shadow-md shadow-presi-cyan/20"
+                        : "border-presi-gold bg-presi-gold text-presi-bg shadow-md shadow-presi-gold/20"
                       : lineupLocked
                         ? "border-white/10 bg-black/20 text-white/40"
-                        : "border-white/15 bg-black/30 text-white/75 hover:border-presi-cyan/40 hover:bg-white/10"
+                        : "border-white/15 bg-black/30 text-white/75 hover:border-presi-gold/40 hover:bg-white/10"
                   )}
                 >
                   <span className="hidden sm:inline">{label}</span>
@@ -288,7 +288,7 @@ export function PlayerDetailPanel({
 
             <div className="mt-3 space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="rounded bg-presi-cyan px-2 py-0.5 font-semibold">
+                <span className="rounded bg-presi-gold px-2 py-0.5 font-semibold">
                   PRESUPUESTO
                 </span>
                 <span>

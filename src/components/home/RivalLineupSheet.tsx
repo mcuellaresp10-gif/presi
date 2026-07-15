@@ -146,7 +146,7 @@ export function RivalLineupSheet({
                           key={wc.cardType}
                           className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5"
                         >
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-presi-cyan/15 text-presi-cyan">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-presi-gold/15 text-presi-gold">
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">

@@ -22,6 +22,7 @@
     "check:env": "node scripts/check-env.mjs",
     "evaluate:tiers": "node scripts/evaluate-player-tiers.mjs",
     "seed:npc": "node scripts/seed-npc-clubs.mjs",
+    "brand:logo": "node scripts/process-logo.mjs",
     "cron:gameweek": "node scripts/gameweek-cron-loop.mjs"
   },
   "dependencies": {

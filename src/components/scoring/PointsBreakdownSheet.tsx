@@ -79,7 +79,7 @@ export function PointsBreakdownSheet({
             <button
               type="button"
               onClick={onBack}
-              className="flex min-h-[44px] items-center gap-1 rounded-lg px-2 text-xs font-semibold text-presi-cyan hover:bg-white/5"
+              className="flex min-h-[44px] items-center gap-1 rounded-lg px-2 text-xs font-semibold text-presi-gold hover:bg-white/5"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver
@@ -115,7 +115,7 @@ export function PointsBreakdownSheet({
                 {player ? POSITION_LABEL[player.posicion] : ""}
                 {player?.equipo_real ? ` · ${player.equipo_real}` : ""}
               </p>
-              <p className="text-[10px] text-presi-cyan/80">
+              <p className="text-[10px] text-presi-gold/80">
                 {SOURCE_LABEL[playerBreakdown.source]} · {playerBreakdown.minutes}&apos;
               </p>
             </div>
@@ -123,7 +123,7 @@ export function PointsBreakdownSheet({
         </div>
 
         <div className="px-4 py-4">
-          <div className="rounded-xl bg-gradient-to-r from-presi-cyan/20 to-presi-gold/20 p-4 text-center">
+          <div className="rounded-xl bg-gradient-to-r from-presi-gold/20 to-presi-gold/20 p-4 text-center">
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">
               Total puntos
             </p>
@@ -156,7 +156,7 @@ export function PointsBreakdownSheet({
                     className={cn(
                       "text-sm font-bold tabular-nums",
                       line.points > 0
-                        ? "text-presi-cyan"
+                        ? "text-presi-gold"
                         : line.points < 0
                           ? "text-red-400"
                           : "text-white/40"

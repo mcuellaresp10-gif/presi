@@ -72,7 +72,7 @@ function AcademySprite({ tier }: { tier: CampusVisualTier }) {
         <>
           <rect x="4" y="36" width="6" height="10" fill="#94a3b8" />
           <rect x="66" y="36" width="6" height="10" fill="#94a3b8" />
-          <path d="M0 52 L76 52" stroke="#47f5d7" strokeWidth="1" opacity="0.5" />
+          <path d="M0 52 L76 52" stroke="#efd98c" strokeWidth="1" opacity="0.5" />
         </>
       )}
     </g>
@@ -104,7 +104,7 @@ function OfficeSprite({ tier }: { tier: CampusVisualTier }) {
             y="48"
             width="8"
             height="6"
-            fill="#47f5d7"
+            fill="#efd98c"
             opacity="0.6"
             className="campus-window-glow"
           />
@@ -176,7 +176,7 @@ function GymSprite({ tier }: { tier: CampusVisualTier }) {
       {tier >= 3 && (
         <>
           <rect x="26" y="32" width="36" height="6" fill="#475569" />
-          <circle cx="44" cy="18" r="3" fill="#47f5d7" className="campus-light-pulse" />
+          <circle cx="44" cy="18" r="3" fill="#efd98c" className="campus-light-pulse" />
         </>
       )}
     </g>
@@ -218,8 +218,8 @@ export function CampusBuildingSprite({
       viewBox="0 0 88 72"
       className={cn(
         "transition-all duration-300",
-        selected && "drop-shadow-[0_0_12px_rgba(71,245,215,0.8)]",
-        ready && !selected && "drop-shadow-[0_0_10px_rgba(71,245,215,0.5)]"
+        selected && "drop-shadow-[0_0_12px_rgba(239,217,140,0.8)]",
+        ready && !selected && "drop-shadow-[0_0_10px_rgba(239,217,140,0.5)]"
       )}
       aria-hidden
     >
@@ -229,7 +229,7 @@ export function CampusBuildingSprite({
           cx="72"
           cy="12"
           r="6"
-          fill="#47f5d7"
+          fill="#efd98c"
           className="animate-pulse"
           opacity="0.9"
         />

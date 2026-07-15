@@ -68,7 +68,7 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
         "relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3 py-2.5 shadow-xl backdrop-blur-md transition-all",
         isReady
           ? "border-presi-gold/50 bg-presi-gold/15 hover:bg-presi-gold/20"
-          : "border-presi-cyan/30 bg-presi-elevated shadow-presi-cyan/10 ring-1 ring-white/10"
+          : "border-presi-gold/25 bg-presi-elevated ring-1 ring-white/10"
       )}
     >
       <div className="relative shrink-0" style={{ width: SIZE, height: SIZE }}>
@@ -86,7 +86,7 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
             cy={SIZE / 2}
             r={RADIUS}
             fill="none"
-            stroke="url(#playerPackGradientHome)"
+            stroke="url(#scoutingPinGradient)"
             strokeWidth={STROKE}
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
@@ -94,22 +94,16 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
             className="transition-[stroke-dashoffset] duration-1000 ease-linear"
           />
           <defs>
-            <linearGradient
-              id="playerPackGradientHome"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
+            <linearGradient id="scoutingPinGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#F5F147" />
-              <stop offset="100%" stopColor="#47F5D7" />
+              <stop offset="100%" stopColor="#F57847" />
             </linearGradient>
           </defs>
         </svg>
 
         <div
           className={cn(
-            "absolute inset-[5px] flex items-center justify-center rounded-lg bg-gradient-to-br from-presi-navy to-presi-cyan/70",
+            "absolute inset-[5px] flex items-center justify-center rounded-lg bg-gradient-to-br from-presi-gold/80 to-presi-coral/80",
             isReady && "ring-1 ring-presi-gold/60"
           )}
         >
@@ -142,7 +136,7 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
           aria-hidden
         >
           <div
-            className="h-full bg-gradient-to-r from-presi-gold to-presi-cyan transition-all duration-1000 ease-linear"
+            className="h-full bg-presi-gold transition-all duration-1000 ease-linear"
             style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>

@@ -6,16 +6,10 @@
   "description": "Fantasy ownership de fútbol colombiano",
   "start_url": "/inicio",
   "display": "standalone",
-  "background_color": "#070B18",
-  "theme_color": "#070B18",
+  "background_color": "#2E2A3F",
+  "theme_color": "#2E2A3F",
   "orientation": "portrait-primary",
   "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
@@ -25,6 +19,12 @@
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/logo.png",
+      "sizes": "349x354",
       "type": "image/png",
       "purpose": "any"
     },

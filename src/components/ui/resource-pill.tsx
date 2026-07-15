@@ -5,8 +5,8 @@ type PillVariant = "gold" | "cyan" | "gem" | "muted";
 
 const dotColors: Record<PillVariant, string> = {
   gold: "text-presi-gold",
-  cyan: "text-presi-cyan",
-  gem: "text-presi-cyan",
+  cyan: "text-presi-gold",
+  gem: "text-presi-gold",
   muted: "text-white/50",
 };
 

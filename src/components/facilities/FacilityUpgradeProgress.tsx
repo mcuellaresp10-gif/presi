@@ -119,7 +119,7 @@ export function FacilityUpgradeProgress({
             {icon} {label}
           </span>
           <span
-            className="shrink-0 font-mono text-presi-cyan"
+            className="shrink-0 font-mono text-presi-gold"
             suppressHydrationWarning
           >
             {isCompletePending ? "¡Listo!" : formatRemainingTime(remainingMs)}
@@ -127,7 +127,7 @@ export function FacilityUpgradeProgress({
         </div>
         <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
           <div
-            className="h-full bg-gradient-to-r from-presi-gold to-presi-cyan transition-all duration-1000 ease-linear"
+            className="h-full bg-presi-gold transition-all duration-1000 ease-linear"
             style={{ width: `${percent}%` }}
           />
         </div>
@@ -144,7 +144,7 @@ export function FacilityUpgradeProgress({
         "rounded-xl border p-4 text-center",
         isCompletePending
           ? "border-presi-gold/40 bg-presi-gold/10"
-          : "border-presi-cyan/20 bg-presi-cyan/5"
+          : "border-presi-gold/20 bg-presi-gold/5"
       )}
       role="progressbar"
       aria-label={ariaLabel}
@@ -171,7 +171,7 @@ export function FacilityUpgradeProgress({
               isCompletePending
                 ? "nav-glow ring-presi-gold/50"
                 : progress >= 0.9
-                  ? "ring-presi-cyan/40 shadow-lg shadow-presi-cyan/20"
+                  ? "ring-presi-gold/40 shadow-lg shadow-presi-gold/20"
                   : "ring-white/10"
             )}
             style={{
@@ -198,7 +198,7 @@ export function FacilityUpgradeProgress({
 
         {!isCompletePending ? (
           <p
-            className="font-mono text-2xl font-bold text-presi-cyan"
+            className="font-mono text-2xl font-bold text-presi-gold"
             suppressHydrationWarning
           >
             {formatRemainingTime(remainingMs)}
@@ -216,7 +216,7 @@ export function FacilityUpgradeProgress({
 
         <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
           <div
-            className="h-full bg-gradient-to-r from-presi-gold to-presi-cyan transition-all duration-1000 ease-linear"
+            className="h-full bg-presi-gold transition-all duration-1000 ease-linear"
             style={{ width: `${percent}%` }}
           />
         </div>

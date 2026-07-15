@@ -155,9 +155,10 @@ export function StadiumIncomePin({
       >
         <div
           className={cn(
-            "absolute inset-[10px] flex items-center justify-center rounded-full bg-presi-cyan/90 shadow-xl transition-all",
+            "absolute inset-[10px] flex items-center justify-center rounded-full shadow-xl transition-all",
+            "presi-cta-gradient",
             hasPending ? "nav-glow ring-4 ring-presi-gold/50" : "ring-4 ring-white/10",
-            progress > 0.85 && !hasPending && "shadow-presi-cyan/30 shadow-lg"
+            progress > 0.85 && !hasPending && "shadow-[0_0_20px_rgba(245,241,71,0.35)] shadow-lg"
           )}
         >
           <EscudoRenderer config={escudoConfig} size={52} />
@@ -182,7 +183,7 @@ export function StadiumIncomePin({
                 <span className="text-white/40">+</span>
               ) : null}
               {pendingGems > 0 ? (
-                <span className="inline-flex items-center gap-0.5 text-presi-cyan">
+                <span className="inline-flex items-center gap-0.5 text-presi-gold">
                   <Gem className="h-3 w-3" />
                   {pendingGems}
                 </span>
@@ -198,7 +199,7 @@ export function StadiumIncomePin({
           <div className="mt-2 space-y-0.5" suppressHydrationWarning>
             <span className="block text-[11px] text-white/50">
               Próximo cobro{" "}
-              <span className="font-mono font-semibold text-presi-cyan">
+              <span className="font-mono font-semibold text-presi-gold">
                 {remainingMs !== null
                   ? formatRemainingTime(remainingMs)
                   : "—"}
@@ -206,7 +207,7 @@ export function StadiumIncomePin({
             </span>
             <span className="block text-[9px] text-white/35">
               {formatCompactMoney(incomePerTick)} + {gemsPerTick}{" "}
-              <Gem className="inline h-2.5 w-2.5 text-presi-cyan" /> · ~
+              <Gem className="inline h-2.5 w-2.5 text-presi-gold" /> · ~
               {Math.round(incomeIntervalHours)}h
             </span>
           </div>

@@ -35,7 +35,7 @@ export function CloseButton({
       aria-label={label}
       className={cn(
         "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-presi-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-presi-surface",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-presi-gold focus-visible:ring-offset-2 focus-visible:ring-offset-presi-surface",
         variantStyles[variant],
         className
       )}

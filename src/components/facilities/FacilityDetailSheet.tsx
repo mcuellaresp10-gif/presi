@@ -101,7 +101,7 @@ export function FacilityDetailSheet({
       >
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-3">
           <div>
-            <p className="text-xs uppercase tracking-widest text-presi-cyan/70">
+            <p className="text-xs uppercase tracking-widest text-presi-gold/70">
               {config?.label ?? tipo}
             </p>
             <h2 className="text-lg font-bold text-white">

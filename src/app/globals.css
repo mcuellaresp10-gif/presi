@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Neon hybrid: gold #F5F147 · coral #F57847 (CTA) · violet #9247F5 · sand #E0CBB2 */
 :root {
   --background: #0e0718;
   --foreground: #f8fafc;
@@ -10,7 +11,9 @@
   --border-subtle: rgba(224, 203, 178, 0.18);
   --text-muted: rgba(224, 203, 178, 0.72);
   --presi-gold: #f5f147;
-  --presi-cyan: #47f5d7;
+  --presi-cyan: #f5f147;
+  --presi-pink: #f5f147;
+  --presi-maroon: #f57847;
   --presi-violet: #9247f5;
   --presi-coral: #f57847;
   --presi-olive: #8c955d;
@@ -29,9 +32,9 @@ body {
 .poster-bg {
   background-color: #0e0718;
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(71, 245, 215, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(245, 241, 71, 0.14) 0%, transparent 55%),
     radial-gradient(ellipse 55% 40% at 85% 15%, rgba(146, 71, 245, 0.14) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 241, 71, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 120, 71, 0.1) 0%, transparent 50%),
     linear-gradient(180deg, #0e0718 0%, #1a1028 100%);
 }
 
@@ -72,9 +75,9 @@ body {
 .paper-texture {
   background-color: #0e0718;
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(71, 245, 215, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(245, 241, 71, 0.12) 0%, transparent 55%),
     radial-gradient(ellipse 50% 35% at 80% 10%, rgba(224, 203, 178, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 241, 71, 0.07) 0%, transparent 50%);
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245, 120, 71, 0.1) 0%, transparent 50%);
 }
 
 .legend-holo {
@@ -82,13 +85,17 @@ body {
     135deg,
     #9247f5,
     #f5f147,
-    #47f5d7,
-    #0e0718,
     #f57847,
+    #0e0718,
     #f5f147
   );
   background-size: 300% 300%;
   animation: holo-shift 4s ease infinite;
+}
+
+/** Same gradient as login “Iniciar sesión” CTA */
+.presi-cta-gradient {
+  background-image: linear-gradient(to right, #f5f147, #f57847);
 }
 
 @keyframes holo-shift {
@@ -141,14 +148,14 @@ body {
       #0e0718 100%
     );
     min-height: 22rem;
-    border-color: rgba(71, 245, 215, 0.22);
+    border-color: rgba(245, 241, 71, 0.28);
   }
 
   .squad-pitch-lines::before {
     content: "";
     position: absolute;
     inset: 8%;
-    border: 2px solid rgba(71, 245, 215, 0.22);
+    border: 2px solid rgba(245, 241, 71, 0.25);
     border-radius: 2px;
   }
 
@@ -158,7 +165,7 @@ body {
     left: 8%;
     right: 8%;
     top: 50%;
-    border-top: 2px solid rgba(71, 245, 215, 0.16);
+    border-top: 2px solid rgba(245, 241, 71, 0.18);
   }
 
   .facilities-campus-ground {
@@ -170,8 +177,8 @@ body {
   }
 
   .facilities-campus {
-    --campus-raster-base-filter: drop-shadow(0 5px 10px rgba(12, 35, 18, 0.42))
-      drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
+    --campus-raster-base-filter: drop-shadow(0 5px 10px rgba(34, 31, 48, 0.5))
+      drop-shadow(0 1px 3px rgba(0, 0, 0, 0.28));
   }
 
   .facilities-campus[data-rich-bg="true"] {
@@ -361,7 +368,7 @@ body {
   }
 
   .player-photo-duotone {
-    filter: contrast(1.1) saturate(1.15);
+    filter: contrast(1.1) saturate(1.1);
   }
 
   .player-photo-duotone::after {
@@ -371,8 +378,8 @@ body {
     background: linear-gradient(
       160deg,
       rgba(146, 71, 245, 0.4) 0%,
-      rgba(71, 245, 215, 0.18) 50%,
-      rgba(245, 241, 71, 0.12) 100%
+      rgba(245, 120, 71, 0.22) 50%,
+      rgba(245, 241, 71, 0.14) 100%
     );
     mix-blend-mode: overlay;
     pointer-events: none;
@@ -383,14 +390,14 @@ body {
   }
 
   .nav-glow {
-    box-shadow: 0 0 20px rgba(71, 245, 215, 0.4);
+    box-shadow: 0 0 20px rgba(245, 241, 71, 0.4);
   }
 
   .card-poster {
     border: 1px solid transparent;
     background:
       linear-gradient(var(--surface), var(--surface)) padding-box,
-      linear-gradient(135deg, rgba(245, 241, 71, 0.35), rgba(71, 245, 215, 0.25), rgba(146, 71, 245, 0.2))
+      linear-gradient(135deg, rgba(245, 241, 71, 0.45), rgba(245, 120, 71, 0.35), rgba(146, 71, 245, 0.2))
         border-box;
   }
 }

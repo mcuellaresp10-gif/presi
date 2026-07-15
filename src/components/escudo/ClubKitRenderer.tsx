@@ -67,7 +67,7 @@ export function ClubKitRenderer({
   const escudo = normalizeEscudoConfig(config ?? DEFAULT_ESCUDO);
   const primary = escudo.primaryColor;
   const secondary = escudo.secondaryColor;
-  const accent = escudo.accentColor ?? "#F5F147";
+  const accent = escudo.accentColor ?? "#F57847";
   const pattern = escudo.pattern ?? "solid";
   const patternId = `kit-fill-${uid}`;
   const bodyFill = pattern === "solid" ? primary : `url(#${patternId})`;

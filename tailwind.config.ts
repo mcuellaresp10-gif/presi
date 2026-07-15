@@ -1,10 +1,13 @@
 import type { Config } from "tailwindcss";
 
 /**
- * PRESI palette (neon + happy hybrid):
- * #47F5D7 cyan · #F5F147 gold · #9247F5 violet · #F57847 coral · #8C955D olive · #E0CBB2 sand
- * Dark purple bases + sand-tinted surfaces + neon accents.
+ * PRESI palette (neon hybrid, CTA accent):
+ * #F5F147 gold · #F57847 coral (login CTA gradient)
+ * Former cyan/pink slots map to gold so accents match the CTA.
  */
+const GOLD = "#F5F147";
+const CORAL = "#F57847";
+
 const config: Config = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -23,14 +26,18 @@ const config: Config = {
           navy: "#3B1D6E",
           "navy-deep": "#1A0B2E",
           violet: "#9247F5",
-          gold: "#F5F147",
-          cyan: "#47F5D7",
-          coral: "#F57847",
-          red: "#F57847",
+          gold: GOLD,
+          /** Legacy cyan/pink → gold (CTA yellow) */
+          cyan: GOLD,
+          pink: GOLD,
+          coral: CORAL,
+          maroon: CORAL,
+          red: CORAL,
           olive: "#8C955D",
           sand: "#E0CBB2",
+          ivory: "#E0CBB2",
           success: "#8C955D",
-          warning: "#F57847",
+          warning: CORAL,
         },
       },
       fontFamily: {

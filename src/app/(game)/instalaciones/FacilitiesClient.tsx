@@ -210,7 +210,7 @@ export function FacilitiesClient({
 
   return (
     <>
-      <div className="-mx-4 min-h-[calc(100vh-8rem)] bg-presi-bg px-3 pb-6 pt-2 text-white">
+      <div className="-mx-4 min-h-[calc(100vh-8rem)] px-3 pb-6 pt-2 text-white">
         <div className="mb-4">
           <div className="flex items-center gap-2">
             <h1 className="text-display text-xl text-presi-gold">

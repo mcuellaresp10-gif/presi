@@ -122,7 +122,7 @@ export function InstallPrompt() {
 
   const panel = (
     <div
-      className="fixed inset-x-3 mx-auto max-w-lg rounded-xl border border-presi-cyan/20 bg-presi-elevated p-4 text-white shadow-xl shadow-black/40 sm:inset-x-4"
+      className="fixed inset-x-3 mx-auto max-w-lg rounded-xl border border-presi-gold/20 bg-presi-elevated p-4 text-white shadow-xl shadow-black/40 sm:inset-x-4"
       style={{ ...bottomStyle, zIndex: Z_INSTALL_PROMPT }}
     >
       <CloseButton

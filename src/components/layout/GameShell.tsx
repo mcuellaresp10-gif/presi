@@ -28,20 +28,20 @@ export function GameShell({
   const hideNav = pathname.startsWith("/onboarding");
 
   return (
-    <div className="flex min-h-screen flex-col bg-presi-bg">
-      <header className="sticky top-0 z-40 border-b border-presi-cyan/15 bg-presi-elevated/95 backdrop-blur-md">
+    <div className="poster-bg poster-shards relative flex min-h-screen flex-col">
+      <header className="sticky top-0 z-40 border-b border-presi-gold/15 bg-presi-elevated/95 backdrop-blur-md relative">
         {profile ? <ResourceBar profile={profile} /> : null}
       </header>
 
       <main
         className={
           immersive
-            ? `relative mx-auto flex w-full max-w-lg flex-1 flex-col${
+            ? `relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col${
                 isInicio ? " min-h-0" : " pb-24"
               }${
                 pathname.startsWith("/onboarding") ? " px-4 pt-4" : ""
               }`
-            : "relative mx-auto w-full max-w-lg flex-1 px-4 py-4 pb-24"
+            : "relative z-10 mx-auto w-full max-w-lg flex-1 px-4 py-4 pb-24"
         }
         style={
           isInicio ? { paddingBottom: homeContentBottomPadding } : undefined

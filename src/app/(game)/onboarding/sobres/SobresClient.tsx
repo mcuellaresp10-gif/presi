@@ -109,8 +109,8 @@ export function SobresClient({
   const currentPack = Math.min(packNumber, totalPacks);
 
   return (
-    <div className="fixed inset-0 top-[52px] z-30 flex flex-col bg-presi-bg pb-8">
-      <div className="px-4 pt-4">
+    <div className="poster-bg poster-shards fixed inset-0 top-[52px] z-30 flex flex-col pb-8">
+      <div className="relative z-10 px-4 pt-4">
         <OnboardingStepper current={3} />
         {clubNombre && escudoConfig ? (
           <div className="mt-4 flex items-center justify-center gap-3">
@@ -131,7 +131,7 @@ export function SobresClient({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col justify-center px-2">
+      <div className="relative z-10 flex flex-1 flex-col justify-center px-2">
         {error ? (
           <p className="mb-4 text-center text-sm text-presi-red">{error}</p>
         ) : null}

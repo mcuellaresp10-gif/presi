@@ -20,7 +20,7 @@ export default async function LigasPage() {
         action={
           <Link
             href="/ligas/unirse"
-            className="text-xs font-semibold text-presi-cyan hover:underline"
+            className="text-xs font-semibold text-presi-gold hover:underline"
           >
             Unirse
           </Link>

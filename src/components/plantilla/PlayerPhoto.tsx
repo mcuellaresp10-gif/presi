@@ -25,7 +25,7 @@ export function PlayerPhoto({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center bg-gradient-to-br from-presi-cyan/80 to-presi-bg",
+        "flex h-full w-full items-center justify-center bg-gradient-to-br from-presi-gold/80 to-presi-bg",
         initialsClassName,
         className
       )}

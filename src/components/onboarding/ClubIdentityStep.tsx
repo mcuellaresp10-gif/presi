@@ -94,7 +94,7 @@ export function ClubIdentityStep({
               className={cn(
                 "rounded-full border px-3 py-1.5 text-[10px] font-semibold transition",
                 value.ciudad === city
-                  ? "border-presi-cyan bg-presi-cyan/15 text-presi-cyan"
+                  ? "border-presi-gold bg-presi-gold/15 text-presi-gold"
                   : "border-white/15 text-white/60 hover:border-white/30"
               )}
             >

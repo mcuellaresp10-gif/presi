@@ -74,7 +74,7 @@ export function FacilityUpgradeCard({
           {getFacilityEffectDescription(tipo, facility.nivel)}
         </p>
         {!atMax && (
-          <p className="text-[10px] text-presi-cyan/80">
+          <p className="text-[10px] text-presi-gold/80">
             Siguiente: {getFacilityNextEffectDescription(tipo, facility.nivel + 1)}
           </p>
         )}
@@ -115,7 +115,7 @@ export function FacilityUpgradeCard({
               <span className="text-lg text-white/40">→</span>
               <CampusIllustratedMini variant={variant} tier={nextTier} size={56} />
             </div>
-            <p className="text-center text-[10px] text-presi-cyan/70">
+            <p className="text-center text-[10px] text-presi-gold/70">
               Pasará a tier {nextTierLabel} al completar la obra
             </p>
             <p className="text-center text-[10px] text-white/50">

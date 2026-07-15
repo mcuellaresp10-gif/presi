@@ -14,6 +14,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { CloseButton } from "@/components/ui/close-button";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import type { ProfileSummary } from "@/lib/actions/profile";
@@ -87,7 +88,7 @@ export function ProfilePanel({
                 <Shield className="h-8 w-8 text-white/40" />
               </div>
             )}
-            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-presi-cyan ring-2 ring-presi-surface">
+            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-presi-gold ring-2 ring-presi-surface">
               <User className="h-3.5 w-3.5 text-presi-bg" />
             </span>
           </div>
@@ -106,19 +107,19 @@ export function ProfilePanel({
 
         <div className="grid grid-cols-3 gap-px bg-white/10 px-4 py-4">
           <div className="rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-lg font-black text-presi-cyan">
+            <p className="text-lg font-black text-presi-gold">
               {profile.seasonPoints.toLocaleString("es-CO")}
             </p>
             <p className="text-[9px] uppercase text-white/50">Temporada</p>
           </div>
           <div className="rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-lg font-black text-presi-cyan">
+            <p className="text-lg font-black text-presi-gold">
               {profile.globalRank ? `#${profile.globalRank}` : "—"}
             </p>
             <p className="text-[9px] uppercase text-white/50">Ranking</p>
           </div>
           <div className="rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-lg font-black text-presi-cyan">
+            <p className="text-lg font-black text-presi-gold">
               {profile.leaguesCount}
             </p>
             <p className="text-[9px] uppercase text-white/50">Ligas</p>
@@ -165,7 +166,7 @@ export function ProfilePanel({
             <Copy className="h-4 w-4 text-white/40" />
           </button>
           {copied && (
-            <p className="mt-1 text-[10px] text-presi-cyan">Copiado</p>
+            <p className="mt-1 text-[10px] text-presi-gold">Copiado</p>
           )}
         </div>
       </aside>
@@ -179,7 +180,8 @@ export function GameHeader({ profile }: { profile: ProfileSummary }) {
 
   if (pathname.startsWith("/onboarding")) {
     return (
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-2.5">
+      <div className="mx-auto flex max-w-4xl items-center gap-2 px-4 py-2.5">
+        <BrandLogo size={28} />
         <p className="text-sm font-bold">PRESI</p>
       </div>
     );

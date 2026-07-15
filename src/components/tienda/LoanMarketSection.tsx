@@ -57,7 +57,7 @@ export function LoanMarketSection({
             activos ({activeLoans}/{maxActiveLoans})
           </p>
         </div>
-        <p className="rounded bg-black/30 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-presi-cyan">
+        <p className="rounded bg-black/30 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-presi-gold">
           Refresh: {now === null ? "—" : formatRemainingTime(remainingMs)}
         </p>
       </div>

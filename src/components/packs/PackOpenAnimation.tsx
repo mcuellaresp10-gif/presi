@@ -27,7 +27,7 @@ export function PackOpenAnimation({
             setPhase("opening");
             setTimeout(() => setPhase("open"), 600);
           }}
-          className="pack-closed relative h-48 w-36 cursor-pointer rounded-lg bg-gradient-to-br from-presi-navy to-presi-cyan shadow-xl transition-transform hover:scale-105"
+          className="pack-closed relative h-48 w-36 cursor-pointer rounded-lg bg-gradient-to-br from-presi-navy to-presi-gold shadow-xl transition-transform hover:scale-105"
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-4xl">📦</span>
@@ -44,7 +44,7 @@ export function PackOpenAnimation({
   if (phase === "opening") {
     return (
       <div className="flex justify-center py-12">
-        <div className="pack-opening h-48 w-36 rounded-lg bg-gradient-to-br from-presi-navy to-presi-cyan shadow-xl" />
+        <div className="pack-opening h-48 w-36 rounded-lg bg-gradient-to-br from-presi-navy to-presi-gold shadow-xl" />
       </div>
     );
   }

@@ -401,8 +401,8 @@ export function PlantillaClient({
 
   return (
     <>
-      <div className="-mx-4 min-h-[calc(100vh-8rem)] bg-presi-bg text-white">
-        <div className="sticky top-0 z-20 border-b border-presi-cyan/20 bg-presi-elevated/95 px-4 py-3 backdrop-blur">
+      <div className="-mx-4 min-h-[calc(100vh-8rem)] text-white">
+        <div className="sticky top-0 z-20 border-b border-presi-gold/20 bg-presi-elevated/95 px-4 py-3 backdrop-blur">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -419,7 +419,7 @@ export function PlantillaClient({
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-right">
               <p className="text-[10px] uppercase text-white/50">Disponible</p>
-              <p className="text-sm font-bold text-presi-cyan">
+              <p className="text-sm font-bold text-presi-gold">
                 {formatCompactMoney(remainingBudget)}
               </p>
             </div>
@@ -430,7 +430,7 @@ export function PlantillaClient({
               className={`mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
                 isLineupLocked
                   ? "bg-amber-500/15 text-amber-200"
-                  : "bg-presi-cyan/15 text-presi-cyan"
+                  : "bg-presi-gold/15 text-presi-gold"
               }`}
             >
               <Clock className="h-3.5 w-3.5 shrink-0" />
@@ -479,7 +479,7 @@ export function PlantillaClient({
               className={cn(
                 "min-h-[40px] flex-1 rounded-md px-3 text-xs font-bold transition",
                 tab === "alineacion"
-                  ? "bg-presi-cyan text-presi-bg"
+                  ? "bg-presi-gold text-presi-bg"
                   : "text-white/70 hover:bg-white/10"
               )}
             >
@@ -493,7 +493,7 @@ export function PlantillaClient({
               className={cn(
                 "min-h-[40px] flex-1 rounded-md px-3 text-xs font-bold transition",
                 tab === "wildcards"
-                  ? "bg-presi-cyan text-presi-bg"
+                  ? "bg-presi-gold text-presi-bg"
                   : "text-white/70 hover:bg-white/10"
               )}
             >
@@ -533,15 +533,15 @@ export function PlantillaClient({
         <div className="space-y-2 border-b border-white/10 px-3 py-2.5">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1.5">
-              <Shirt className="h-3.5 w-3.5 text-presi-cyan" />
+              <Shirt className="h-3.5 w-3.5 text-presi-gold" />
               <span className="text-xs font-semibold">
                 {players.length}
                 <span className="text-white/40">/{MAX_SQUAD}</span>
               </span>
             </div>
 
-            <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg bg-presi-cyan/20 px-2.5 py-1.5">
-              <Wallet className="h-3.5 w-3.5 shrink-0 text-presi-cyan" />
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg bg-presi-gold/20 px-2.5 py-1.5">
+              <Wallet className="h-3.5 w-3.5 shrink-0 text-presi-gold" />
               <span className="truncate text-xs font-semibold">
                 {formatCompactMoney(usedBudget)}
                 <span className="text-white/50">
@@ -598,7 +598,7 @@ export function PlantillaClient({
         </div>
 
         <div ref={subsRef} className="border-t border-white/10 px-3 pb-36 pt-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-presi-cyan/80">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-presi-gold/80">
             Banca ({benchIds.length}/{BENCH_COUNT}) — orden de sustitución
           </p>
           <div className="flex gap-2 overflow-x-auto pb-3">
@@ -612,7 +612,7 @@ export function PlantillaClient({
                   key={i}
                   className={cn(
                     "flex w-[5rem] shrink-0 flex-col items-center gap-1 rounded-lg transition-colors",
-                    dragOverBench === i && "bg-presi-cyan/15 ring-2 ring-presi-cyan/50"
+                    dragOverBench === i && "bg-presi-gold/15 ring-2 ring-presi-gold/50"
                   )}
                   onDragOver={(e) => {
                     if (isLineupLocked) return;
@@ -668,7 +668,7 @@ export function PlantillaClient({
           <div
             className={cn(
               "min-h-[6rem] rounded-xl border border-dashed border-white/10 p-2 transition-colors",
-              dragOverReserve && "border-presi-cyan/50 bg-presi-cyan/10"
+              dragOverReserve && "border-presi-gold/50 bg-presi-gold/10"
             )}
             onDragOver={(e) => {
               if (isLineupLocked) return;
@@ -725,10 +725,10 @@ export function PlantillaClient({
                 className={cn(
                   "shrink-0 rounded-lg px-3 py-2 text-xs font-medium",
                   saveStatus === "saving" && "text-white/50",
-                  saveStatus === "saved" && "text-presi-cyan",
+                  saveStatus === "saved" && "text-presi-gold",
                   saveStatus === "error" && "text-red-300",
                   saveStatus === "idle" &&
-                    (isLineupComplete ? "text-presi-cyan/80" : "text-white/40")
+                    (isLineupComplete ? "text-presi-gold/80" : "text-white/40")
                 )}
               >
                 {saveStatus === "saving"

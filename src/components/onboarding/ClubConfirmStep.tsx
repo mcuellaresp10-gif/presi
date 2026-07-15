@@ -33,7 +33,7 @@ export function ClubConfirmStep({
             {identity.nombre}
           </p>
           {identity.apodo ? (
-            <p className="mt-1 text-sm font-bold uppercase tracking-widest text-presi-cyan">
+            <p className="mt-1 text-sm font-bold uppercase tracking-widest text-presi-gold">
               {identity.apodo}
             </p>
           ) : null}
@@ -68,7 +68,7 @@ export function ClubConfirmStep({
         <button
           type="button"
           onClick={onEditEscudo}
-          className="font-semibold text-presi-cyan hover:underline"
+          className="font-semibold text-presi-gold hover:underline"
         >
           Volver a editar escudo
         </button>

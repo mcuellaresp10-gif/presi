@@ -38,7 +38,7 @@ export function HelpTip({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-presi-cyan transition hover:bg-white/15 hover:text-presi-gold",
+          "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-presi-gold transition hover:bg-white/15 hover:text-presi-gold",
           className
         )}
         aria-label={label ?? `Ayuda: ${section.title}`}
@@ -74,7 +74,7 @@ export function HelpTip({
             <Link
               href={`/ayuda#${section.id}`}
               onClick={() => setOpen(false)}
-              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-presi-cyan hover:underline"
+              className="inline-flex min-h-[44px] items-center text-sm font-semibold text-presi-gold hover:underline"
             >
               Ver reglas completas
             </Link>

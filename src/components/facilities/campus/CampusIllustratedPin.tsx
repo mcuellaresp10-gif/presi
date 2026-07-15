@@ -135,7 +135,7 @@ export function CampusIllustratedPin({
 
       {selected ? (
         <div
-          className="pointer-events-none absolute inset-x-[6%] bottom-[2%] z-[2] rounded-[100%] border-2 border-presi-cyan/80 shadow-[0_0_16px_rgba(71,245,215,0.45)]"
+          className="pointer-events-none absolute inset-x-[6%] bottom-[2%] z-[2] rounded-[100%] border-2 border-presi-gold/80 shadow-[0_0_16px_rgba(239,217,140,0.45)]"
           style={{ height: size * 0.1 }}
           aria-hidden
         />

@@ -73,7 +73,7 @@ export function PassiveIncomeBanner({
       <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60">
         <p>
           Ingreso por cobro:{" "}
-          <span className="font-semibold text-presi-cyan">
+          <span className="font-semibold text-presi-gold">
             {formatCompactMoney(incomePerTick)}
           </span>
           <span className="mx-1 text-white/50">+</span>
@@ -111,7 +111,7 @@ export function PassiveIncomeBanner({
           </p>
           <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             {pendingAmount > 0 && (
-              <p className="text-lg font-bold text-presi-cyan">
+              <p className="text-lg font-bold text-presi-gold">
                 {formatCompactMoney(pendingAmount)}
               </p>
             )}

@@ -101,7 +101,7 @@ export function MoreMenu({
                 onClick={onClose}
                 className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/5"
               >
-                <Icon className="h-5 w-5 shrink-0 text-presi-cyan/70" />
+                <Icon className="h-5 w-5 shrink-0 text-presi-gold/70" />
                 {item.label}
               </Link>
             );
@@ -115,7 +115,7 @@ export function MoreMenu({
             }}
             className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/5"
           >
-            <Sparkles className="h-5 w-5 shrink-0 text-presi-cyan/70" />
+            <Sparkles className="h-5 w-5 shrink-0 text-presi-gold/70" />
             Repetir tour
           </button>
 
@@ -125,16 +125,16 @@ export function MoreMenu({
               onClick={() => setInstallOpen((open) => !open)}
               className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/5"
             >
-              <Smartphone className="h-5 w-5 shrink-0 text-presi-cyan/70" />
+              <Smartphone className="h-5 w-5 shrink-0 text-presi-gold/70" />
               Instalar app
               <Download className="ml-auto h-4 w-4 text-white/40" />
             </button>
           ) : null}
 
-          <form action="/auth/signout" method="post" className="mt-2">
+          <form action="/auth/signout" method="post" className="mt-2 px-1">
             <button
               type="submit"
-              className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-presi-red transition hover:bg-presi-red/10"
+              className="flex min-h-[44px] w-full items-center gap-3 rounded-lg border border-presi-coral/50 bg-presi-coral/20 px-3 py-3 text-sm font-semibold text-presi-coral transition hover:bg-presi-coral/30"
             >
               <LogOut className="h-5 w-5 shrink-0" />
               Cerrar sesión
@@ -168,7 +168,7 @@ export function MoreMenu({
             <Copy className="h-3.5 w-3.5" />
           </button>
           {copied ? (
-            <p className="mt-1 text-[10px] text-presi-cyan">Copiado</p>
+            <p className="mt-1 text-[10px] text-presi-gold">Copiado</p>
           ) : null}
         </div>
       </aside>

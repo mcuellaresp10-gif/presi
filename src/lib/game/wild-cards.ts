@@ -37,7 +37,7 @@ export const WILD_CARD_CATALOG: Record<WildCardType, WildCardDefinition> = {
     description:
       "Ficha 1 jugador del pool sin costo de presupuesto (respeta caps de plantilla).",
     kind: "instant",
-    color: "from-presi-cyan to-presi-navy",
+    color: "from-presi-gold to-presi-navy",
     icon: "📝",
     weight: 20,
   },
@@ -85,7 +85,7 @@ export const WILD_CARD_CATALOG: Record<WildCardType, WildCardDefinition> = {
     name: "Puntos Doble",
     description: "Los puntos de tu club en la jornada activa se duplican.",
     kind: "gameweek",
-    color: "from-rose-500 to-red-800",
+    color: "from-presi-maroon to-presi-navy-deep",
     icon: "✖️2",
     weight: 10,
   },

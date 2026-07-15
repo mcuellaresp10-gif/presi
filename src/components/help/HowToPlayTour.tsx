@@ -96,7 +96,7 @@ export function HowToPlayTour() {
               <span
                 key={id}
                 className={`h-1 flex-1 rounded-full ${
-                  i <= step ? "bg-presi-cyan" : "bg-white/15"
+                  i <= step ? "bg-presi-gold" : "bg-white/15"
                 }`}
               />
             ))}

@@ -15,7 +15,7 @@ function HelpBlockView({ block }: { block: HelpBlock }) {
       );
     case "note":
       return (
-        <p className="rounded-lg border border-presi-cyan/20 bg-presi-cyan/10 px-3 py-2 text-xs leading-snug text-presi-cyan/90">
+        <p className="rounded-lg border border-presi-gold/20 bg-presi-gold/10 px-3 py-2 text-xs leading-snug text-presi-gold/90">
           {block.text}
         </p>
       );

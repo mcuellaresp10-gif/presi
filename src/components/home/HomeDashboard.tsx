@@ -97,26 +97,26 @@ export function HomeDashboard({
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-presi-navy via-presi-bg to-presi-bg">
-          <div
-            className="absolute inset-0 opacity-50"
-            style={{
-              backgroundImage: `
-                radial-gradient(ellipse 80% 50% at 50% 55%, rgba(71,245,215,0.22) 0%, transparent 60%),
-                radial-gradient(circle at 12% 18%, rgba(245,241,71,0.18) 0%, transparent 35%),
-                radial-gradient(circle at 88% 22%, rgba(146,71,245,0.16) 0%, transparent 35%),
-                radial-gradient(circle at 70% 80%, rgba(245,120,71,0.1) 0%, transparent 40%)
-              `,
-            }}
-          />
-          <div className="absolute inset-x-6 bottom-[28%] top-[32%] rounded-[50%] border-2 border-presi-cyan/25 bg-presi-navy/40 shadow-inner" />
-          <div className="absolute left-1/2 top-[44%] h-1 w-2/5 -translate-x-1/2 border-t border-presi-sand/25" />
-          <div className="absolute left-1/2 top-[44%] h-14 w-20 -translate-x-1/2 rounded border border-presi-sand/20" />
-        </div>
+        {/* Soft veil so poster-shards from GameShell show through */}
+        <div className="absolute inset-0 bg-gradient-to-b from-presi-navy/35 via-transparent to-presi-bg/50" />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage: `
+              radial-gradient(ellipse 80% 50% at 50% 55%, rgba(245,241,71,0.18) 0%, transparent 60%),
+              radial-gradient(circle at 12% 18%, rgba(245,241,71,0.12) 0%, transparent 35%),
+              radial-gradient(circle at 88% 22%, rgba(245,120,71,0.18) 0%, transparent 35%),
+              radial-gradient(circle at 70% 80%, rgba(146,71,245,0.1) 0%, transparent 40%)
+            `,
+          }}
+        />
+        <div className="absolute inset-x-6 bottom-[28%] top-[32%] rounded-[50%] border-2 border-presi-gold/30 bg-presi-navy/25 shadow-inner" />
+        <div className="absolute left-1/2 top-[44%] h-1 w-2/5 -translate-x-1/2 border-t border-presi-sand/25" />
+        <div className="absolute left-1/2 top-[44%] h-14 w-20 -translate-x-1/2 rounded border border-presi-sand/20" />
       </div>
 
       <div className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pt-2">
-        <div className="rounded-xl border border-presi-sand/20 bg-presi-surface/70 p-3 backdrop-blur-md">
+        <div className="rounded-xl border border-presi-ivory/20 bg-presi-surface/70 p-3 backdrop-blur-md">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <div className="flex flex-col items-center gap-1 text-center">
               <EscudoRenderer config={escudoConfig} size={36} />
@@ -203,7 +203,7 @@ export function HomeDashboard({
         <div className="mt-2 flex items-center justify-center gap-1.5 text-center text-[10px] text-white/40">
           <span>
             Temporada:{" "}
-            <span className="font-bold text-presi-cyan">
+            <span className="font-bold text-presi-gold">
               {seasonPoints.toLocaleString("es-CO")} pts
             </span>
           </span>

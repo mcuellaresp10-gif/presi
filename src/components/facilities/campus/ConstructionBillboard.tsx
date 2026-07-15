@@ -25,7 +25,7 @@ export function ConstructionBillboard({
         isCompletePending
           ? "border-presi-gold/50 bg-presi-gold/20"
           : almostDone
-            ? "border-presi-cyan/40 bg-presi-cyan/15"
+            ? "border-presi-gold/40 bg-presi-gold/15"
             : "border-orange-500/40 bg-orange-950/80"
       )}
       role="status"
@@ -41,7 +41,7 @@ export function ConstructionBillboard({
             isCompletePending
               ? "text-presi-gold"
               : almostDone
-                ? "text-presi-cyan"
+                ? "text-presi-gold"
                 : "text-orange-100"
           )}
           suppressHydrationWarning
@@ -55,7 +55,7 @@ export function ConstructionBillboard({
             "h-full transition-all duration-1000 ease-linear",
             isCompletePending
               ? "w-full bg-presi-gold"
-              : "bg-gradient-to-r from-presi-gold to-presi-cyan"
+              : "bg-presi-gold"
           )}
           style={{ width: `${percent}%` }}
         />

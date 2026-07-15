@@ -126,7 +126,7 @@ export default async function PerfilPage() {
           <Gem className="h-5 w-5 text-presi-gold" />
           <div>
             <p className="text-sm text-white/50">Disponible</p>
-            <p className="text-lg font-bold text-presi-cyan">
+            <p className="text-lg font-bold text-presi-gold">
               {formatCompactMoney(profile.club?.presupuesto ?? 0)}
             </p>
           </div>
@@ -152,7 +152,7 @@ export default async function PerfilPage() {
                     </div>
                     <Link
                       href="/ligas"
-                      className="text-xs font-medium text-presi-cyan"
+                      className="text-xs font-medium text-presi-gold"
                     >
                       Ver
                     </Link>
@@ -198,9 +198,9 @@ function OverviewCard({
 }) {
   return (
     <Link href={href}>
-      <SurfaceCard className="flex items-center gap-3 py-3 transition hover:border-presi-cyan/30">
+      <SurfaceCard className="flex items-center gap-3 py-3 transition hover:border-presi-gold/30">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-presi-elevated">
-          <Icon className="h-5 w-5 text-presi-cyan" />
+          <Icon className="h-5 w-5 text-presi-gold" />
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-white/40">

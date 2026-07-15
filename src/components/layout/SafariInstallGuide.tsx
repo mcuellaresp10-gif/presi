@@ -12,7 +12,7 @@ export function SafariInstallGuide({ compact = false }: { compact?: boolean }) {
         }
       >
         El botón <span className="font-semibold text-white">Compartir</span>{" "}
-        <span className="text-presi-cyan">no está dentro de PRESI</span> — está
+        <span className="text-presi-gold">no está dentro de PRESI</span> — está
         en la barra de Safari, abajo en la pantalla.
       </p>
 
@@ -33,13 +33,13 @@ export function SafariInstallGuide({ compact = false }: { compact?: boolean }) {
           <div
             className={
               compact
-                ? "flex flex-col items-center rounded-md bg-presi-cyan/25 px-3 py-1 ring-2 ring-presi-cyan"
-                : "flex flex-col items-center rounded-md bg-presi-cyan/25 px-4 py-1.5 ring-2 ring-presi-cyan"
+                ? "flex flex-col items-center rounded-md bg-presi-gold/25 px-3 py-1 ring-2 ring-presi-gold"
+                : "flex flex-col items-center rounded-md bg-presi-gold/25 px-4 py-1.5 ring-2 ring-presi-gold"
             }
           >
             <svg
               viewBox="0 0 24 24"
-              className={compact ? "h-4 w-4 text-presi-cyan" : "h-5 w-5 text-presi-cyan"}
+              className={compact ? "h-4 w-4 text-presi-gold" : "h-5 w-5 text-presi-gold"}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -53,8 +53,8 @@ export function SafariInstallGuide({ compact = false }: { compact?: boolean }) {
             <span
               className={
                 compact
-                  ? "text-[9px] font-bold text-presi-cyan"
-                  : "text-[10px] font-bold text-presi-cyan"
+                  ? "text-[9px] font-bold text-presi-gold"
+                  : "text-[10px] font-bold text-presi-gold"
               }
             >
               Compartir

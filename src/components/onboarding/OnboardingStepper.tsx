@@ -33,7 +33,7 @@ export function OnboardingStepper({
               <div
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition",
-                  done && "bg-presi-cyan text-presi-bg",
+                  done && "bg-presi-gold text-presi-bg",
                   active && "bg-presi-gold text-presi-bg ring-2 ring-presi-gold/50",
                   !done && !active && "bg-white/10 text-white/40"
                 )}
@@ -53,7 +53,7 @@ export function OnboardingStepper({
               <div
                 className={cn(
                   "mb-4 h-px w-8",
-                  step.id < current ? "bg-presi-cyan" : "bg-white/15"
+                  step.id < current ? "bg-presi-gold" : "bg-white/15"
                 )}
               />
             ) : null}

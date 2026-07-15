@@ -1,7 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <rect width="512" height="512" fill="#0E0718"/>
-  <path d="M256 124 L349 169 L349 274 Q349 364 256 394 Q163 364 163 274 L163 169 Z" fill="#9247F5"/>
-  <path d="M256 148 L330 186 L330 268 Q330 340 256 365 Q182 340 182 268 L182 186 Z" fill="#47F5D7"/>
-  <circle cx="256" cy="266.5" r="45" fill="#E0CBB2"/>
-  <circle cx="256" cy="266.5" r="22" fill="#F5F147"/>
+  <rect width="512" height="512" fill="#EFD98C"/>
+  <g transform="translate(28 28) scale(0.89)">
+    <path
+      d="M256 88 L392 152 L392 296 Q392 388 256 440 Q120 388 120 296 L120 152 Z"
+      fill="none"
+      stroke="#2E2A3F"
+      stroke-width="20"
+      stroke-linejoin="round"
+    />
+    <circle cx="256" cy="292" r="88" fill="#FEFAFF" stroke="#2E2A3F" stroke-width="12"/>
+    <path d="M256 228 L288 248 L276 292 L236 292 L224 248 Z" fill="#2E2A3F"/>
+    <path
+      d="M208 218 L256 178 L304 218 L292 236 L256 204 L220 236 Z"
+      fill="#EFD98C"
+      stroke="#2E2A3F"
+      stroke-width="8"
+      stroke-linejoin="round"
+    />
+    <path d="M256 148 L274 178 L238 178 Z" fill="#5E201B"/>
+  </g>
 </svg>

@@ -33,7 +33,7 @@ export function PerfilClubHeader({
                   {club.nombre}
                 </p>
                 {club.apodo ? (
-                  <p className="text-xs font-bold uppercase tracking-widest text-presi-cyan">
+                  <p className="text-xs font-bold uppercase tracking-widest text-presi-gold">
                     {club.apodo}
                   </p>
                 ) : null}

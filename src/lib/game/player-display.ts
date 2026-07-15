@@ -19,7 +19,7 @@ export const POSITION_SHORT: Record<Player["posicion"], string> = {
 export const POSITION_PITCH_COLOR: Record<Player["posicion"], string> = {
   GK: "bg-amber-400 text-presi-bg",
   DEF: "bg-sky-500 text-white",
-  MED: "bg-presi-cyan text-presi-bg",
+  MED: "bg-presi-gold text-presi-bg",
   DEL: "bg-presi-gold text-presi-bg",
 };
 

@@ -40,7 +40,7 @@ export default async function RankingPage() {
                 <SurfaceCard
                   className={cn(
                     "flex items-center gap-3 py-3",
-                    isUserClub && "border-presi-cyan/40 bg-presi-cyan/5"
+                    isUserClub && "border-presi-gold/40 bg-presi-gold/5"
                   )}
                 >
                   <div className="flex w-10 shrink-0 flex-col items-center">
@@ -60,7 +60,7 @@ export default async function RankingPage() {
                     <p className="truncate font-semibold text-white">
                       {entry.club_nombre}
                       {isUserClub ? (
-                        <span className="ml-1 text-xs text-presi-cyan">
+                        <span className="ml-1 text-xs text-presi-gold">
                           (Tú)
                         </span>
                       ) : null}

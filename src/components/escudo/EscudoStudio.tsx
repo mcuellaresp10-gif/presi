@@ -118,8 +118,8 @@ export function EscudoStudio({
               className={cn(
                 "flex min-h-[72px] flex-col items-center justify-center rounded-xl border p-1.5 transition",
                 value.iconId === icon.id
-                  ? "border-presi-cyan bg-presi-cyan/10"
-                  : "border-white/10 hover:border-presi-cyan/40"
+                  ? "border-presi-gold bg-presi-gold/10"
+                  : "border-white/10 hover:border-presi-gold/40"
               )}
             >
               <EscudoRenderer
@@ -168,7 +168,7 @@ export function EscudoStudio({
           <button
             type="button"
             onClick={() => setCustomColors((v) => !v)}
-            className="text-xs font-semibold text-presi-cyan hover:underline"
+            className="text-xs font-semibold text-presi-gold hover:underline"
           >
             {customColors ? "Ocultar colores personalizados" : "Mis colores"}
           </button>
@@ -231,7 +231,7 @@ export function EscudoStudio({
                   className={cn(
                     "rounded-full border px-3 py-1.5 text-[10px] font-semibold",
                     value.pattern === p.id
-                      ? "border-presi-cyan bg-presi-cyan/15 text-presi-cyan"
+                      ? "border-presi-gold bg-presi-gold/15 text-presi-gold"
                       : "border-white/15 text-white/60"
                   )}
                 >

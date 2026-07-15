@@ -123,7 +123,7 @@ export function GameweekPointsPanel({
                           {SOURCE_LABEL[row.source]} · {row.minutes}&apos;
                         </p>
                       </div>
-                      <span className="text-base font-black text-presi-cyan">
+                      <span className="text-base font-black text-presi-gold">
                         {row.points > 0 ? "+" : ""}
                         {row.points}
                       </span>

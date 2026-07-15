@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Gem } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import { ResourcePill } from "@/components/ui/resource-pill";
 import type { ProfileSummary } from "@/lib/actions/profile";
@@ -13,7 +14,8 @@ export function ResourceBar({ profile }: { profile: ProfileSummary }) {
 
   if (pathname.startsWith("/onboarding")) {
     return (
-      <div className="mx-auto flex max-w-lg items-center justify-center px-4 py-2.5">
+      <div className="mx-auto flex max-w-lg items-center justify-center gap-2 px-4 py-2.5">
+        <BrandLogo size={28} />
         <p className="text-display text-lg text-presi-gold">PRESI</p>
       </div>
     );
@@ -40,7 +42,7 @@ export function ResourceBar({ profile }: { profile: ProfileSummary }) {
         />
         <ResourcePill
           variant="gem"
-          icon={<Gem className="h-3 w-3 text-presi-cyan" />}
+          icon={<Gem className="h-3 w-3 text-presi-gold" />}
           label={gemas.toLocaleString("es-CO")}
         />
       </div>

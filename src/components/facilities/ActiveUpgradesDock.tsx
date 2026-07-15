@@ -36,7 +36,7 @@ export function ActiveUpgradesDock({
           Obras activas {activeUpgradesCount}/{MAX_CONCURRENT_UPGRADES}
         </p>
         {slotsFree > 0 ? (
-          <p className="text-[10px] text-presi-cyan">
+          <p className="text-[10px] text-presi-gold">
             {slotsFree} mejora{slotsFree !== 1 ? "s" : ""} disponible
             {slotsFree !== 1 ? "s" : ""}
           </p>

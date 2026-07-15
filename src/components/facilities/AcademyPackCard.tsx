@@ -101,7 +101,7 @@ export function AcademyPackCard({
   }
 
   return (
-    <Card id="academia" className="border-presi-cyan/20 bg-presi-cyan/5">
+    <Card id="academia" className="border-presi-gold/20 bg-presi-gold/5">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">
@@ -142,9 +142,9 @@ export function AcademyPackCard({
             </div>
           </>
         ) : (
-          <div className="rounded-lg bg-presi-cyan/10 p-4 text-center">
+          <div className="rounded-lg bg-presi-gold/10 p-4 text-center">
             <p className="text-xs text-white/70">Próxima promesa en</p>
-            <p className="font-mono text-2xl font-bold text-presi-cyan">
+            <p className="font-mono text-2xl font-bold text-presi-gold">
               {formatRemainingTime(remainingMs)}
             </p>
           </div>

@@ -230,7 +230,7 @@ export function CampusBottomNav({
                 aria-hidden
               >
                 <span
-                  className="block h-full bg-gradient-to-r from-presi-gold to-presi-cyan transition-all duration-1000 ease-linear"
+                  className="block h-full bg-presi-gold transition-all duration-1000 ease-linear"
                   style={{ width: `${Math.round(progress * 100)}%` }}
                 />
               </span>

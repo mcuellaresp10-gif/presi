@@ -27,7 +27,7 @@ export function EmptyState({
       )}
     >
       {icon ? (
-        <div className="mb-3 text-presi-cyan/60">{icon}</div>
+        <div className="mb-3 text-presi-gold/60">{icon}</div>
       ) : (
         <div className="mb-3 text-4xl opacity-30">⚽</div>
       )}

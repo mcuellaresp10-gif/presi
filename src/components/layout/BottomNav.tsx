@@ -23,7 +23,7 @@ export function BottomNav({ onMoreClick }: { onMoreClick: () => void }) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-presi-sand/15 bg-presi-elevated/95 backdrop-blur-md safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-presi-ivory/15 bg-presi-elevated/95 backdrop-blur-md safe-bottom">
       <div className="mx-auto flex max-w-lg items-end justify-around px-1 pt-1 pb-2">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -40,7 +40,7 @@ export function BottomNav({ onMoreClick }: { onMoreClick: () => void }) {
                 key={item.href}
                 type="button"
                 onClick={onMoreClick}
-                className="flex min-h-[44px] min-w-[3.5rem] flex-col items-center justify-center gap-0.5 px-2 py-1 text-[10px] font-semibold text-white/50 transition hover:text-presi-cyan"
+                className="flex min-h-[44px] min-w-[3.5rem] flex-col items-center justify-center gap-0.5 px-2 py-1 text-[10px] font-semibold text-white/50 transition hover:text-presi-gold"
               >
                 <Icon className="h-5 w-5" />
                 {item.label}
@@ -56,8 +56,8 @@ export function BottomNav({ onMoreClick }: { onMoreClick: () => void }) {
                 className={cn(
                   "relative -mt-4 flex min-h-[52px] min-w-[3.75rem] flex-col items-center justify-center gap-0.5 rounded-full px-3 py-2 text-[10px] font-bold transition",
                   active
-                    ? "bg-presi-cyan text-presi-bg nav-glow"
-                    : "bg-presi-surface text-white/70 ring-2 ring-presi-cyan/30 hover:text-presi-cyan"
+                    ? "presi-cta-gradient text-presi-bg nav-glow"
+                    : "bg-presi-surface text-white/70 ring-2 ring-presi-gold/30 hover:text-presi-gold"
                 )}
               >
                 <Icon className="h-6 w-6" />
@@ -74,7 +74,7 @@ export function BottomNav({ onMoreClick }: { onMoreClick: () => void }) {
                 "flex min-h-[44px] min-w-[3.5rem] flex-col items-center justify-center gap-0.5 px-2 py-1 text-[10px] font-semibold transition",
                 active
                   ? "text-presi-gold"
-                  : "text-white/50 hover:text-presi-cyan"
+                  : "text-white/50 hover:text-presi-gold"
               )}
             >
               <Icon className={cn("h-5 w-5", active && "text-presi-gold")} />

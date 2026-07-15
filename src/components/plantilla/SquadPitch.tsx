@@ -62,7 +62,7 @@ export function SquadPitch({
   }
 
   return (
-    <div className="squad-pitch relative overflow-hidden rounded-2xl border border-presi-cyan/20 px-2 py-4">
+    <div className="squad-pitch relative overflow-hidden rounded-2xl border border-presi-gold/20 px-2 py-4">
       <div className="pointer-events-none absolute inset-0 squad-pitch-lines" />
 
       <div className="relative space-y-3">
@@ -94,7 +94,7 @@ export function SquadPitch({
                     }}
                     className={cn(
                       "rounded-lg transition-shadow",
-                      isOver && valid && "ring-2 ring-presi-cyan/60",
+                      isOver && valid && "ring-2 ring-presi-gold/60",
                       isOver && !valid && dragPlayer && "ring-2 ring-presi-red/50"
                     )}
                   >

@@ -81,7 +81,7 @@ export function WildCardTile({
             {WILD_CARD_KIND_LABEL[card.kind]}
           </span>
           {status === "active" ? (
-            <span className="rounded-full bg-presi-cyan/90 px-2 py-0.5 text-[9px] font-bold uppercase text-presi-bg">
+            <span className="rounded-full bg-presi-gold/90 px-2 py-0.5 text-[9px] font-bold uppercase text-presi-bg">
               Activa
             </span>
           ) : null}
@@ -108,7 +108,7 @@ export function WildCardTile({
 
   const className = cn(
     "relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/15 text-left shadow-md transition",
-    status === "active" && "ring-2 ring-presi-cyan/70",
+    status === "active" && "ring-2 ring-presi-gold/70",
     status === "used" && "opacity-50",
     interactive && "active:scale-[0.98] hover:border-white/30"
   );
@@ -216,7 +216,7 @@ export function WildCardDetailSheet({
           </p>
 
           {status === "active" ? (
-            <p className="rounded-lg bg-presi-cyan/15 px-3 py-2 text-center text-xs font-semibold text-presi-cyan">
+            <p className="rounded-lg bg-presi-gold/15 px-3 py-2 text-center text-xs font-semibold text-presi-gold">
               Activa esta jornada
             </p>
           ) : null}

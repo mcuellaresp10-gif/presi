@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,7 +70,6 @@ export function AuthForm({
       setGoogleLoading(false);
       return;
     }
-    // Fallback if the client did not navigate (some browsers / SSR edge cases).
     if (data.url) {
       window.location.assign(data.url);
     }
@@ -77,7 +77,8 @@ export function AuthForm({
 
   return (
     <div className="relative z-10 w-full max-w-md">
-      <div className="mb-8 text-center">
+      <div className="mb-8 flex flex-col items-center text-center">
+        <BrandLogo size={88} priority className="mb-5" />
         <h1 className="text-display text-5xl text-presi-gold">PRESI</h1>
         <p className="mt-2 text-sm text-white/60">
           Fantasy ownership — Liga Colombiana
@@ -118,7 +119,7 @@ export function AuthForm({
               className="mt-1"
             />
           </div>
-          {error ? <p className="text-sm text-presi-red">{error}</p> : null}
+          {error ? <p className="text-sm text-presi-coral">{error}</p> : null}
           <Button type="submit" variant="cta" className="w-full" disabled={loading}>
             {loading
               ? isLogin
@@ -154,7 +155,7 @@ export function AuthForm({
           {isLogin ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
           <Link
             href={isLogin ? "/register" : "/login"}
-            className="font-semibold text-presi-cyan hover:underline"
+            className="font-semibold text-presi-gold hover:underline"
           >
             {isLogin ? "Regístrate" : "Inicia sesión"}
           </Link>
