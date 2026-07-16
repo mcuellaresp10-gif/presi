@@ -23,9 +23,17 @@
     "evaluate:tiers": "node scripts/evaluate-player-tiers.mjs",
     "seed:npc": "node scripts/seed-npc-clubs.mjs",
     "brand:logo": "node scripts/process-logo.mjs",
-    "cron:gameweek": "node scripts/gameweek-cron-loop.mjs"
+    "brand:android-icons": "node scripts/generate-android-icons.mjs",
+    "cron:gameweek": "node scripts/gameweek-cron-loop.mjs",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@capacitor/ios": "^8.4.2",
     "@radix-ui/react-dialog": "^1.1.18",
     "@radix-ui/react-label": "^2.1.11",
     "@radix-ui/react-progress": "^1.1.11",
