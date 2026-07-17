@@ -5,7 +5,7 @@
 # 1) Integración App Store Connect (API Key) llamada exactamente: codemagic
 # 2) Variable de entorno CAPACITOR_SERVER_URL = https://TU-APP.onrender.com
 #    (sin barra final). PRESI es SSR; el IPA carga esa URL en el WebView.
-# 3) Bundle ID en App Store Connect = com.presi.app (debe coincidir)
+# 3) Bundle ID en App Store Connect / Play Console = lat.presi.app (debe coincidir)
 
 workflows:
   ios-workflow:
@@ -17,7 +17,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.presi.app
+        bundle_identifier: lat.presi.app
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"

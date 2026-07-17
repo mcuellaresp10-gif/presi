@@ -1,4 +1,4 @@
-package com.presi.app;
+package lat.presi.app;
 
 import com.getcapacitor.BridgeActivity;
 

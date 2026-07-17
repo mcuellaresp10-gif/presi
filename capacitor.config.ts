@@ -12,7 +12,7 @@ const serverUrl =
 const isHttps = serverUrl.startsWith("https://");
 
 const config: CapacitorConfig = {
-  appId: "com.presi.app",
+  appId: "lat.presi.app",
   appName: "PRESI",
   webDir: "out",
   server: {
