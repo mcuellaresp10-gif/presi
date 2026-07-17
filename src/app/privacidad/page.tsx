@@ -237,25 +237,53 @@ export default function PrivacidadPage() {
             </p>
           </Section>
 
-          <Section title="12. Eliminación de cuenta">
+          <Section title="12. Eliminación de cuenta" id="eliminar-cuenta">
             <p>
-              Para eliminar tu cuenta y los datos de juego asociados (incluido
-              el club vinculado), envía un correo a{" "}
-              <a
-                href={`mailto:${CONTACT_EMAIL}?subject=Eliminar%20cuenta%20PRESI`}
-                className="font-medium text-presi-gold underline-offset-2 hover:underline"
-              >
-                {CONTACT_EMAIL}
-              </a>{" "}
-              desde el mismo email de la cuenta, con el asunto “Eliminar
-              cuenta PRESI”. Incluye, si lo tienes, el ID de soporte que
-              aparece en tu perfil.
+              Cumplimos el requisito de Google Play y App Store de permitir
+              eliminar la cuenta tanto{" "}
+              <strong className="text-white">dentro de la app</strong> como{" "}
+              <strong className="text-white">desde la web</strong>.
             </p>
+            <ol className="mt-3 list-decimal space-y-3 pl-5">
+              <li>
+                <strong className="text-white">En la app (recomendado):</strong>{" "}
+                abre el menú <strong className="text-white">Más</strong> →{" "}
+                <strong className="text-white">Eliminar cuenta</strong> →
+                confirma. La eliminación es inmediata: se borran tu cuenta de
+                acceso y los datos de juego asociados (club, plantilla, gemas,
+                progreso).
+              </li>
+              <li>
+                <strong className="text-white">En la web:</strong> visita{" "}
+                <Link
+                  href="/eliminar-cuenta"
+                  className="font-medium text-presi-gold underline-offset-2 hover:underline"
+                >
+                  presi.onrender.com/eliminar-cuenta
+                </Link>
+                , inicia sesión si hace falta y confirma la eliminación. Es el
+                recurso web oficial de eliminación de cuenta de PRESI (también
+                para tiendas de aplicaciones).
+              </li>
+              <li>
+                <strong className="text-white">Por correo (respaldo):</strong>{" "}
+                si no puedes entrar a la app ni a la web, escribe a{" "}
+                <a
+                  href={`mailto:${CONTACT_EMAIL}?subject=Eliminar%20cuenta%20PRESI`}
+                  className="font-medium text-presi-gold underline-offset-2 hover:underline"
+                >
+                  {CONTACT_EMAIL}
+                </a>{" "}
+                desde el email de la cuenta, con el asunto “Eliminar cuenta
+                PRESI” y tu ID de soporte si lo tienes. Procesaremos la
+                solicitud en un máximo de{" "}
+                <strong className="text-white">30 días</strong>.
+              </li>
+            </ol>
             <p className="mt-3">
-              Procesaremos la solicitud en un plazo máximo de{" "}
-              <strong className="text-white">30 días</strong>, salvo
-              impedimento legal. La eliminación es irreversible: perderás el
-              club, plantilla, gemas y progreso.
+              La eliminación es irreversible. Cerrar sesión{" "}
+              <strong className="text-white">no</strong> elimina la cuenta.
+              Tras borrar la cuenta no podrás recuperar el club ni el progreso.
             </p>
           </Section>
 
@@ -304,13 +332,15 @@ export default function PrivacidadPage() {
 
 function Section({
   title,
+  id,
   children,
 }: {
   title: string;
+  id?: string;
   children: ReactNode;
 }) {
   return (
-    <section>
+    <section id={id} className={id ? "scroll-mt-8" : undefined}>
       <h2 className="text-display mb-3 text-xl text-white">{title}</h2>
       {children}
     </section>

@@ -16,12 +16,19 @@ export function AuthForm({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const nextPath = (() => {
+    const next = searchParams.get("next");
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
+    return next;
+  })();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(() =>
     searchParams.get("error") === "auth"
       ? "No se pudo iniciar sesión con Google. Intenta de nuevo o usa email."
-      : null
+      : searchParams.get("deleted") === "1"
+        ? "Tu cuenta fue eliminada."
+        : null
   );
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -50,7 +57,7 @@ export function AuthForm({
       return;
     }
 
-    router.push("/");
+    router.push(nextPath);
     router.refresh();
   }
 
@@ -58,10 +65,14 @@ export function AuthForm({
     setGoogleLoading(true);
     setError(null);
     const supabase = createClient();
+    const redirectTo = new URL(`${window.location.origin}/auth/callback`);
+    if (nextPath !== "/") {
+      redirectTo.searchParams.set("next", nextPath);
+    }
     const { data, error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectTo.toString(),
         skipBrowserRedirect: false,
       },
     });
@@ -119,7 +130,17 @@ export function AuthForm({
               className="mt-1"
             />
           </div>
-          {error ? <p className="text-sm text-presi-coral">{error}</p> : null}
+          {error ? (
+            <p
+              className={
+                searchParams.get("deleted") === "1"
+                  ? "text-sm text-presi-gold"
+                  : "text-sm text-presi-coral"
+              }
+            >
+              {error}
+            </p>
+          ) : null}
           <Button type="submit" variant="cta" className="w-full" disabled={loading}>
             {loading
               ? isLogin

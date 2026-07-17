@@ -17,6 +17,7 @@ import { CloseButton } from "@/components/ui/close-button";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import type { ProfileSummary } from "@/lib/actions/profile";
 import { InstallAppInstructions } from "@/components/layout/InstallAppInstructions";
+import { DeleteAccountControls } from "@/components/account/DeleteAccountControls";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { isStandaloneDisplay } from "@/lib/pwa/install-prompt";
@@ -140,6 +141,17 @@ export function MoreMenu({
               Cerrar sesión
             </button>
           </form>
+
+          <div className="mt-1 border-t border-white/10 px-1 pt-2">
+            <DeleteAccountControls variant="menu" />
+            <Link
+              href="/privacidad#eliminar-cuenta"
+              onClick={onClose}
+              className="mt-1 block px-3 py-2 text-center text-[11px] text-white/40 underline-offset-2 hover:text-presi-gold hover:underline"
+            >
+              Cómo eliminamos tu cuenta
+            </Link>
+          </div>
         </nav>
 
         <div className="border-t border-white/10 px-4 py-4">
