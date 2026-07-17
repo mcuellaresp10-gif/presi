@@ -168,6 +168,13 @@ export function ProfilePanel({
           {copied && (
             <p className="mt-1 text-[10px] text-presi-gold">Copiado</p>
           )}
+          <Link
+            href="/privacidad"
+            onClick={onClose}
+            className="mt-3 block text-center text-[11px] text-white/40 underline-offset-2 hover:text-presi-gold hover:underline"
+          >
+            Política de privacidad
+          </Link>
         </div>
       </aside>
     </div>

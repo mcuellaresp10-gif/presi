@@ -169,6 +169,12 @@ export default async function PerfilPage() {
           ID de soporte
         </p>
         <p className="font-mono text-sm text-white/70">{profile.userId}</p>
+        <Link
+          href="/privacidad"
+          className="mt-3 inline-block text-xs text-presi-sand/60 underline-offset-2 hover:text-presi-gold hover:underline"
+        >
+          Política de privacidad
+        </Link>
       </SurfaceCard>
     </div>
   );

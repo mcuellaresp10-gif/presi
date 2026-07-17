@@ -160,6 +160,17 @@ export function AuthForm({
             {isLogin ? "Regístrate" : "Inicia sesión"}
           </Link>
         </p>
+
+        <p className="mt-4 text-center text-xs text-white/40">
+          Al continuar, aceptas nuestra{" "}
+          <Link
+            href="/privacidad"
+            className="text-presi-sand/70 underline-offset-2 hover:text-presi-gold hover:underline"
+          >
+            Política de privacidad
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

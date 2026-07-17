@@ -91,13 +91,17 @@ export function AyudaClient() {
         ¿Dudas? Revisa también{" "}
         <Link href="/plantilla" className="text-presi-gold hover:underline">
           Plantilla
-        </Link>{" "}
-        e{" "}
+        </Link>
+        ,{" "}
         <Link
           href="/instalaciones"
           className="text-presi-gold hover:underline"
         >
           Instalaciones
+        </Link>{" "}
+        o la{" "}
+        <Link href="/privacidad" className="text-presi-gold hover:underline">
+          Política de privacidad
         </Link>
         .
       </p>
