@@ -50,7 +50,7 @@ export function ClubCreationWizard({
 
   const titles: Record<1 | 2 | 3, { title: string; subtitle: string }> = {
     1: {
-      title: mode === "create" ? "Funda tu club" : "Identidad del club",
+      title: mode === "create" ? "Crea tu club" : "Identidad del club",
       subtitle: "Nombre, apodo y ciudad",
     },
     2: {
