@@ -13,9 +13,11 @@ import { StadiumIncomePin } from "@/components/home/StadiumIncomePin";
 import { HelpTip } from "@/components/help/HelpTip";
 import { RivalLineupSheet } from "@/components/home/RivalLineupSheet";
 import { GameweekPointsPanel } from "@/components/scoring/GameweekPointsPanel";
+import { useLiveGameweekScores } from "@/components/home/useLiveGameweekScores";
 import type { RivalLineupPreview } from "@/lib/actions/rival-lineup";
 
 export function HomeDashboard({
+  clubId,
   clubNombre,
   escudoConfig,
   seasonPoints,
@@ -39,7 +41,11 @@ export function HomeDashboard({
   pendingIncome,
   pendingGems,
   pendingTicks,
+  vsWinStreak = 0,
+  vsStreakTarget = 5,
+  vsWinGems = 40,
 }: {
+  clubId: string;
   clubNombre: string;
   escudoConfig: EscudoConfig;
   seasonPoints: number;
@@ -63,6 +69,9 @@ export function HomeDashboard({
   pendingIncome: number;
   pendingGems: number;
   pendingTicks: number;
+  vsWinStreak?: number;
+  vsStreakTarget?: number;
+  vsWinGems?: number;
 }) {
   const [now, setNow] = useState<number | null>(null);
   const [rivalOpen, setRivalOpen] = useState(false);
@@ -89,15 +98,25 @@ export function HomeDashboard({
       : "upcoming";
   const live = phase === "live";
   const upcoming = phase === "upcoming";
+  const finished = phase === "finished";
   const phaseLabel = gameweekPhaseLabel(
     phase as "upcoming" | "live" | "finished"
   );
   const canOpenRival = !!rivalClubId && !!rivalNombre;
+  const pollScores = live || finished;
+
+  const { myPoints, rivalPoints: liveRivalPoints } = useLiveGameweekScores({
+    gameweekId,
+    myClubId: clubId,
+    rivalClubId,
+    initialMyPoints: gameweekPoints,
+    initialRivalPoints: rivalPoints,
+    active: pollScores,
+  });
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Soft veil so poster-shards from GameShell show through */}
         <div className="absolute inset-0 bg-gradient-to-b from-presi-navy/35 via-transparent to-presi-bg/50" />
         <div
           className="absolute inset-0 opacity-40"
@@ -124,7 +143,7 @@ export function HomeDashboard({
                 {clubNombre}
               </p>
               <p className="text-2xl font-black text-display text-presi-gold">
-                {gameweekPoints}
+                {myPoints}
               </p>
               <p className="text-[9px] text-white/40">Jornada</p>
             </div>
@@ -158,11 +177,9 @@ export function HomeDashboard({
                 {rivalNombre ?? "Rival"}
               </p>
               <p className="text-2xl font-black text-display text-white/80">
-                {rivalPoints}
+                {liveRivalPoints}
               </p>
-              <p className="text-[9px] text-white/40">
-                {canOpenRival ? "Ver plantilla" : "Temporada"}
-              </p>
+              <p className="text-[9px] text-white/40">Jornada</p>
             </button>
           </div>
 
@@ -178,7 +195,7 @@ export function HomeDashboard({
             <span className="text-white/80">
               {gameweekRound
                 ? live
-                  ? "Partidos en curso"
+                  ? "Partidos en curso · pts en vivo"
                   : upcoming
                     ? isLineupLocked
                       ? "Temporada por comenzar"
@@ -192,10 +209,26 @@ export function HomeDashboard({
             </span>
           </div>
 
+          <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-white/45">
+            <span>
+              Gana el VS:{" "}
+              <span className="font-semibold text-presi-gold">
+                +{vsWinGems} gemas
+              </span>
+            </span>
+            <span>
+              Racha{" "}
+              <span className="font-semibold text-presi-gold">
+                {vsWinStreak}/{vsStreakTarget}
+              </span>
+              {vsWinStreak > 0 ? " · ¡sigue así!" : ""}
+            </span>
+          </div>
+
           <GameweekPointsPanel
             gameweekId={gameweekId}
             gameweekRound={gameweekRound}
-            gameweekPoints={gameweekPoints}
+            gameweekPoints={myPoints}
             escudoConfig={escudoConfig}
           />
         </div>

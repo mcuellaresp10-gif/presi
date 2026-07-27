@@ -1,26 +1,32 @@
 import { HomeDashboard } from "@/components/home/HomeDashboard";
 import { GameweekBackgroundSync } from "@/components/home/GameweekBackgroundSync";
 import { PlayerDiscoveryDock } from "@/components/home/PlayerDiscoveryDock";
+import { VsStreakRewardModal } from "@/components/home/VsStreakRewardModal";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
 import { getContractsSummary } from "@/lib/actions/contracts";
 import { getFacilitiesOverview } from "@/lib/actions/facilities";
-import { getClubGameweekSummary } from "@/lib/actions/gameweek";
+import {
+  getClubGameweekSummary,
+  getClubsGameweekPoints,
+} from "@/lib/actions/gameweek";
 import { getGlobalRanking } from "@/lib/actions/leagues";
 import { getRivalLineupPreview } from "@/lib/actions/rival-lineup";
 import { getScoutingState } from "@/lib/actions/scouting";
+import { getVsRivalryState } from "@/lib/actions/vs-rewards";
 import { getNextScoutingDeadline } from "@/lib/game";
 import type { EscudoConfig, Player } from "@/lib/game/types";
 
 export default async function InicioPage() {
   const club = await requireOnboardingComplete();
 
-  const [gwSummary, scouting, overview, contractsSummary, ranking] =
+  const [gwSummary, scouting, overview, contractsSummary, ranking, vsState] =
     await Promise.all([
       getClubGameweekSummary(),
       getScoutingState(),
       getFacilitiesOverview(),
       getContractsSummary(),
       getGlobalRanking(),
+      getVsRivalryState(),
     ]);
 
   const seasonPoints =
@@ -35,6 +41,16 @@ export default async function InicioPage() {
       : ranking.length > 1
         ? ranking[1]
         : null;
+
+  const pointsGameweek = gwSummary?.pointsGameweek ?? null;
+  const pointsGameweekId = gwSummary?.gameweekId ?? null;
+
+  const rivalGwPoints =
+    pointsGameweekId && rivalEntry?.id
+      ? (
+          await getClubsGameweekPoints(pointsGameweekId, [rivalEntry.id])
+        )[rivalEntry.id] ?? 0
+      : 0;
 
   const rivalPreview = rivalEntry?.id
     ? await getRivalLineupPreview(rivalEntry.id)
@@ -59,22 +75,25 @@ export default async function InicioPage() {
         presupuesto: Number(club.presupuesto),
       };
 
+  const isLive = pointsGameweek?.status === "live";
+
   return (
     <>
       <HomeDashboard
+        clubId={club.id}
         clubNombre={club.nombre}
         escudoConfig={club.escudo_config as EscudoConfig}
         seasonPoints={seasonPoints}
         gameweekPoints={gwSummary?.gameweekPoints ?? 0}
-        gameweekId={gwSummary?.gameweekId ?? null}
-        gameweekRound={gwSummary?.displayGameweek?.round ?? null}
-        gameweekStatus={gwSummary?.displayGameweek?.status ?? null}
+        gameweekId={pointsGameweekId}
+        gameweekRound={pointsGameweek?.round ?? null}
+        gameweekStatus={pointsGameweek?.status ?? null}
         deadlineAt={gwSummary?.deadlineAt ?? null}
         isLineupLocked={gwSummary?.isLineupLocked ?? false}
         hasValidDraft={gwSummary?.hasValidDraft ?? false}
         rivalClubId={rivalEntry?.id ?? null}
         rivalNombre={rivalEntry?.club_nombre ?? null}
-        rivalPoints={rivalEntry?.puntos ?? 0}
+        rivalPoints={rivalGwPoints}
         rivalEscudo={(rivalEntry?.escudo_config as EscudoConfig) ?? null}
         rivalLineupPreview={rivalPreview}
         contractsExpiringSoon={contractsSummary?.expiringSoon ?? 0}
@@ -85,9 +104,15 @@ export default async function InicioPage() {
         pendingIncome={overview?.pendingIncome ?? 0}
         pendingGems={overview?.pendingGems ?? 0}
         pendingTicks={overview?.pendingTicks ?? 0}
+        vsWinStreak={vsState?.streak ?? 0}
+        vsStreakTarget={vsState?.streakTarget ?? 5}
+        vsWinGems={vsState?.winGems ?? 40}
       />
       <PlayerDiscoveryDock state={scoutingState} />
-      <GameweekBackgroundSync />
+      <GameweekBackgroundSync live={isLive} />
+      {vsState?.pendingStreakReward ? (
+        <VsStreakRewardModal reward={vsState.pendingStreakReward} />
+      ) : null}
     </>
   );
 }

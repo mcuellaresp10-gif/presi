@@ -17,6 +17,7 @@ const CLUB_CHILD_TABLES = [
   "academy_packs",
   "club_wild_cards",
   "loan_market_state",
+  "club_gameweek_vs",
 ] as const;
 
 async function deleteClubData(

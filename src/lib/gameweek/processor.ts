@@ -19,6 +19,8 @@ import {
   validateLineupDraft,
 } from "@/lib/game/squad-limits";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
+import { snapshotVsRivalsForGameweek } from "@/lib/gameweek/vs-rival";
+import { settleGameweekVsRewards } from "@/lib/gameweek/vs-settle";
 import {
   applyGymGameweekBonus,
   getMedicalPenaltyReduction,
@@ -128,6 +130,8 @@ export async function lockLineupSnapshots(
 
     locked += 1;
   }
+
+  await snapshotVsRivalsForGameweek(supabase, gameweek.id);
 
   return { locked };
 }
@@ -360,6 +364,17 @@ export async function processGameweekPointsAndContracts(
     await refreshSeasonTotals(supabase, gw.season);
   }
 
+  // Catch-up: settle VS if this GW is already finished (status flip may have been missed).
+  const { data: gwStatus } = await supabase
+    .from("gameweeks")
+    .select("status")
+    .eq("id", gameweekId)
+    .maybeSingle();
+  if (gwStatus?.status === "finished") {
+    await snapshotVsRivalsForGameweek(supabase, gameweekId);
+    await settleGameweekVsRewards(supabase, gameweekId);
+  }
+
   return { clubsProcessed };
 }
 
@@ -415,6 +430,9 @@ export async function tickGameweekStatuses(
       await supabase.from("gameweeks").update({ status }).eq("id", gw.id);
       if (status === "finished" && gw.status !== "finished") {
         await markFinishedGameweekWildCards(supabase, gw.id);
+        // Ensure rivals exist even if lock ran before VS feature shipped.
+        await snapshotVsRivalsForGameweek(supabase, gw.id);
+        await settleGameweekVsRewards(supabase, gw.id);
       }
       gw.status = status;
     }

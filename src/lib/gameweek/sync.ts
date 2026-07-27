@@ -18,6 +18,7 @@ import {
   processGameweekPointsAndContracts,
   tickGameweekStatuses,
 } from "@/lib/gameweek/processor";
+import { isGameweekScoreable } from "@/lib/gameweek/status";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function syncPlayersFromApi(
@@ -216,15 +217,47 @@ export async function syncCalendarFromApi(
   return result;
 }
 
-export async function syncLiveStatsFromApi(supabase: SupabaseClient) {
+export async function listScoreableGameweeks(
+  supabase: SupabaseClient,
+  now = new Date()
+): Promise<Array<{ id: string }>> {
+  const { data } = await supabase
+    .from("gameweeks")
+    .select("id, status, first_kickoff_at, last_kickoff_at")
+    .in("status", ["live", "finished"]);
+
+  return (data ?? [])
+    .filter((gw) =>
+      isGameweekScoreable(
+        gw.status,
+        gw.last_kickoff_at,
+        gw.first_kickoff_at,
+        now
+      )
+    )
+    .map((gw) => ({ id: gw.id as string }));
+}
+
+export async function syncLiveStatsFromApi(
+  supabase: SupabaseClient,
+  gameweekIds?: string[]
+) {
   if (!isApiFootballConfigured()) {
+    return { mode: "skip" as const };
+  }
+
+  let targetIds = gameweekIds;
+  if (!targetIds) {
+    targetIds = (await listScoreableGameweeks(supabase)).map((g) => g.id);
+  }
+  if (targetIds.length === 0) {
     return { mode: "skip" as const };
   }
 
   const { data: liveGameweeks } = await supabase
     .from("gameweeks")
     .select("id")
-    .in("status", ["live", "finished"]);
+    .in("id", targetIds);
 
   for (const gw of liveGameweeks ?? []) {
     const { data: fixtures } = await supabase
@@ -317,8 +350,8 @@ export async function runGameweekStatusTick(
 }
 
 /**
- * Cron HTTP: solo sync de stats + puntos si hay jornada `live`.
- * Si no hay partidos en vivo, responde al instante sin llamar API-Football.
+ * Cron HTTP: sync de stats + puntos para jornadas `live` y
+ * `finished` dentro de la ventana de catch-up (14 días).
  */
 export async function runGameweekCronPipeline(supabase: SupabaseClient) {
   if (isApiFootballConfigured()) {
@@ -327,28 +360,24 @@ export async function runGameweekCronPipeline(supabase: SupabaseClient) {
     await runGameweekStatusTick(supabase);
   }
 
-  const live = await hasLiveGameweek(supabase);
-  if (!live) {
-    return { skipped: true as const, reason: "no_live_gameweek" };
+  const scoreable = await listScoreableGameweeks(supabase);
+  if (scoreable.length === 0) {
+    return { skipped: true as const, reason: "no_scoreable_gameweek" };
   }
 
-  await syncLiveStatsFromApi(supabase);
+  const ids = scoreable.map((g) => g.id);
+  await syncLiveStatsFromApi(supabase, ids);
 
-  const { data: liveRows } = await supabase
-    .from("gameweeks")
-    .select("id")
-    .eq("status", "live");
-
-  for (const gw of liveRows ?? []) {
+  for (const gw of scoreable) {
     await processGameweekPointsAndContracts(supabase, gw.id);
   }
 
   await reTierPlayersFromApi(supabase);
 
-  return { skipped: false as const, liveGameweeks: liveRows?.length ?? 0 };
+  return { skipped: false as const, scoreableGameweeks: scoreable.length };
 }
 
-/** Al abrir la app: sync jugadores + tick de estado + stats en vivo si corresponde. */
+/** Al abrir la app: sync jugadores + tick de estado + stats/puntos si corresponde. */
 export async function runPageLoadGameweekTick(supabase: SupabaseClient) {
   if (isApiFootballConfigured()) {
     await syncPlayersFromApi(supabase);
@@ -357,24 +386,21 @@ export async function runPageLoadGameweekTick(supabase: SupabaseClient) {
   await ensureOpenGameweek(supabase);
   await runGameweekStatusTick(supabase);
 
-  if (!(await hasLiveGameweek(supabase))) {
-    return { skipped: true as const, reason: "no_live_gameweek" };
+  const scoreable = await listScoreableGameweeks(supabase);
+  if (scoreable.length === 0) {
+    return { skipped: true as const, reason: "no_scoreable_gameweek" };
   }
 
-  await syncLiveStatsFromApi(supabase);
+  const ids = scoreable.map((g) => g.id);
+  await syncLiveStatsFromApi(supabase, ids);
 
-  const { data: liveRows } = await supabase
-    .from("gameweeks")
-    .select("id")
-    .eq("status", "live");
-
-  for (const gw of liveRows ?? []) {
+  for (const gw of scoreable) {
     await processGameweekPointsAndContracts(supabase, gw.id);
   }
 
   await reTierPlayersFromApi(supabase);
 
-  return { skipped: false as const };
+  return { skipped: false as const, scoreableGameweeks: scoreable.length };
 }
 
 /** @deprecated Usar runGameweekCronPipeline o runPageLoadGameweekTick */

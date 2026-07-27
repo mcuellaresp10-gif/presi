@@ -237,6 +237,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
     return {
       gameweek: null,
       displayGameweek: null,
+      pointsGameweek: null,
       deadlineAt: null,
       gameweekPoints: 0,
       seasonPoints: 0,
@@ -248,10 +249,11 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
 
   const supabase = await createClient();
   const draftGameweekId = editableGameweek?.id ?? displayGameweek.id;
-  const pointsGameweekId =
+  const pointsGameweek =
     gameweek?.status === "live" || gameweek?.status === "finished"
-      ? gameweek.id
-      : displayGameweek.id;
+      ? gameweek
+      : displayGameweek;
+  const pointsGameweekId = pointsGameweek.id;
 
   const [{ data: snapshot }, { data: draft }, { data: gwPoints }, { data: seasonPoints }] =
     await Promise.all([
@@ -277,7 +279,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
         .from("club_season_points")
         .select("total_points")
         .eq("club_id", club.id)
-        .eq("season", displayGameweek.season)
+        .eq("season", pointsGameweek.season)
         .maybeSingle(),
     ]);
 
@@ -286,6 +288,8 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
   return {
     gameweek,
     displayGameweek,
+    /** Gameweek whose points are shown in the home VS (live or last finished). */
+    pointsGameweek,
     deadlineAt: deadlineGameweek?.firstKickoffAt ?? null,
     gameweekPoints: Number(gwPoints?.points ?? 0),
     seasonPoints: Number(seasonPoints?.total_points ?? 0),
@@ -296,11 +300,32 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
       draft.bench_ids?.length === 5 &&
       !!draft.captain_id,
     snapshotValid: snapshot?.is_valid ?? false,
-    /** Gameweek used for points / breakdown (live/finished preferred). */
     gameweekId: pointsGameweekId,
   };
 });
 
+/** Read jornada points for one or more clubs (home VS / live poll). */
+export async function getClubsGameweekPoints(
+  gameweekId: string,
+  clubIds: string[]
+): Promise<Record<string, number>> {
+  const ids = Array.from(new Set(clubIds.filter(Boolean)));
+  if (!gameweekId || ids.length === 0) return {};
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("club_gameweek_points")
+    .select("club_id, points")
+    .eq("gameweek_id", gameweekId)
+    .in("club_id", ids);
+
+  const out: Record<string, number> = {};
+  for (const id of ids) out[id] = 0;
+  for (const row of data ?? []) {
+    out[row.club_id as string] = Number(row.points) || 0;
+  }
+  return out;
+}
 export async function triggerGameweekSync() {
   try {
     const supabase = createServiceRoleClient();

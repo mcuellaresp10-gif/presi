@@ -2,6 +2,7 @@
 
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
+import { DEFAULT_SEASON } from "@/lib/api-football/client";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service";
@@ -97,7 +98,8 @@ export async function getMyLeagues() {
 }
 
 export const getGlobalRanking = cache(async function getGlobalRanking() {
-  const season = new Date().getFullYear();
+  // Must match gameweeks.season / API_FOOTBALL_SEASON (not always calendar year).
+  const season = DEFAULT_SEASON;
 
   // Prefer service role so ranking includes every active club even if RLS
   // on nested joins is restrictive in older environments.
