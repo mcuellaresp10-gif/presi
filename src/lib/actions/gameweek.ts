@@ -3,7 +3,10 @@
 import { cache } from "react";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
-import { isApiFootballConfigured } from "@/lib/api-football/client";
+import {
+  DEFAULT_SEASON,
+  isApiFootballConfigured,
+} from "@/lib/api-football/client";
 import {
   ensureOpenGameweek,
   runPageLoadGameweekTick,
@@ -73,6 +76,51 @@ export async function getCurrentGameweek(): Promise<GameweekPublic | null> {
   }
 
   return mapGameweek(rows[rows.length - 1]!, now);
+}
+
+/**
+ * Jornada cuyos puntos deben mostrarse en el VS del inicio:
+ * en vivo, o la última finalizada (no la próxima upcoming).
+ */
+export async function getPointsGameweek(): Promise<GameweekPublic | null> {
+  const supabase = await createClient();
+  const now = new Date();
+  const tournamentPhase = getActiveTournamentPhase(now);
+
+  const { data: rows } = await supabase
+    .from("gameweeks")
+    .select("*")
+    .eq("tournament_phase", tournamentPhase)
+    .order("season", { ascending: false })
+    .order("round", { ascending: true });
+
+  if (!rows?.length) return null;
+
+  const withPhase = rows.map((row) => ({
+    row,
+    phase: deriveGameweekStatus(
+      row.first_kickoff_at,
+      row.last_kickoff_at,
+      now
+    ),
+  }));
+
+  const live = withPhase.filter((item) => item.phase === "live");
+  if (live.length) {
+    return mapGameweek(live[live.length - 1]!.row, now);
+  }
+
+  const finished = withPhase.filter((item) => item.phase === "finished");
+  if (finished.length) {
+    finished.sort(
+      (a, b) =>
+        new Date(a.row.last_kickoff_at ?? a.row.first_kickoff_at).getTime() -
+        new Date(b.row.last_kickoff_at ?? b.row.first_kickoff_at).getTime()
+    );
+    return mapGameweek(finished[finished.length - 1]!.row, now);
+  }
+
+  return null;
 }
 
 function mapGameweek(
@@ -220,11 +268,13 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
   const club = await getUserClub();
   if (!club) return null;
 
-  const [gameweek, nextGameweek, editableGameweek] = await Promise.all([
-    getCurrentGameweek(),
-    getNextGameweek(),
-    getEditableGameweek(),
-  ]);
+  const [gameweek, nextGameweek, editableGameweek, pointsGameweekRaw] =
+    await Promise.all([
+      getCurrentGameweek(),
+      getNextGameweek(),
+      getEditableGameweek(),
+      getPointsGameweek(),
+    ]);
 
   const displayGameweek =
     gameweek?.status === "live"
@@ -233,7 +283,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
 
   const deadlineGameweek = nextGameweek ?? editableGameweek ?? gameweek;
 
-  if (!displayGameweek) {
+  if (!displayGameweek && !pointsGameweekRaw) {
     return {
       gameweek: null,
       displayGameweek: null,
@@ -248,12 +298,13 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
   }
 
   const supabase = await createClient();
-  const draftGameweekId = editableGameweek?.id ?? displayGameweek.id;
-  const pointsGameweek =
-    gameweek?.status === "live" || gameweek?.status === "finished"
-      ? gameweek
-      : displayGameweek;
+  const draftGameweekId =
+    editableGameweek?.id ?? displayGameweek?.id ?? pointsGameweekRaw!.id;
+  const pointsGameweek = pointsGameweekRaw ?? displayGameweek!;
   const pointsGameweekId = pointsGameweek.id;
+
+  const seasonForTotals =
+    pointsGameweek.season ?? displayGameweek?.season ?? DEFAULT_SEASON;
 
   const [{ data: snapshot }, { data: draft }, { data: gwPoints }, { data: seasonPoints }] =
     await Promise.all([
@@ -279,7 +330,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
         .from("club_season_points")
         .select("total_points")
         .eq("club_id", club.id)
-        .eq("season", pointsGameweek.season)
+        .eq("season", seasonForTotals)
         .maybeSingle(),
     ]);
 
@@ -287,7 +338,7 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
 
   return {
     gameweek,
-    displayGameweek,
+    displayGameweek: displayGameweek ?? pointsGameweek,
     /** Gameweek whose points are shown in the home VS (live or last finished). */
     pointsGameweek,
     deadlineAt: deadlineGameweek?.firstKickoffAt ?? null,
