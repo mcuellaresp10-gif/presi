@@ -11,8 +11,24 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const skipCalendar =
+      request.nextUrl.searchParams.get("skipCalendar") === "1" ||
+      request.headers.get("x-skip-calendar") === "1";
+    let gameweekIds: string[] | undefined;
+    try {
+      const body = (await request.json()) as { gameweekIds?: string[] };
+      if (Array.isArray(body?.gameweekIds)) {
+        gameweekIds = body.gameweekIds.filter((id) => typeof id === "string");
+      }
+    } catch {
+      // no JSON body
+    }
+
     const supabase = createServiceRoleClient();
-    const result = await runGameweekCronPipeline(supabase);
+    const result = await runGameweekCronPipeline(supabase, {
+      skipCalendar,
+      gameweekIds,
+    });
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Sync failed";

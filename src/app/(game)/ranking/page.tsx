@@ -7,6 +7,8 @@ import { requireOnboardingComplete } from "@/lib/auth/guards";
 import type { EscudoConfig } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 function rankMedal(pos: number): string | null {
   if (pos === 1) return "🥇";
   if (pos === 2) return "🥈";

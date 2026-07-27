@@ -75,6 +75,7 @@ export function HomeDashboard({
 }) {
   const [now, setNow] = useState<number | null>(null);
   const [rivalOpen, setRivalOpen] = useState(false);
+  const [myPointsOpenRequestId, setMyPointsOpenRequestId] = useState(0);
 
   useEffect(() => {
     setNow(Date.now());
@@ -103,6 +104,7 @@ export function HomeDashboard({
     phase as "upcoming" | "live" | "finished"
   );
   const canOpenRival = !!rivalClubId && !!rivalNombre;
+  const canOpenMyPoints = !!gameweekId;
   const pollScores = live || finished;
 
   const { myPoints, rivalPoints: liveRivalPoints } = useLiveGameweekScores({
@@ -137,7 +139,16 @@ export function HomeDashboard({
       <div className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pt-2">
         <div className="rounded-xl border border-presi-ivory/20 bg-presi-surface/70 p-3 backdrop-blur-md">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-            <div className="flex flex-col items-center gap-1 text-center">
+            <button
+              type="button"
+              disabled={!canOpenMyPoints}
+              onClick={() =>
+                canOpenMyPoints &&
+                setMyPointsOpenRequestId((n) => n + 1)
+              }
+              className="flex flex-col items-center gap-1 rounded-lg p-1 text-center outline-none transition enabled:hover:bg-white/5 enabled:active:scale-[0.98] disabled:cursor-default"
+              aria-label={`Ver puntos de ${clubNombre} en la jornada`}
+            >
               <EscudoRenderer config={escudoConfig} size={36} />
               <p className="max-w-[7rem] truncate text-[10px] font-bold uppercase">
                 {clubNombre}
@@ -146,7 +157,7 @@ export function HomeDashboard({
                 {myPoints}
               </p>
               <p className="text-[9px] text-white/40">Jornada</p>
-            </div>
+            </button>
 
             <div className="px-2 text-center">
               <p className="text-display text-lg text-white/30">VS</p>
@@ -230,6 +241,7 @@ export function HomeDashboard({
             gameweekRound={gameweekRound}
             gameweekPoints={myPoints}
             escudoConfig={escudoConfig}
+            openRequestId={myPointsOpenRequestId}
           />
         </div>
 

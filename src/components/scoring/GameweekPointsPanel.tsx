@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ChevronRight, Crown } from "lucide-react";
 import {
   PointsBreakdownSheet,
@@ -22,11 +22,16 @@ export function GameweekPointsPanel({
   gameweekRound,
   gameweekPoints,
   escudoConfig,
+  showInlineTrigger = true,
+  /** Increment to open the points sheet (e.g. tap own crest on home VS). */
+  openRequestId = 0,
 }: {
   gameweekId: string | null;
   gameweekRound: number | null;
   gameweekPoints: number;
   escudoConfig?: EscudoConfig | null;
+  showInlineTrigger?: boolean;
+  openRequestId?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [players, setPlayers] = useState<GameweekPlayerBreakdown[]>([]);
@@ -43,27 +48,35 @@ export function GameweekPointsPanel({
     });
   }
 
+  useEffect(() => {
+    if (!openRequestId) return;
+    openPanel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open only on external request bumps
+  }, [openRequestId]);
+
   if (!gameweekRound) return null;
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openPanel}
-        disabled={!gameweekId || pending}
-        className="mt-2 w-full border-t border-white/20 pt-2 text-center text-xs font-semibold transition hover:opacity-80 disabled:opacity-60"
-      >
-        Jornada {gameweekRound}:{" "}
-        <span className="font-black">
-          {gameweekPoints.toLocaleString("es-CO")} pts
-        </span>{" "}
-        esta fecha
-        {gameweekId && (
-          <span className="ml-1 text-[10px] font-normal opacity-70">
-            · ver desglose
-          </span>
-        )}
-      </button>
+      {showInlineTrigger ? (
+        <button
+          type="button"
+          onClick={openPanel}
+          disabled={!gameweekId || pending}
+          className="mt-2 w-full border-t border-white/20 pt-2 text-center text-xs font-semibold transition hover:opacity-80 disabled:opacity-60"
+        >
+          Jornada {gameweekRound}:{" "}
+          <span className="font-black">
+            {gameweekPoints.toLocaleString("es-CO")} pts
+          </span>{" "}
+          esta fecha
+          {gameweekId && (
+            <span className="ml-1 text-[10px] font-normal opacity-70">
+              · ver desglose
+            </span>
+          )}
+        </button>
+      ) : null}
 
       {open && !selected && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">

@@ -382,10 +382,13 @@ export async function refreshSeasonTotals(
   supabase: SupabaseClient,
   season: number
 ) {
+  const resolvedSeason = Number(season);
+  if (!Number.isFinite(resolvedSeason) || resolvedSeason <= 0) return;
+
   const { data: gameweeks } = await supabase
     .from("gameweeks")
     .select("id")
-    .eq("season", season);
+    .eq("season", resolvedSeason);
 
   const gwIds = (gameweeks ?? []).map((g) => g.id);
   if (gwIds.length === 0) return;
@@ -399,17 +402,20 @@ export async function refreshSeasonTotals(
   for (const row of points ?? []) {
     totals.set(
       row.club_id,
-      (totals.get(row.club_id) ?? 0) + Number(row.points)
+      (totals.get(row.club_id) ?? 0) + (Number(row.points) || 0)
     );
   }
 
   for (const [clubId, total] of Array.from(totals.entries())) {
-    await supabase.from("club_season_points").upsert({
-      club_id: clubId,
-      season,
-      total_points: total,
-      updated_at: new Date().toISOString(),
-    });
+    await supabase.from("club_season_points").upsert(
+      {
+        club_id: clubId,
+        season: resolvedSeason,
+        total_points: total,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "club_id,season" }
+    );
   }
 }
 
@@ -427,12 +433,24 @@ export async function tickGameweekStatuses(
     );
 
     if (status !== gw.status) {
-      await supabase.from("gameweeks").update({ status }).eq("id", gw.id);
+      const { error: statusError } = await supabase
+        .from("gameweeks")
+        .update({ status })
+        .eq("id", gw.id);
+      if (statusError) {
+        console.error("tickGameweekStatuses update failed", gw.id, statusError);
+        continue;
+      }
       if (status === "finished" && gw.status !== "finished") {
-        await markFinishedGameweekWildCards(supabase, gw.id);
-        // Ensure rivals exist even if lock ran before VS feature shipped.
-        await snapshotVsRivalsForGameweek(supabase, gw.id);
-        await settleGameweekVsRewards(supabase, gw.id);
+        try {
+          await markFinishedGameweekWildCards(supabase, gw.id);
+          // Ensure rivals exist even if lock ran before VS feature shipped.
+          await snapshotVsRivalsForGameweek(supabase, gw.id);
+          await settleGameweekVsRewards(supabase, gw.id);
+        } catch (error) {
+          // Don't block status/scoring if VS settlement fails.
+          console.error("gameweek finish side-effects failed", gw.id, error);
+        }
       }
       gw.status = status;
     }

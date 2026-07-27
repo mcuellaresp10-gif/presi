@@ -87,12 +87,36 @@ export async function fetchLeagueFixtures(
   });
 }
 
+type ApiFixturePlayersTeamBlock = {
+  team?: { id?: number; name?: string } | null;
+  players?: ApiPlayerStats[] | null;
+};
+
+/**
+ * API-Football returns `[{ team, players: [...] }, ...]` — flatten to player rows
+ * and attach `statistics[0].team` so mapApiPlayerStatRow can resolve home/away.
+ */
 export async function fetchFixturePlayerStats(
   fixtureId: number
 ): Promise<ApiPlayerStats[]> {
-  return apiFetch<ApiPlayerStats[]>("/fixtures/players", {
-    fixture: String(fixtureId),
-  });
+  const blocks = await apiFetch<ApiFixturePlayersTeamBlock[]>(
+    "/fixtures/players",
+    { fixture: String(fixtureId) }
+  );
+
+  const flat: ApiPlayerStats[] = [];
+  for (const block of blocks ?? []) {
+    const teamName = block.team?.name;
+    for (const row of block.players ?? []) {
+      if (!row?.player?.id) continue;
+      const statistics = (row.statistics ?? []).map((stat) => ({
+        ...stat,
+        team: stat.team ?? (teamName ? { name: teamName } : undefined),
+      }));
+      flat.push({ ...row, statistics });
+    }
+  }
+  return flat;
 }
 
 export async function fetchLeaguePlayers(

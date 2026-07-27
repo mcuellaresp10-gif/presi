@@ -2,6 +2,7 @@
 
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEFAULT_SEASON } from "@/lib/api-football/client";
 import { getUserClub } from "@/lib/actions/club";
 import { createClient } from "@/lib/supabase/server";
@@ -97,9 +98,85 @@ export async function getMyLeagues() {
   return (data ?? []).map((row) => row.leagues);
 }
 
+async function loadSeasonTotalsByClub(
+  reader: SupabaseClient,
+  season: number
+): Promise<Map<string, number>> {
+  const pointsByClub = new Map<string, number>();
+
+  const { data: pointsRows, error: seasonError } = await reader
+    .from("club_season_points")
+    .select("club_id, total_points")
+    .eq("season", season);
+
+  if (seasonError) {
+    console.error("getGlobalRanking season points failed", seasonError);
+  }
+
+  for (const row of pointsRows ?? []) {
+    pointsByClub.set(row.club_id as string, Number(row.total_points) || 0);
+  }
+
+  const hasNonZero = Array.from(pointsByClub.values()).some((n) => n > 0);
+  if (hasNonZero) return pointsByClub;
+
+  // Heal stale/missing club_season_points by summing gameweek scores.
+  const { data: gameweeks, error: gwError } = await reader
+    .from("gameweeks")
+    .select("id")
+    .eq("season", season);
+
+  if (gwError) {
+    console.error("getGlobalRanking gameweeks failed", gwError);
+    return pointsByClub;
+  }
+
+  const gwIds = (gameweeks ?? []).map((g) => g.id as string);
+  if (gwIds.length === 0) return pointsByClub;
+
+  const { data: gwPoints, error: gwPtsError } = await reader
+    .from("club_gameweek_points")
+    .select("club_id, points")
+    .in("gameweek_id", gwIds);
+
+  if (gwPtsError) {
+    console.error("getGlobalRanking gameweek points failed", gwPtsError);
+    return pointsByClub;
+  }
+
+  const summed = new Map<string, number>();
+  for (const row of gwPoints ?? []) {
+    summed.set(
+      row.club_id as string,
+      (summed.get(row.club_id as string) ?? 0) + (Number(row.points) || 0)
+    );
+  }
+
+  if (summed.size === 0) return pointsByClub;
+
+  // Best-effort write-back so subsequent reads stay on club_season_points.
+  for (const [clubId, total] of Array.from(summed.entries())) {
+    await reader.from("club_season_points").upsert(
+      {
+        club_id: clubId,
+        season,
+        total_points: total,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "club_id,season" }
+    );
+  }
+
+  return summed;
+}
+
 export const getGlobalRanking = cache(async function getGlobalRanking() {
   // Must match gameweeks.season / API_FOOTBALL_SEASON (not always calendar year).
-  const season = DEFAULT_SEASON;
+  const rawSeason = Number(
+    process.env.API_FOOTBALL_SEASON ?? DEFAULT_SEASON
+  );
+  const season =
+    Number.isFinite(rawSeason) && rawSeason > 0 ? rawSeason : DEFAULT_SEASON;
 
   // Prefer service role so ranking includes every active club even if RLS
   // on nested joins is restrictive in older environments.
@@ -110,15 +187,12 @@ export const getGlobalRanking = cache(async function getGlobalRanking() {
     // Fall back to user client (works once ranking RLS / view is applied).
   }
 
-  const [{ data: clubs }, { data: pointsRows }] = await Promise.all([
+  const [{ data: clubs }, pointsByClub] = await Promise.all([
     reader
       .from("clubs")
       .select("id, nombre, escudo_config")
       .eq("onboarding_completado", true),
-    reader
-      .from("club_season_points")
-      .select("club_id, total_points")
-      .eq("season", season),
+    loadSeasonTotalsByClub(reader, season),
   ]);
 
   // Fallback to public view if clubs table still hides other rows.
@@ -136,14 +210,9 @@ export const getGlobalRanking = cache(async function getGlobalRanking() {
     }
   }
 
-  const pointsByClub = new Map<string, number>();
-  for (const row of pointsRows ?? []) {
-    pointsByClub.set(row.club_id as string, Number(row.total_points) || 0);
-  }
-
   const ranked = activeClubs
     .map((row) => {
-      const basePoints = pointsByClub.get(row.id) ?? 0;
+      const basePoints = pointsByClub?.get(row.id) ?? 0;
       return {
         id: row.id,
         club_nombre: row.nombre as string,
