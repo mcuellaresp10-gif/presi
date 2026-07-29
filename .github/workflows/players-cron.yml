@@ -1,26 +1,23 @@
-# Ping production gameweek cron every 5 minutes (GitHub Actions minimum).
-# Full calendar sync is throttled server-side (~15m live / ~60m idle).
-# For ~30s intervals during live matchdays, use cron-job.org (or similar)
-# against the same endpoint with the CRON_SECRET header.
+# Full league player catalog sync + re-tier (transfers / rarity).
+# Keep off the page-load path — this can take several minutes.
 #
-# Required repo secrets:
-#   PROD_BASE_URL  — e.g. https://your-app.onrender.com
+# Required repo secrets (same as gameweek cron):
+#   PROD_BASE_URL  — e.g. https://presi.onrender.com
 #   CRON_SECRET    — must match process.env.CRON_SECRET on the server
-#
-# Optional: append ?forceCalendar=1 to force a full fixtures pull.
 
-name: Gameweek cron
+name: Players catalog cron
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    # Mondays 11:00 UTC ≈ 06:00 Colombia
+    - cron: "0 11 * * 1"
   workflow_dispatch:
 
 jobs:
-  tick:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      - name: POST /api/cron/gameweek
+      - name: POST /api/cron/players
         env:
           PROD_BASE_URL: ${{ secrets.PROD_BASE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -33,11 +30,12 @@ jobs:
             echo "Missing secret CRON_SECRET"
             exit 1
           fi
-          CODE=$(curl -sS -o /tmp/gw-cron.json -w "%{http_code}" \
-            -X POST "${PROD_BASE_URL%/}/api/cron/gameweek" \
+          CODE=$(curl -sS -o /tmp/players-cron.json -w "%{http_code}" \
+            --max-time 600 \
+            -X POST "${PROD_BASE_URL%/}/api/cron/players" \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             -H "Content-Type: application/json")
           echo "HTTP $CODE"
-          cat /tmp/gw-cron.json
+          cat /tmp/players-cron.json
           echo
           test "$CODE" = "200"

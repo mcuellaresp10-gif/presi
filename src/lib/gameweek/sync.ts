@@ -22,8 +22,14 @@ import {
   deriveGameweekStatus,
   isGameweekScoreable,
 } from "@/lib/gameweek/status";
+import { isFixtureFinished, isFixtureLive } from "@/lib/gameweek/format";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * Full league catalog sync + rarity re-tier from API-Football.
+ * Call from /api/cron/players (weekly) or scripts/evaluate-player-tiers.mjs --apply —
+ * never from the page-load path (too slow).
+ */
 export async function syncPlayersFromApi(
   supabase: SupabaseClient,
   leagueId = DEFAULT_LEAGUE_ID,
@@ -223,10 +229,68 @@ export async function syncCalendarFromApi(
   return result;
 }
 
+/** Minimum gap between full season calendar syncs (cron). */
+export const CALENDAR_SYNC_IDLE_MS = 60 * 60 * 1000;
+/** While a gameweek is live, refresh fixtures more often for FT/goals. */
+export const CALENDAR_SYNC_LIVE_MS = 15 * 60 * 1000;
+
+/**
+ * True if fixtures look stale enough to warrant another full calendar pull.
+ * Uses latest fixtures.updated_at (only calendar sync bulk-touches that column).
+ */
+export async function shouldSyncCalendar(
+  supabase: SupabaseClient,
+  minIntervalMs: number
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("fixtures")
+    .select("updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data?.updated_at) return true;
+  return Date.now() - new Date(data.updated_at).getTime() >= minIntervalMs;
+}
+
+/**
+ * Cron helper: full calendar at most hourly (15m while live), else status tick only.
+ */
+export async function syncCalendarIfDue(
+  supabase: SupabaseClient,
+  options: { force?: boolean } = {}
+) {
+  if (!isApiFootballConfigured()) {
+    await tickGameweekStatuses(supabase);
+    return { mode: "skip" as const, reason: "no_api_key" as const };
+  }
+
+  if (options.force) {
+    const result = await syncCalendarFromApi(supabase);
+    return { ...result, throttled: false as const };
+  }
+
+  const live = (await listLiveScoreableGameweeks(supabase)).length > 0;
+  const interval = live ? CALENDAR_SYNC_LIVE_MS : CALENDAR_SYNC_IDLE_MS;
+
+  if (!(await shouldSyncCalendar(supabase, interval))) {
+    await tickGameweekStatuses(supabase);
+    return {
+      mode: "skip" as const,
+      reason: "throttled" as const,
+      throttled: true as const,
+      intervalMs: interval,
+    };
+  }
+
+  const result = await syncCalendarFromApi(supabase);
+  return { ...result, throttled: false as const };
+}
+
 export async function listScoreableGameweeks(
   supabase: SupabaseClient,
   now = new Date()
-): Promise<Array<{ id: string }>> {
+): Promise<Array<{ id: string; status: "live" | "finished" }>> {
   // Use kickoff-derived status so a stale DB "upcoming" (or calendar
   // overwrite) still lets catch-up scoring run for live/recent GWs.
   const { data } = await supabase
@@ -255,15 +319,105 @@ export async function listScoreableGameweeks(
         now
       )
     )
+    .filter(
+      (gw): gw is typeof gw & { status: "live" | "finished" } =>
+        gw.status === "live" || gw.status === "finished"
+    )
+    .map((gw) => ({ id: gw.id, status: gw.status }));
+}
+
+/** Only jornadas currently in the live window (for light page-load ticks). */
+export async function listLiveScoreableGameweeks(
+  supabase: SupabaseClient,
+  now = new Date()
+): Promise<Array<{ id: string }>> {
+  return (await listScoreableGameweeks(supabase, now))
+    .filter((gw) => gw.status === "live")
     .map((gw) => ({ id: gw.id }));
 }
 
+const STATS_FETCH_CONCURRENCY = 4;
+const STATS_UPSERT_CHUNK = 120;
+/** Re-fetch finished fixtures if their last stats sync is older than this. */
+const FINISHED_STATS_STALE_MS = 6 * 60 * 60 * 1000;
+const FIXTURE_SKIP_STATUSES = new Set([
+  "PST",
+  "CANC",
+  "ABD",
+  "AWD",
+  "WO",
+  "NS",
+  "TBD",
+  "SUSP",
+]);
+
+async function mapPool<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const results = new Array<R>(items.length);
+  let next = 0;
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    async () => {
+      while (true) {
+        const index = next++;
+        if (index >= items.length) return;
+        results[index] = await fn(items[index]!, index);
+      }
+    }
+  );
+  await Promise.all(workers);
+  return results;
+}
+
+async function loadApiFootballIdMap(
+  supabase: SupabaseClient,
+  apiIds: number[]
+): Promise<Map<number, string>> {
+  const map = new Map<number, string>();
+  const unique = Array.from(new Set(apiIds.filter((id) => Number.isFinite(id))));
+  for (let i = 0; i < unique.length; i += 200) {
+    const chunk = unique.slice(i, i + 200);
+    const { data } = await supabase
+      .from("players_master")
+      .select("id, api_football_id")
+      .in("api_football_id", chunk);
+    for (const row of data ?? []) {
+      if (row.api_football_id != null) {
+        map.set(Number(row.api_football_id), row.id as string);
+      }
+    }
+  }
+  return map;
+}
+
+type FixtureStatsRow = {
+  id: string;
+  api_football_fixture_id: number;
+  gameweek_id: string;
+  home_team: string;
+  away_team: string;
+  home_goals: number | null;
+  away_goals: number | null;
+  status: string;
+};
+
+export type SyncLiveStatsOptions = {
+  /** When true, always re-fetch even if finished fixtures already have stats. */
+  force?: boolean;
+  concurrency?: number;
+};
+
 export async function syncLiveStatsFromApi(
   supabase: SupabaseClient,
-  gameweekIds?: string[]
+  gameweekIds?: string[],
+  options: SyncLiveStatsOptions = {}
 ) {
   if (!isApiFootballConfigured()) {
-    return { mode: "skip" as const };
+    return { mode: "skip" as const, fetched: 0, skipped: 0, upserted: 0 };
   }
 
   let targetIds = gameweekIds;
@@ -271,80 +425,142 @@ export async function syncLiveStatsFromApi(
     targetIds = (await listScoreableGameweeks(supabase)).map((g) => g.id);
   }
   if (targetIds.length === 0) {
-    return { mode: "skip" as const };
+    return { mode: "skip" as const, fetched: 0, skipped: 0, upserted: 0 };
   }
 
-  const { data: liveGameweeks } = await supabase
-    .from("gameweeks")
-    .select("id")
-    .in("id", targetIds);
+  const { data: fixtures } = await supabase
+    .from("fixtures")
+    .select(
+      "id, api_football_fixture_id, gameweek_id, home_team, away_team, home_goals, away_goals, status"
+    )
+    .in("gameweek_id", targetIds);
 
-  for (const gw of liveGameweeks ?? []) {
-    const { data: fixtures } = await supabase
-      .from("fixtures")
-      .select(
-        "id, api_football_fixture_id, gameweek_id, home_team, away_team, home_goals, away_goals"
-      )
-      .eq("gameweek_id", gw.id);
+  const allFixtures = (fixtures ?? []) as FixtureStatsRow[];
+  if (allFixtures.length === 0) {
+    return { mode: "api" as const, fetched: 0, skipped: 0, upserted: 0 };
+  }
 
-    for (const fixture of fixtures ?? []) {
-      let stats: Awaited<ReturnType<typeof fetchFixturePlayerStats>> = [];
-      try {
-        stats = await fetchFixturePlayerStats(fixture.api_football_fixture_id);
-      } catch (error) {
-        console.error(
-          "syncLiveStatsFromApi fixture failed",
-          fixture.api_football_fixture_id,
-          error
-        );
+  const fixtureIds = allFixtures.map((f) => f.id);
+  const { data: existingStats } = await supabase
+    .from("player_match_stats")
+    .select("fixture_id, updated_at")
+    .in("fixture_id", fixtureIds);
+
+  const latestByFixture = new Map<string, number>();
+  for (const row of existingStats ?? []) {
+    const ts = new Date(row.updated_at as string).getTime();
+    const prev = latestByFixture.get(row.fixture_id as string) ?? 0;
+    if (ts > prev) latestByFixture.set(row.fixture_id as string, ts);
+  }
+
+  const now = Date.now();
+  const toFetch: FixtureStatsRow[] = [];
+  let skipped = 0;
+
+  for (const fixture of allFixtures) {
+    if (FIXTURE_SKIP_STATUSES.has(fixture.status)) {
+      skipped += 1;
+      continue;
+    }
+
+    const finished = isFixtureFinished(fixture.status);
+    const live = isFixtureLive(fixture.status);
+    const lastSync = latestByFixture.get(fixture.id);
+
+    if (!options.force && finished && lastSync != null) {
+      // Finished match already scored recently — skip until stale.
+      if (now - lastSync < FINISHED_STATS_STALE_MS) {
+        skipped += 1;
         continue;
       }
+    }
 
-      for (const row of stats) {
-        const apiPlayerId = row?.player?.id;
-        if (apiPlayerId == null) continue;
+    // Not started / no useful window and not live/finished with data needed.
+    if (!finished && !live && lastSync != null) {
+      skipped += 1;
+      continue;
+    }
 
-        const { data: player } = await supabase
-          .from("players_master")
-          .select("id")
-          .eq("api_football_id", apiPlayerId)
-          .maybeSingle();
+    toFetch.push(fixture);
+  }
 
-        if (!player) continue;
+  const concurrency = options.concurrency ?? STATS_FETCH_CONCURRENCY;
+  const fetchedBlocks = await mapPool(toFetch, concurrency, async (fixture) => {
+    try {
+      const stats = await fetchFixturePlayerStats(fixture.api_football_fixture_id);
+      return { fixture, stats, error: null as Error | null };
+    } catch (error) {
+      console.error(
+        "syncLiveStatsFromApi fixture failed",
+        fixture.api_football_fixture_id,
+        error
+      );
+      return {
+        fixture,
+        stats: [] as Awaited<ReturnType<typeof fetchFixturePlayerStats>>,
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
+    }
+  });
 
-        const mapped = mapApiPlayerStatRow(row, {
-          homeTeam: fixture.home_team,
-          awayTeam: fixture.away_team,
-          homeGoals: fixture.home_goals,
-          awayGoals: fixture.away_goals,
-        });
-        if (!mapped) continue;
+  const apiPlayerIds: number[] = [];
+  for (const block of fetchedBlocks) {
+    for (const row of block.stats) {
+      const id = row?.player?.id;
+      if (id != null) apiPlayerIds.push(id);
+    }
+  }
+  const playerIdByApi = await loadApiFootballIdMap(supabase, apiPlayerIds);
 
-        const { error: upsertError } = await supabase
-          .from("player_match_stats")
-          .upsert(
-            {
-              fixture_id: fixture.id,
-              player_id: player.id,
-              gameweek_id: fixture.gameweek_id,
-              ...mapped,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "fixture_id,player_id" }
-          );
-        if (upsertError) {
-          console.error(
-            "player_match_stats upsert failed",
-            fixture.id,
-            player.id,
-            upsertError
-          );
-        }
-      }
+  const upsertRows: Record<string, unknown>[] = [];
+  const updatedAt = new Date().toISOString();
+
+  for (const block of fetchedBlocks) {
+    if (block.error || block.stats.length === 0) continue;
+    const { fixture } = block;
+    for (const row of block.stats) {
+      const apiPlayerId = row?.player?.id;
+      if (apiPlayerId == null) continue;
+      const playerId = playerIdByApi.get(apiPlayerId);
+      if (!playerId) continue;
+
+      const mapped = mapApiPlayerStatRow(row, {
+        homeTeam: fixture.home_team,
+        awayTeam: fixture.away_team,
+        homeGoals: fixture.home_goals,
+        awayGoals: fixture.away_goals,
+      });
+      if (!mapped) continue;
+
+      upsertRows.push({
+        fixture_id: fixture.id,
+        player_id: playerId,
+        gameweek_id: fixture.gameweek_id,
+        ...mapped,
+        updated_at: updatedAt,
+      });
     }
   }
 
-  return { mode: "api" as const };
+  let upserted = 0;
+  for (let i = 0; i < upsertRows.length; i += STATS_UPSERT_CHUNK) {
+    const chunk = upsertRows.slice(i, i + STATS_UPSERT_CHUNK);
+    const { error: upsertError } = await supabase
+      .from("player_match_stats")
+      .upsert(chunk, { onConflict: "fixture_id,player_id" });
+    if (upsertError) {
+      console.error("player_match_stats batch upsert failed", upsertError);
+    } else {
+      upserted += chunk.length;
+    }
+  }
+
+  return {
+    mode: "api" as const,
+    fetched: toFetch.length,
+    skipped,
+    upserted,
+  };
 }
 
 async function hasOpenGameweek(supabase: SupabaseClient): Promise<boolean> {
@@ -359,14 +575,20 @@ async function hasOpenGameweek(supabase: SupabaseClient): Promise<boolean> {
   );
 }
 
-/** Garantiza jornadas futuras sincronizadas desde la API (sin fechas inventadas). */
-export async function ensureOpenGameweek(supabase: SupabaseClient) {
-  if (await hasOpenGameweek(supabase)) return;
+/** Garantiza jornadas futuras. API sync solo si allowApiSync (p. ej. guardar alineación). */
+export async function ensureOpenGameweek(
+  supabase: SupabaseClient,
+  options: { allowApiSync?: boolean } = {}
+) {
+  if (await hasOpenGameweek(supabase)) return { synced: false as const };
 
-  if (isApiFootballConfigured()) {
-    await syncFixturesFromApi(supabase);
-    await tickGameweekStatuses(supabase);
+  if (!options.allowApiSync || !isApiFootballConfigured()) {
+    return { synced: false as const };
   }
+
+  await syncFixturesFromApi(supabase);
+  await tickGameweekStatuses(supabase);
+  return { synced: true as const };
 }
 
 export async function hasLiveGameweek(
@@ -390,65 +612,75 @@ export async function runGameweekStatusTick(
 }
 
 /**
- * Cron HTTP: sync de stats + puntos para jornadas `live` y
- * `finished` dentro de la ventana de catch-up (14 días).
+ * Cron HTTP: calendar (throttled) + stats/points for live and finished catch-up.
  */
 export async function runGameweekCronPipeline(
   supabase: SupabaseClient,
-  options: { skipCalendar?: boolean; gameweekIds?: string[] } = {}
+  options: {
+    skipCalendar?: boolean;
+    forceCalendar?: boolean;
+    gameweekIds?: string[];
+  } = {}
 ) {
-  if (!options.skipCalendar && isApiFootballConfigured()) {
-    await syncCalendarFromApi(supabase);
-  } else {
+  let calendar: Awaited<ReturnType<typeof syncCalendarIfDue>> | null = null;
+
+  if (options.skipCalendar) {
     await runGameweekStatusTick(supabase);
+  } else {
+    calendar = await syncCalendarIfDue(supabase, {
+      force: options.forceCalendar,
+    });
   }
 
   const scoreable = options.gameweekIds?.length
     ? options.gameweekIds.map((id) => ({ id }))
     : await listScoreableGameweeks(supabase);
   if (scoreable.length === 0) {
-    return { skipped: true as const, reason: "no_scoreable_gameweek" };
+    return {
+      skipped: true as const,
+      reason: "no_scoreable_gameweek",
+      calendar,
+    };
   }
 
   const ids = scoreable.map((g) => g.id);
-  await syncLiveStatsFromApi(supabase, ids);
+  const stats = await syncLiveStatsFromApi(supabase, ids);
 
   for (const gw of scoreable) {
     await processGameweekPointsAndContracts(supabase, gw.id);
   }
 
-  return { skipped: false as const, scoreableGameweeks: scoreable.length };
+  return {
+    skipped: false as const,
+    scoreableGameweeks: scoreable.length,
+    calendar,
+    stats,
+  };
 }
 
-/** Al abrir la app: sync jugadores + tick de estado + stats/puntos si corresponde. */
+/**
+ * Al abrir la app: solo status + stats/puntos si hay jornada **live**.
+ * Calendario completo y catch-up finished → cron (solutions #2–#3).
+ */
 export async function runPageLoadGameweekTick(supabase: SupabaseClient) {
-  if (isApiFootballConfigured()) {
-    await syncPlayersFromApi(supabase);
-  }
-
-  await ensureOpenGameweek(supabase);
   await runGameweekStatusTick(supabase);
 
-  const scoreable = await listScoreableGameweeks(supabase);
-  if (scoreable.length === 0) {
-    return { skipped: true as const, reason: "no_scoreable_gameweek" };
+  const live = await listLiveScoreableGameweeks(supabase);
+  if (live.length === 0) {
+    return { skipped: true as const, reason: "no_live_gameweek" };
   }
 
-  const ids = scoreable.map((g) => g.id);
+  const ids = live.map((g) => g.id);
   await syncLiveStatsFromApi(supabase, ids);
 
-  for (const gw of scoreable) {
+  for (const gw of live) {
     await processGameweekPointsAndContracts(supabase, gw.id);
   }
 
-  return { skipped: false as const, scoreableGameweeks: scoreable.length };
+  return { skipped: false as const, scoreableGameweeks: live.length };
 }
 
 /** @deprecated Usar runGameweekCronPipeline o runPageLoadGameweekTick */
 export async function runGameweekPipeline(supabase: SupabaseClient) {
-  if (isApiFootballConfigured()) {
-    await syncPlayersFromApi(supabase);
-  }
-  await syncFixturesFromApi(supabase);
-  return runGameweekCronPipeline(supabase);
+  return runGameweekCronPipeline(supabase, { forceCalendar: true });
 }

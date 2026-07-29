@@ -11,8 +11,8 @@ const SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const LIVE_SYNC_INTERVAL_MS = 3 * 60 * 1000;
 
 /**
- * Background gameweek sync so home VS can show points for live
- * and recently finished jornadas (catch-up scoring).
+ * Background gameweek sync: live status/stats only.
+ * Full calendar + finished catch-up → /api/cron/gameweek (throttled calendar).
  */
 export function GameweekBackgroundSync({
   live = false,

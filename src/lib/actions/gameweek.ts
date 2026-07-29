@@ -167,7 +167,8 @@ export async function resolveGameweekForDraftSave(): Promise<GameweekPublic | nu
   if (found) return found;
 
   const supabase = createServiceRoleClient();
-  await ensureOpenGameweek(supabase);
+  // Rare path: no upcoming GW in DB — one calendar pull so the user can save.
+  await ensureOpenGameweek(supabase, { allowApiSync: true });
 
   return findGameweekForDraftSave();
 }
@@ -221,6 +222,11 @@ const repairCalendarIfStale = unstable_cache(
   { revalidate: 3600 }
 );
 
+/** @deprecated Prefer cron `/api/cron/gameweek`; kept for manual/admin use. */
+export async function repairStaleCalendar() {
+  return repairCalendarIfStale();
+}
+
 export async function isGameweekEditable(
   gameweek: GameweekPublic,
   clubId: string
@@ -263,8 +269,7 @@ export async function getPlantillaLineupState() {
 }
 
 export const getClubGameweekSummary = cache(async function getClubGameweekSummary() {
-  await repairCalendarIfStale();
-
+  // Calendar repair is cron-only (solution #3) — never block home SSR.
   const club = await getUserClub();
   if (!club) return null;
 
@@ -380,9 +385,7 @@ export async function getClubsGameweekPoints(
 export async function triggerGameweekSync() {
   try {
     const supabase = createServiceRoleClient();
-    if (process.env.API_FOOTBALL_KEY?.trim()) {
-      await syncCalendarFromApi(supabase);
-    }
+    // Page path: no full calendar sync (cron owns that). Light live tick only.
     const result = await runPageLoadGameweekTick(supabase);
     revalidatePath("/inicio");
     revalidatePath("/ranking");

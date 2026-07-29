@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
     const skipCalendar =
       request.nextUrl.searchParams.get("skipCalendar") === "1" ||
       request.headers.get("x-skip-calendar") === "1";
+    const forceCalendar =
+      request.nextUrl.searchParams.get("forceCalendar") === "1" ||
+      request.headers.get("x-force-calendar") === "1";
     let gameweekIds: string[] | undefined;
     try {
       const body = (await request.json()) as { gameweekIds?: string[] };
@@ -27,6 +30,7 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceRoleClient();
     const result = await runGameweekCronPipeline(supabase, {
       skipCalendar,
+      forceCalendar,
       gameweekIds,
     });
     return NextResponse.json(result);
