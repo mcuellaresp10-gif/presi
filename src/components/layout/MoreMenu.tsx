@@ -6,21 +6,17 @@ import {
   BookOpen,
   CalendarDays,
   Copy,
-  Download,
   LogOut,
   Sparkles,
-  Smartphone,
   Trophy,
   User,
 } from "lucide-react";
 import { CloseButton } from "@/components/ui/close-button";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import type { ProfileSummary } from "@/lib/actions/profile";
-import { InstallAppInstructions } from "@/components/layout/InstallAppInstructions";
 import { DeleteAccountControls } from "@/components/account/DeleteAccountControls";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
-import { isStandaloneDisplay } from "@/lib/pwa/install-prompt";
 import { requestHowToTourReplay } from "@/lib/help/tour-storage";
 
 const MORE_ITEMS = [
@@ -42,8 +38,6 @@ export function MoreMenu({
 }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [installOpen, setInstallOpen] = useState(false);
-  const showInstallEntry = !isStandaloneDisplay();
 
   useEffect(() => {
     if (!open) return;
@@ -120,18 +114,6 @@ export function MoreMenu({
             Repetir tour
           </button>
 
-          {showInstallEntry ? (
-            <button
-              type="button"
-              onClick={() => setInstallOpen((open) => !open)}
-              className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/5"
-            >
-              <Smartphone className="h-5 w-5 shrink-0 text-presi-gold/70" />
-              Instalar app
-              <Download className="ml-auto h-4 w-4 text-white/40" />
-            </button>
-          ) : null}
-
           <form action="/auth/signout" method="post" className="mt-2 px-1">
             <button
               type="submit"
@@ -153,22 +135,6 @@ export function MoreMenu({
             </Link>
           </div>
         </nav>
-
-        <div className="border-t border-white/10 px-4 py-4">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/40">
-            {showInstallEntry && installOpen ? "Instalar PRESI" : "App"}
-          </p>
-          {showInstallEntry && installOpen ? (
-            <InstallAppInstructions compact showNativeButton />
-          ) : showInstallEntry ? (
-            <p className="text-xs text-white/50">
-              Toca <span className="font-semibold text-white">Instalar app</span>{" "}
-              arriba para ver cómo agregar PRESI a tu inicio.
-            </p>
-          ) : (
-            <InstallAppInstructions compact showNativeButton={false} />
-          )}
-        </div>
 
         <div className="border-t border-white/10 px-4 py-3">
           <button

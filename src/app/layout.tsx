@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { ToastContextProvider } from "@/components/ui/use-toast";
-import { PwaInstallCapture } from "@/components/layout/PwaInstallCapture";
 
 const displayFont = Bebas_Neue({
   weight: "400",
@@ -49,10 +48,7 @@ export default function RootLayout({
       <body
         className={`${displayFont.variable} ${bodyFont.variable} poster-bg antialiased text-white`}
       >
-        <ToastContextProvider>
-          <PwaInstallCapture />
-          {children}
-        </ToastContextProvider>
+        <ToastContextProvider>{children}</ToastContextProvider>
       </body>
     </html>
   );

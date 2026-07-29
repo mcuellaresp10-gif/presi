@@ -11,15 +11,5 @@ export const scoutingDockBottom = bottomNavOffset;
 /** Padding inferior del main en /inicio (nav + barra scouting). */
 export const homeContentBottomPadding = `calc(${bottomNavOffset} + ${SCOUTING_DOCK_HEIGHT} + ${DOCK_STACK_GAP})`;
 
-export const installPromptBottom = (
-  withScoutingDock: boolean
-): string => {
-  if (!withScoutingDock) {
-    return `calc(${bottomNavOffset} + ${DOCK_STACK_GAP})`;
-  }
-  return `calc(${bottomNavOffset} + ${SCOUTING_DOCK_HEIGHT} + ${DOCK_STACK_GAP})`;
-};
-
 export const Z_BOTTOM_NAV = 50;
 export const Z_SCOUTING_DOCK = 60;
-export const Z_INSTALL_PROMPT = 75;
