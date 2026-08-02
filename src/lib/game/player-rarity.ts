@@ -1,4 +1,10 @@
 import type { Position, Rarity } from "./types";
+import {
+  formatApiPlayerName,
+  type ApiLeaguePlayerRow,
+} from "@/lib/api-football/client";
+
+export type { ApiLeaguePlayerRow };
 
 export const MIN_PLAYER_COST = 500_000;
 export const MAX_PLAYER_COST = 5_000_000;
@@ -189,28 +195,6 @@ export function getOvrForScore(rareza: Rarity, score: number): number {
   return Math.round(min + normalized * (max - min));
 }
 
-export type ApiLeaguePlayerRow = {
-  player: { id: number; name: string; photo: string | null };
-  statistics: Array<{
-    league?: { id?: number | null } | null;
-    games?: {
-      minutes?: number | null;
-      appearences?: number | null;
-      position?: string | null;
-    } | null;
-    goals?: {
-      total?: number | null;
-      assists?: number | null;
-      conceded?: number | null;
-      saves?: number | null;
-    } | null;
-    passes?: { key?: number | null } | null;
-    tackles?: { total?: number | null } | null;
-    duels?: { won?: number | null } | null;
-    team?: { name?: string | null } | null;
-  }>;
-};
-
 export function parseApiLeaguePlayerRow(
   row: ApiLeaguePlayerRow,
   leagueId: number,
@@ -229,7 +213,7 @@ export function parseApiLeaguePlayerRow(
 
   return {
     apiFootballId: row.player.id,
-    nombre: row.player.name,
+    nombre: formatApiPlayerName(row.player),
     equipo,
     posicion,
     photo: row.player.photo,

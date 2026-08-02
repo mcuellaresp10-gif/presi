@@ -1,12 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { pickScoutingPlayerFromDb } from "@/lib/db/player-pool";
 import {
   applySigningDiscount,
   canAddPlayer,
   countPositions,
   createMathRng,
-  generateScoutingReward,
   getInitialContractFields,
   getNextScoutingDeadline,
   isScoutingPackReady,
@@ -16,13 +15,15 @@ import {
   canClaimWildCard,
   getWildCardChance,
   getWildCardDefinition,
+  rollScoutingRewardKind,
+  rollWildCardType,
   type WildCardType,
 } from "@/lib/game/wild-cards";
 import type { Player } from "@/lib/game/types";
 import { getUserClub } from "@/lib/actions/club";
 import { getOfficeDiscountForClub } from "@/lib/actions/facilities";
 import { createClient } from "@/lib/supabase/server";
-import { getAvailableApiPlayerPool } from "@/lib/db/player-pool";
+import { revalidatePath } from "next/cache";
 
 export type ScoutingRewardState =
   | { kind: "player"; player: Player }
@@ -71,17 +72,10 @@ async function getRosterPlayers(
 ): Promise<Player[]> {
   const { data } = await supabase
     .from("club_roster")
-    .select("players_master(*)")
+    .select("players_master(id, posicion, rareza, costo_base, nombre)")
     .eq("club_id", clubId);
 
   return (data ?? []).map((r) => r.players_master as unknown as Player);
-}
-
-async function getAvailablePool(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  roster: Player[]
-): Promise<Player[]> {
-  return getAvailableApiPlayerPool(supabase, roster);
 }
 
 async function getAvailableWildCardTypes(
@@ -182,33 +176,17 @@ async function ensurePackReady(
   }
 
   if (pack.estado === "timer" && isScoutingPackReady(pack.genera_en)) {
-    const roster = await getRosterPlayers(supabase, clubId);
-    const pool = await getAvailablePool(supabase, roster);
-    const minRarity = await getClubScoutingMinRarity(supabase, clubId);
+    const rng = createMathRng();
+    const rewardKind = rollScoutingRewardKind(hinchasNivel, rng);
 
-    const reward = generateScoutingReward(
-      pool,
-      countPositions(roster),
-      scoutingNivel,
-      createMathRng(),
-      { minRarity, hinchasNivel }
-    );
-
-    if (minRarity) {
-      await clearClubScoutingMinRarity(supabase, clubId);
-    }
-
-    if (!reward) {
-      return pack;
-    }
-
-    if (reward.kind === "wild_card") {
+    if (rewardKind === "wild_card") {
+      const cardType = rollWildCardType(rng);
       const { data: updated } = await supabase
         .from("scouting_packs")
         .update({
           player_id: null,
           reward_type: "wild_card",
-          wild_card_type: reward.cardType,
+          wild_card_type: cardType,
           estado: "listo",
           updated_at: new Date().toISOString(),
         })
@@ -218,10 +196,31 @@ async function ensurePackReady(
       return updated;
     }
 
+    const roster = await getRosterPlayers(supabase, clubId);
+    const rosterCounts = countPositions(roster);
+    const minRarity = await getClubScoutingMinRarity(supabase, clubId);
+
+    const player = await pickScoutingPlayerFromDb(
+      supabase,
+      roster,
+      rosterCounts,
+      scoutingNivel,
+      rng,
+      { minRarity }
+    );
+
+    if (minRarity) {
+      await clearClubScoutingMinRarity(supabase, clubId);
+    }
+
+    if (!player) {
+      return pack;
+    }
+
     const { data: updated } = await supabase
       .from("scouting_packs")
       .update({
-        player_id: reward.player.id,
+        player_id: player.id,
         reward_type: "player",
         wild_card_type: null,
         estado: "listo",
@@ -273,8 +272,10 @@ export async function getScoutingState() {
   if (!club) return null;
 
   const supabase = await createClient();
-  const scoutingNivel = await getScoutingNivel(supabase, club.id);
-  const hinchasNivel = await getHinchasNivel(supabase, club.id);
+  const [scoutingNivel, hinchasNivel] = await Promise.all([
+    getScoutingNivel(supabase, club.id),
+    getHinchasNivel(supabase, club.id),
+  ]);
   const wildCardChancePct = Math.round(getWildCardChance(hinchasNivel) * 1000) / 10;
 
   const { data: initialPack, error: packError } = await supabase
@@ -350,8 +351,10 @@ export async function claimScoutingPlayer() {
   if (!club) return { error: "No tienes club." };
 
   const supabase = await createClient();
-  const scoutingNivel = await getScoutingNivel(supabase, club.id);
-  const hinchasNivel = await getHinchasNivel(supabase, club.id);
+  const [scoutingNivel, hinchasNivel] = await Promise.all([
+    getScoutingNivel(supabase, club.id),
+    getHinchasNivel(supabase, club.id),
+  ]);
 
   const pack = await ensurePackReady(
     supabase,
@@ -385,12 +388,11 @@ export async function claimScoutingPlayer() {
 
     revalidatePath("/instalaciones");
     revalidatePath("/inicio");
-    revalidatePath("/perfil");
-    revalidatePath("/plantilla");
 
     return {
-      success: true,
+      success: true as const,
       wildCard: getWildCardDefinition(pack.wild_card_type as WildCardType),
+      generaEn: getNextScoutingDeadline(scoutingNivel).toISOString(),
     };
   }
 
@@ -398,15 +400,18 @@ export async function claimScoutingPlayer() {
     return { error: "No hay recompensa en el sobre." };
   }
 
-  const { data: player } = await supabase
-    .from("players_master")
-    .select("*")
-    .eq("id", pack.player_id)
-    .single();
+  const [{ data: player }, officeDiscount, roster] = await Promise.all([
+    supabase
+      .from("players_master")
+      .select("*")
+      .eq("id", pack.player_id)
+      .single(),
+    getOfficeDiscountForClub(club.id),
+    getRosterPlayers(supabase, club.id),
+  ]);
 
   if (!player) return { error: "Jugador no encontrado." };
 
-  const officeDiscount = await getOfficeDiscountForClub(club.id);
   const finalCost = applySigningDiscount(
     Number(player.costo_base),
     officeDiscount
@@ -416,7 +421,6 @@ export async function claimScoutingPlayer() {
     return { error: "Presupuesto insuficiente." };
   }
 
-  const roster = await getRosterPlayers(supabase, club.id);
   const addCheck = canAddPlayer(roster, player as Player);
   if (!addCheck.ok) return { error: addCheck.reason };
 
@@ -435,13 +439,64 @@ export async function claimScoutingPlayer() {
     .update({ presupuesto: newBudget })
     .eq("id", club.id);
 
-  await scheduleNextPack(supabase, club.id, scoutingNivel);
+  const generaEn = getNextScoutingDeadline(scoutingNivel).toISOString();
+  await supabase
+    .from("scouting_packs")
+    .update({
+      genera_en: generaEn,
+      player_id: null,
+      reward_type: "player",
+      wild_card_type: null,
+      estado: "timer",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("club_id", club.id);
 
   revalidatePath("/instalaciones");
   revalidatePath("/inicio");
-  revalidatePath("/plantilla");
 
-  return { success: true, player };
+  return {
+    success: true as const,
+    player,
+    presupuesto: newBudget,
+    generaEn,
+  };
+}
+
+export async function prepareScoutingReward() {
+  const club = await getUserClub();
+  if (!club) return { error: "No tienes club." };
+
+  const supabase = await createClient();
+  const [scoutingNivel, hinchasNivel] = await Promise.all([
+    getScoutingNivel(supabase, club.id),
+    getHinchasNivel(supabase, club.id),
+  ]);
+
+  const pack = await ensurePackReady(
+    supabase,
+    club.id,
+    scoutingNivel,
+    hinchasNivel
+  );
+  if (!pack) {
+    return { error: "No hay pack de scouting." };
+  }
+
+  const reward = await resolveScoutingReward(supabase, pack);
+  const wildCardChancePct =
+    Math.round(getWildCardChance(hinchasNivel) * 1000) / 10;
+
+  return {
+    success: true as const,
+    estado: pack.estado as "timer" | "listo" | "reclamado",
+    generaEn: pack.genera_en as string,
+    player: reward?.kind === "player" ? reward.player : null,
+    wildCardType: reward?.kind === "wild_card" ? reward.cardType : null,
+    scoutingNivel,
+    wildCardChancePct,
+    presupuesto: Number(club.presupuesto),
+  };
 }
 
 export async function rejectScoutingPlayer() {
@@ -449,8 +504,10 @@ export async function rejectScoutingPlayer() {
   if (!club) return { error: "No tienes club." };
 
   const supabase = await createClient();
-  const scoutingNivel = await getScoutingNivel(supabase, club.id);
-  const hinchasNivel = await getHinchasNivel(supabase, club.id);
+  const [scoutingNivel, hinchasNivel] = await Promise.all([
+    getScoutingNivel(supabase, club.id),
+    getHinchasNivel(supabase, club.id),
+  ]);
 
   const pack = await ensurePackReady(
     supabase,
@@ -462,11 +519,21 @@ export async function rejectScoutingPlayer() {
     return { error: "No hay sobre de scouting listo." };
   }
 
-  await scheduleNextPack(supabase, club.id, scoutingNivel);
+  const generaEn = getNextScoutingDeadline(scoutingNivel).toISOString();
+  await supabase
+    .from("scouting_packs")
+    .update({
+      genera_en: generaEn,
+      player_id: null,
+      reward_type: "player",
+      wild_card_type: null,
+      estado: "timer",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("club_id", club.id);
 
   revalidatePath("/instalaciones");
   revalidatePath("/inicio");
-  revalidatePath("/perfil");
 
-  return { success: true };
+  return { success: true as const, generaEn };
 }

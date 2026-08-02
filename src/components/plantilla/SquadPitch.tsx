@@ -22,6 +22,7 @@ export function SquadPitch({
   captainId,
   lineupLocked,
   draggingPlayerId,
+  seasonPointsByPlayerId,
   onPlayerClick,
   onDragStart,
   onDragEnd,
@@ -35,6 +36,7 @@ export function SquadPitch({
   captainId?: string | null;
   lineupLocked?: boolean;
   draggingPlayerId?: string | null;
+  seasonPointsByPlayerId?: Record<string, number>;
   onPlayerClick: (player: Player) => void;
   onDragStart: (
     e: React.DragEvent,
@@ -102,6 +104,10 @@ export function SquadPitch({
                       player={player as Player & { equipo_real: string }}
                       escudoConfig={escudoConfig}
                       isCaptain={player.id === captainId}
+                      showGameweekPoints
+                      gameweekPoints={
+                        seasonPointsByPlayerId?.[player.id] ?? 0
+                      }
                       draggable={!lineupLocked}
                       onDragStart={(e) =>
                         onDragStart(e, player.id, {

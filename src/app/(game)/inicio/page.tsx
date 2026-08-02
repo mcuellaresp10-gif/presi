@@ -10,7 +10,7 @@ import {
   getClubsGameweekPoints,
 } from "@/lib/actions/gameweek";
 import { getGlobalRanking } from "@/lib/actions/leagues";
-import { getRivalLineupPreview } from "@/lib/actions/rival-lineup";
+import { getClubLineupPreview, getRivalLineupPreview } from "@/lib/actions/rival-lineup";
 import { getScoutingState } from "@/lib/actions/scouting";
 import { getVsRivalryState } from "@/lib/actions/vs-rewards";
 import { getNextScoutingDeadline } from "@/lib/game";
@@ -52,9 +52,12 @@ export default async function InicioPage() {
         )[rivalEntry.id] ?? 0
       : 0;
 
-  const rivalPreview = rivalEntry?.id
-    ? await getRivalLineupPreview(rivalEntry.id)
-    : null;
+  const [rivalPreview, myLineupPreview] = await Promise.all([
+    rivalEntry?.id
+      ? getRivalLineupPreview(rivalEntry.id, pointsGameweekId)
+      : Promise.resolve(null),
+    getClubLineupPreview(club.id, pointsGameweekId),
+  ]);
 
   const scoutingState = scouting?.pack
     ? {
@@ -96,6 +99,7 @@ export default async function InicioPage() {
         rivalPoints={rivalGwPoints}
         rivalEscudo={(rivalEntry?.escudo_config as EscudoConfig) ?? null}
         rivalLineupPreview={rivalPreview}
+        myLineupPreview={myLineupPreview}
         contractsExpiringSoon={contractsSummary?.expiringSoon ?? 0}
         nextIncomeTickAt={overview?.nextIncomeTickAt ?? null}
         incomeIntervalHours={overview?.incomeIntervalHours ?? 6}
@@ -108,7 +112,10 @@ export default async function InicioPage() {
         vsStreakTarget={vsState?.streakTarget ?? 5}
         vsWinGems={vsState?.winGems ?? 40}
       />
-      <PlayerDiscoveryDock state={scoutingState} />
+      <PlayerDiscoveryDock
+        state={scoutingState}
+        escudoConfig={club.escudo_config as EscudoConfig}
+      />
       <GameweekBackgroundSync live={isLive} />
       {vsState?.pendingStreakReward ? (
         <VsStreakRewardModal reward={vsState.pendingStreakReward} />

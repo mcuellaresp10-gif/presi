@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, Crown } from "lucide-react";
 import { CloseButton } from "@/components/ui/close-button";
 import { HelpTip } from "@/components/help/HelpTip";
@@ -59,13 +61,19 @@ export function PointsBreakdownSheet({
   onBack: () => void;
   onClose: () => void;
 }) {
-  if (!open || !playerBreakdown) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !playerBreakdown || !mounted) return null;
 
   const player = playerBreakdown.player;
   const lines = playerBreakdown.lines ?? [];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[80] flex items-end justify-center">
       <button
         type="button"
         aria-label="Cerrar"
@@ -171,6 +179,7 @@ export function PointsBreakdownSheet({
           </ul>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AcademyUIState } from "@/components/facilities/AcademyPackCard";
 import {
@@ -14,6 +14,7 @@ import { FacilityDetailSheet } from "@/components/facilities/FacilityDetailSheet
 import { PassiveIncomeBanner } from "@/components/facilities/PassiveIncomeBanner";
 import type { ScoutingUIState } from "@/components/scouting/ScoutingPackCard";
 import { startFacilityUpgrade } from "@/lib/actions/facilities";
+import { prepareScoutingReward } from "@/lib/actions/scouting";
 import {
   MAX_CONCURRENT_UPGRADES,
   getFacilityUpgradeProgress,
@@ -21,6 +22,7 @@ import {
 } from "@/lib/game";
 import type { Facility, FacilityType } from "@/lib/game/types";
 import { HelpTip } from "@/components/help/HelpTip";
+import { emitWalletUpdate } from "@/lib/wallet-events";
 
 type UpgradeInfo = {
   cost: number;
@@ -69,13 +71,19 @@ export function FacilitiesClient({
 }) {
   const router = useRouter();
   const refreshedUpgradesRef = useRef<Set<string>>(new Set());
+  const preparingScoutRef = useRef(false);
   const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<FacilityType | null>(null);
+  const [localScouting, setLocalScouting] = useState(scoutingState);
 
   const scoutingFacility = facilities.find((f) => f.tipo === "scouting");
   const academyFacility = facilities.find((f) => f.tipo === "academia");
+
+  useEffect(() => {
+    setLocalScouting(scoutingState);
+  }, [scoutingState]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -104,6 +112,28 @@ export function FacilitiesClient({
     }
   }, [facilities, now, router]);
 
+  const prepareScout = useCallback(async () => {
+    if (preparingScoutRef.current) return;
+    preparingScoutRef.current = true;
+    try {
+      const result = await prepareScoutingReward();
+      if ("success" in result && result.success) {
+        setLocalScouting((prev) => ({
+          ...prev,
+          estado: result.estado,
+          generaEn: result.generaEn,
+          player: result.player,
+          wildCardType: result.wildCardType,
+          scoutingNivel: result.scoutingNivel,
+          wildCardChancePct: result.wildCardChancePct,
+          presupuesto: result.presupuesto,
+        }));
+      }
+    } finally {
+      preparingScoutRef.current = false;
+    }
+  }, []);
+
   useEffect(() => {
     const hasTimedUpgrade = facilities.some((f) => {
       if (!f.mejora_termina_en) return false;
@@ -111,17 +141,21 @@ export function FacilitiesClient({
       return end > now;
     });
 
-    const packTimer =
-      (scoutingState.estado === "timer" &&
-        new Date(scoutingState.generaEn).getTime() > now) ||
-      (academyState.estado === "timer" &&
-        new Date(academyState.generaEn).getTime() > now);
+    const academyTimer =
+      academyState.estado === "timer" &&
+      new Date(academyState.generaEn).getTime() > now;
 
-    if (!hasTimedUpgrade && !packTimer) return;
+    if (!hasTimedUpgrade && !academyTimer) return;
 
     const poll = setInterval(() => router.refresh(), 30000);
     return () => clearInterval(poll);
-  }, [facilities, now, router, scoutingState, academyState]);
+  }, [facilities, now, router, academyState]);
+
+  useEffect(() => {
+    if (localScouting.estado !== "timer") return;
+    if (new Date(localScouting.generaEn).getTime() > now) return;
+    void prepareScout();
+  }, [localScouting.estado, localScouting.generaEn, now, prepareScout]);
 
   function selectBuilding(tipo: FacilityType) {
     setSelected(tipo);
@@ -147,6 +181,36 @@ export function FacilitiesClient({
     setLoading(null);
   }
 
+  function handleScoutClaimed(payload: {
+    presupuesto?: number;
+    generaEn?: string;
+  }) {
+    if (typeof payload.presupuesto === "number") {
+      emitWalletUpdate({ presupuesto: payload.presupuesto });
+    }
+    setLocalScouting((prev) => ({
+      ...prev,
+      estado: "timer",
+      generaEn: payload.generaEn ?? prev.generaEn,
+      player: null,
+      wildCardType: null,
+      presupuesto:
+        typeof payload.presupuesto === "number"
+          ? payload.presupuesto
+          : prev.presupuesto,
+    }));
+  }
+
+  function handleScoutRejected(payload: { generaEn?: string }) {
+    setLocalScouting((prev) => ({
+      ...prev,
+      estado: "timer",
+      generaEn: payload.generaEn ?? prev.generaEn,
+      player: null,
+      wildCardType: null,
+    }));
+  }
+
   function getUpgradeRemaining(facility: Facility | undefined) {
     if (!facility?.mejora_termina_en) return 0;
     return getRemainingMs({
@@ -165,8 +229,8 @@ export function FacilitiesClient({
   const academyUpgrading = !!academyUpgradeProgress;
 
   const scoutingReady =
-    scoutingState.estado === "listo" &&
-    (!!scoutingState.player || !!scoutingState.wildCardType);
+    localScouting.estado === "listo" &&
+    (!!localScouting.player || !!localScouting.wildCardType);
   const academyReady =
     academyState.estado === "listo" && !!academyState.player;
 
@@ -271,7 +335,7 @@ export function FacilitiesClient({
         open={!!selected}
         tipo={selected}
         facilities={facilities}
-        scoutingState={scoutingState}
+        scoutingState={localScouting}
         academyState={academyState}
         loading={loading}
         presupuesto={presupuesto}
@@ -286,6 +350,9 @@ export function FacilitiesClient({
         wildCards={wildCards}
         rosterPlayers={rosterPlayers}
         escudoConfig={escudoConfig}
+        onScoutingPrepare={prepareScout}
+        onScoutingClaimed={handleScoutClaimed}
+        onScoutingRejected={handleScoutRejected}
       />
     </>
   );

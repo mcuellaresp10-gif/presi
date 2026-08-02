@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { collectPassiveIncome } from "@/lib/actions/facilities";
 import { formatRemainingTime } from "@/lib/game";
+import { emitWalletUpdate } from "@/lib/wallet-events";
 import { formatCompactMoney } from "@/lib/utils";
 
 export function PassiveIncomeBanner({
@@ -29,11 +29,12 @@ export function PassiveIncomeBanner({
   weeklyIncome: number;
   weeklyGems: number;
 }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<number | null>(null);
+  const [collected, setCollected] = useState(false);
+  const [localNextTick, setLocalNextTick] = useState(nextIncomeTickAt);
 
   useEffect(() => {
     setMounted(true);
@@ -42,13 +43,21 @@ export function PassiveIncomeBanner({
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    setLocalNextTick(nextIncomeTickAt);
+    if (pendingAmount <= 0 && pendingGems <= 0) {
+      setCollected(false);
+    }
+  }, [nextIncomeTickAt, pendingAmount, pendingGems]);
+
   const intervalHours = Math.round(incomeIntervalHours);
-  const hasPending = pendingAmount > 0 || pendingGems > 0;
+  const hasPending =
+    !collected && (pendingAmount > 0 || pendingGems > 0);
   const showCollect = mounted && hasPending;
 
   const nextTickMs =
-    mounted && now !== null && nextIncomeTickAt
-      ? Math.max(0, new Date(nextIncomeTickAt).getTime() - now)
+    mounted && now !== null && localNextTick
+      ? Math.max(0, new Date(localNextTick).getTime() - now)
       : null;
 
   async function handleCollect() {
@@ -60,7 +69,16 @@ export function PassiveIncomeBanner({
         setError(result.error);
         return;
       }
-      router.refresh();
+      if ("success" in result && result.success) {
+        setCollected(true);
+        if (result.nextIncomeTickAt) {
+          setLocalNextTick(result.nextIncomeTickAt);
+        }
+        emitWalletUpdate({
+          presupuesto: result.presupuesto,
+          gemas: result.gemas,
+        });
+      }
     } catch {
       setError("Error de conexión. Intenta de nuevo.");
     } finally {

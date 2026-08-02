@@ -1,10 +1,6 @@
 import { redirect } from "next/navigation";
-import { GameweekBackgroundSync } from "@/components/home/GameweekBackgroundSync";
 import { PlantillaClient } from "./PlantillaClient";
-import {
-  getLineupDraftForClub,
-  getPlantillaLineupState,
-} from "@/lib/actions/gameweek";
+import { getPlantillaLineupState } from "@/lib/actions/gameweek";
 import { getWildCardInventory } from "@/lib/actions/wild-cards";
 import { requireOnboardingComplete } from "@/lib/auth/guards";
 import { getClubRoster } from "@/lib/db/queries";
@@ -13,6 +9,7 @@ import type { EscudoConfig } from "@/lib/game/types";
 export default async function PlantillaPage() {
   await requireOnboardingComplete();
 
+  // Single parallel wave — no expires, no season-points SSR, draft inside lineup state.
   const [data, lineupState, wildCards] = await Promise.all([
     getClubRoster(),
     getPlantillaLineupState(),
@@ -23,30 +20,26 @@ export default async function PlantillaPage() {
     redirect("/onboarding/crear-club");
   }
 
-  const draft = lineupState?.editingGameweek
-    ? await getLineupDraftForClub(lineupState.editingGameweek.id)
-    : null;
+  const draft = lineupState?.draft ?? null;
 
   return (
-    <>
-      <PlantillaClient
-        players={data.players}
-        escudoConfig={(data.club.escudo_config as EscudoConfig) ?? null}
-        usedBudget={data.usedBudget}
-        totalBudget={data.totalBudget}
-        remainingBudget={data.remainingBudget}
-        gameweekRound={lineupState?.displayRound ?? null}
-        editingGameweekRound={lineupState?.editingRound ?? null}
-        deadlineAt={lineupState?.deadlineAt ?? null}
-        isLineupLocked={lineupState?.isLineupLocked ?? false}
-        initialStarterIds={draft?.starterIds ?? []}
-        initialBenchIds={draft?.benchIds ?? []}
-        initialCaptainId={draft?.captainId ?? null}
-        initialFormation={draft?.formation ?? "4-4-2"}
-        editingGameweekId={lineupState?.editingGameweek?.id ?? null}
-        wildCards={wildCards}
-      />
-      <GameweekBackgroundSync />
-    </>
+    <PlantillaClient
+      players={data.players}
+      escudoConfig={(data.club.escudo_config as EscudoConfig) ?? null}
+      usedBudget={data.usedBudget}
+      totalBudget={data.totalBudget}
+      remainingBudget={data.remainingBudget}
+      gameweekRound={lineupState?.displayRound ?? null}
+      editingGameweekRound={lineupState?.editingRound ?? null}
+      deadlineAt={lineupState?.deadlineAt ?? null}
+      isLineupLocked={lineupState?.isLineupLocked ?? false}
+      initialStarterIds={draft?.starterIds ?? []}
+      initialBenchIds={draft?.benchIds ?? []}
+      initialCaptainId={draft?.captainId ?? null}
+      initialFormation={draft?.formation ?? "4-4-2"}
+      editingGameweekId={lineupState?.editingGameweek?.id ?? null}
+      wildCards={wildCards}
+      clubId={data.club.id}
+    />
   );
 }

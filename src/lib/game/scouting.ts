@@ -42,7 +42,7 @@ function positionWeight(
   return Math.pow(remaining, 2);
 }
 
-function pickWeightedPosition(
+export function pickWeightedPosition(
   rosterCounts: PositionCounts,
   rng: RNG
 ): Position | null {
@@ -59,7 +59,7 @@ function pickWeightedPosition(
   return positions.find((pos) => positionWeight(pos, rosterCounts) > 0) ?? null;
 }
 
-function pickWeightedRarity(nivel: number, rng: RNG): Rarity {
+export function pickWeightedRarity(nivel: number, rng: RNG): Rarity {
   const weights = getScoutingRarityWeights(nivel);
   const rarities: Rarity[] = ["bronce", "plata", "oro", "leyenda"];
   const values = rarities.map((r) => weights[r]);

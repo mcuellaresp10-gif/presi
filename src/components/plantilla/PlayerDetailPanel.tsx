@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CloseButton } from "@/components/ui/close-button";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { PlayerPointsHistoryList } from "@/components/scoring/PlayerPointsHistoryList";
 import {
   renewPlayerContract,
   releasePlayer,
@@ -62,6 +63,8 @@ export function PlayerDetailPanel({
   budgetTotal,
   remainingBudget,
   oficinaNivel = 1,
+  seasonPoints = 0,
+  clubId = null,
 }: {
   player: RosterPlayer | null;
   escudoConfig?: EscudoConfig | null;
@@ -78,6 +81,9 @@ export function PlayerDetailPanel({
   budgetTotal: number;
   remainingBudget: number;
   oficinaNivel?: number;
+  /** Total points this player has contributed to the club this season. */
+  seasonPoints?: number;
+  clubId?: string | null;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -163,7 +169,7 @@ export function PlayerDetailPanel({
           <div className="flex gap-4">
             <div>
               <p className="text-display text-4xl leading-none text-presi-gold">{rating}</p>
-              <p className="mt-2 text-lg font-bold uppercase tracking-wide text-white">
+              <p className="mt-2 text-lg font-bold leading-snug tracking-wide text-white">
                 {player.nombre}
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -177,6 +183,10 @@ export function PlayerDetailPanel({
                 </span>
                 <span className="rounded bg-white/15 px-2 py-0.5 text-xs font-semibold uppercase">
                   {RARITY_LABELS[player.rareza]}
+                </span>
+                <span className="rounded bg-presi-gold/20 px-2 py-0.5 text-xs font-bold text-presi-gold">
+                  {seasonPoints > 0 ? "+" : ""}
+                  {seasonPoints} pts
                 </span>
                 {isLoan && (
                   <span className="rounded bg-cyan-500/25 px-2 py-0.5 text-xs font-semibold uppercase text-cyan-100">
@@ -193,6 +203,12 @@ export function PlayerDetailPanel({
         </div>
 
         <div className="space-y-4 px-4 py-4">
+          <PlayerPointsHistoryList
+            playerId={player.id}
+            clubId={clubId}
+            initialTotal={seasonPoints}
+          />
+
           <section
             className={cn(
               "rounded-xl p-4",

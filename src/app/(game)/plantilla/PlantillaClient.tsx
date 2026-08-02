@@ -10,6 +10,7 @@ import {
 import { SquadPitch } from "@/components/plantilla/SquadPitch";
 import { useLineupDrag } from "@/components/plantilla/useLineupDrag";
 import { saveLineupDraft } from "@/lib/actions/lineup";
+import { getClubPlayerSeasonPoints } from "@/lib/actions/gameweek";
 import {
   formatRemainingTime,
   getFormationSlots,
@@ -45,6 +46,8 @@ export function PlantillaClient({
   initialFormation = "4-4-2",
   editingGameweekId = null,
   wildCards = [],
+  seasonPointsByPlayerId: initialSeasonPoints = {},
+  clubId = null,
 }: {
   players: RosterPlayer[];
   escudoConfig?: EscudoConfig | null;
@@ -61,9 +64,15 @@ export function PlantillaClient({
   initialFormation?: string;
   editingGameweekId?: string | null;
   wildCards?: WildCardInventoryItem[];
+  /** Season points each player has contributed to this club. */
+  seasonPointsByPlayerId?: Record<string, number>;
+  clubId?: string | null;
 }) {
   const { toast } = useToast();
   const [tab, setTab] = useState<"alineacion" | "wildcards">("alineacion");
+  const [seasonPointsByPlayerId, setSeasonPointsByPlayerId] = useState(
+    initialSeasonPoints
+  );
   const subsRef = useRef<HTMLDivElement>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,6 +106,16 @@ export function PlantillaClient({
   const [dragOverReserve, setDragOverReserve] = useState(false);
   const [reserveOpen, setReserveOpen] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    void getClubPlayerSeasonPoints().then((map) => {
+      if (!cancelled) setSeasonPointsByPlayerId(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const onInvalidDrop = useCallback(
     (message: string) => {
       toast({ title: "Movimiento no válido", description: message });
@@ -124,6 +143,14 @@ export function PlantillaClient({
     isLineupLocked,
     onInvalidDrop,
   });
+
+  const lineupRef = useRef({
+    selectedIds,
+    benchIds,
+    captainId,
+    formation,
+  });
+  lineupRef.current = { selectedIds, benchIds, captainId, formation };
 
   const playersById = useMemo(
     () => new Map(players.map((p) => [p.id, p])),
@@ -186,6 +213,12 @@ export function PlantillaClient({
   useEffect(() => {
     if (isLineupLocked) return;
     if (lineupSignature === lastSavedRef.current) return;
+    if (!hasInitializedSaveRef.current) {
+      // First paint: treat SSR lineup as already saved to avoid a useless POST.
+      hasInitializedSaveRef.current = true;
+      lastSavedRef.current = lineupSignature;
+      return;
+    }
 
     const runSave = async (signature: string) => {
       if (saveInFlightRef.current) {
@@ -197,16 +230,21 @@ export function PlantillaClient({
       setSaveStatus("saving");
 
       try {
+        const current = lineupRef.current;
         const result = await saveLineupDraft(
-          selectedIds,
-          benchIds,
-          captainId,
-          formation,
+          current.selectedIds,
+          current.benchIds,
+          current.captainId,
+          current.formation,
           gameweekIdRef.current
         );
 
         if ("error" in result && result.error) {
           setSaveStatus("error");
+          toast({
+            title: "No se pudo guardar",
+            description: result.error,
+          });
           if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
           retryTimeoutRef.current = setTimeout(() => {
             if (signature !== lastSavedRef.current) {
@@ -221,6 +259,19 @@ export function PlantillaClient({
           lastSavedRef.current = signature;
           setSaveStatus("saved");
         }
+      } catch (err) {
+        setSaveStatus("error");
+        toast({
+          title: "No se pudo guardar",
+          description:
+            err instanceof Error ? err.message : "Error de red. Reintentando…",
+        });
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = setTimeout(() => {
+          if (signature !== lastSavedRef.current) {
+            void runSave(signature);
+          }
+        }, 4000);
       } finally {
         saveInFlightRef.current = false;
         const pending = pendingSaveRef.current;
@@ -239,14 +290,9 @@ export function PlantillaClient({
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [
-    lineupSignature,
-    isLineupLocked,
-    selectedIds,
-    benchIds,
-    captainId,
-    formation,
-  ]);
+    // Only re-save when the lineup content changes — not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: selectedIds/benchIds captured via signature + closure at schedule time
+  }, [lineupSignature, isLineupLocked, toast]);
 
   const slots = getFormationSlots(formation);
   const deadlineMs =
@@ -587,6 +633,7 @@ export function PlantillaClient({
             captainId={captainId}
             lineupLocked={isLineupLocked}
             draggingPlayerId={draggingPlayerId}
+            seasonPointsByPlayerId={seasonPointsByPlayerId}
             onPlayerClick={setDetailPlayer}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
@@ -635,6 +682,8 @@ export function PlantillaClient({
                       player={player}
                       escudoConfig={escudoConfig}
                       size="sm"
+                      showGameweekPoints
+                      gameweekPoints={seasonPointsByPlayerId[player.id] ?? 0}
                       draggable={!isLineupLocked}
                       onDragStart={(e) =>
                         handleDragStart(
@@ -695,6 +744,8 @@ export function PlantillaClient({
                     player={player}
                     escudoConfig={escudoConfig}
                     size="sm"
+                    showGameweekPoints
+                    gameweekPoints={seasonPointsByPlayerId[player.id] ?? 0}
                     draggable={!isLineupLocked}
                     onDragStart={(e) =>
                       handleDragStart(
@@ -781,6 +832,12 @@ export function PlantillaClient({
         budgetUsed={usedBudget}
         budgetTotal={totalBudget}
         remainingBudget={remainingBudget}
+        seasonPoints={
+          detailPlayer
+            ? seasonPointsByPlayerId[detailPlayer.id] ?? 0
+            : 0
+        }
+        clubId={clubId}
       />
     </>
   );

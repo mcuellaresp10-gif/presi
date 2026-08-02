@@ -129,7 +129,13 @@ export async function fetchLeaguePlayers(
 }
 
 export type ApiLeaguePlayerRow = {
-  player: { id: number; name: string; photo: string | null };
+  player: {
+    id: number;
+    name: string;
+    firstname?: string | null;
+    lastname?: string | null;
+    photo: string | null;
+  };
   statistics: Array<{
     league?: { id?: number | null } | null;
     games?: {
@@ -149,6 +155,20 @@ export type ApiLeaguePlayerRow = {
     team?: { name?: string | null } | null;
   }>;
 };
+
+/** Prefer firstname + lastname; API `name` is often abbreviated (e.g. "J. Peña"). */
+export function formatApiPlayerName(player: {
+  name?: string | null;
+  firstname?: string | null;
+  lastname?: string | null;
+}): string {
+  const first = (player.firstname ?? "").trim();
+  const last = (player.lastname ?? "").trim();
+  if (first && last) return `${first} ${last}`;
+  if (last) return last;
+  if (first) return first;
+  return (player.name ?? "").trim() || "Jugador";
+}
 
 export async function fetchLeaguePlayersPage(
   leagueId = DEFAULT_LEAGUE_ID,

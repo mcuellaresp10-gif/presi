@@ -20,6 +20,7 @@ export type GameweekRow = {
 type FixtureWithGameweek = {
   kickoff_at: string;
   status: string;
+  gameweek_id?: string;
   gameweeks: GameweekRow | GameweekRow[];
 };
 
@@ -30,52 +31,81 @@ export async function resolveNextGameweekRow(
 ): Promise<GameweekRow | null> {
   const tournamentPhase = getActiveTournamentPhase(now);
   const season = DEFAULT_SEASON;
+  const nowIso = now.toISOString();
 
-  const { data: fixtureRows } = await supabase
+  // 1) First upcoming fixture → identifies the next GW (bounded query).
+  const { data: firstRows } = await supabase
     .from("fixtures")
     .select(
-      "kickoff_at, status, gameweeks!inner(id, season, round, tournament_phase, first_kickoff_at, last_kickoff_at, status)"
+      "kickoff_at, status, gameweek_id, gameweeks!inner(id, season, round, tournament_phase, first_kickoff_at, last_kickoff_at, status)"
     )
     .eq("gameweeks.season", season)
     .eq("gameweeks.tournament_phase", tournamentPhase)
-    .gt("kickoff_at", now.toISOString())
-    .order("kickoff_at", { ascending: true });
+    .gt("kickoff_at", nowIso)
+    .order("kickoff_at", { ascending: true })
+    .limit(24);
 
-  for (const row of fixtureRows ?? []) {
+  let gw: GameweekRow | null = null;
+  for (const row of firstRows ?? []) {
     const fixture = row as FixtureWithGameweek;
     if (inferTournamentPhaseFromDate(fixture.kickoff_at) !== tournamentPhase) {
       continue;
     }
     if (isFixtureFinished(fixture.status)) continue;
 
-    const gw = Array.isArray(fixture.gameweeks)
+    const joined = Array.isArray(fixture.gameweeks)
       ? fixture.gameweeks[0]
       : fixture.gameweeks;
-    if (!gw) continue;
+    if (!joined) continue;
 
-    const kickoffs = (fixtureRows ?? [])
-      .filter((f) => {
-        const item = f as FixtureWithGameweek;
-        const itemGw = Array.isArray(item.gameweeks)
-          ? item.gameweeks[0]
-          : item.gameweeks;
-        return itemGw?.id === gw.id;
-      })
-      .map((f) => new Date((f as FixtureWithGameweek).kickoff_at).getTime());
+    // Remaining fixtures in a live GW must NOT reopen lineup edits.
+    // Skip any jornada that already started (DB kickoff / status).
+    const dbFirstMs = new Date(joined.first_kickoff_at).getTime();
+    if (
+      joined.status === "live" ||
+      joined.status === "finished" ||
+      (Number.isFinite(dbFirstMs) && dbFirstMs <= now.getTime())
+    ) {
+      continue;
+    }
 
+    gw = joined;
+    break;
+  }
+
+  if (!gw) return null;
+
+  // 2) Only fixtures for that one gameweek (cheap).
+  const { data: gwFixtures } = await supabase
+    .from("fixtures")
+    .select("kickoff_at, status")
+    .eq("gameweek_id", gw.id);
+
+  const kickoffs = (gwFixtures ?? [])
+    .filter((f) => !isFixtureFinished(f.status))
+    .map((f) => new Date(f.kickoff_at).getTime())
+    .filter((t) => Number.isFinite(t));
+
+  if (!kickoffs.length) {
     return {
       ...gw,
-      first_kickoff_at: new Date(Math.min(...kickoffs)).toISOString(),
-      last_kickoff_at: new Date(Math.max(...kickoffs)).toISOString(),
       status: deriveGameweekStatus(
-        new Date(Math.min(...kickoffs)).toISOString(),
-        new Date(Math.max(...kickoffs)).toISOString(),
+        gw.first_kickoff_at,
+        gw.last_kickoff_at,
         now
       ),
     };
   }
 
-  return null;
+  const first = new Date(Math.min(...kickoffs)).toISOString();
+  const last = new Date(Math.max(...kickoffs)).toISOString();
+
+  return {
+    ...gw,
+    first_kickoff_at: first,
+    last_kickoff_at: last,
+    status: deriveGameweekStatus(first, last, now),
+  };
 }
 
 /** Detecta jornadas fantasma (p. ej. J20 con pitido en horas vs J1 en semanas). */

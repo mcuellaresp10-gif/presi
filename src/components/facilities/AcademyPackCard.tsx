@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlayerCard } from "@/components/cards/PlayerCard";
+import { PlayerPointsHistorySheet } from "@/components/scoring/PlayerPointsHistorySheet";
 import { FacilityUpgradeProgress } from "@/components/facilities/FacilityUpgradeProgress";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,7 @@ export function AcademyPackCard({
   const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState<"claim" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pointsOpen, setPointsOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -122,7 +124,14 @@ export function AcademyPackCard({
             <p className="text-center text-sm font-medium text-white">
               ¡Promesa lista! Ficha o rechaza al juvenil
             </p>
-            <PlayerCard player={state.player} escudoConfig={escudoConfig} />
+            <p className="text-center text-[10px] text-white/45">
+              Toca la carta para ver sus puntos por jornada
+            </p>
+            <PlayerCard
+              player={state.player}
+              escudoConfig={escudoConfig}
+              onClick={() => setPointsOpen(true)}
+            />
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={handleClaim}
@@ -140,6 +149,14 @@ export function AcademyPackCard({
                 {loading === "reject" ? "..." : "Rechazar"}
               </Button>
             </div>
+            <PlayerPointsHistorySheet
+              open={pointsOpen}
+              player={state.player}
+              clubId={null}
+              escudoConfig={escudoConfig}
+              title="Puntos en PRESI · temporada"
+              onClose={() => setPointsOpen(false)}
+            />
           </>
         ) : (
           <div className="rounded-lg bg-presi-gold/10 p-4 text-center">

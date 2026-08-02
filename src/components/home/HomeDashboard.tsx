@@ -33,6 +33,7 @@ export function HomeDashboard({
   rivalPoints,
   rivalEscudo,
   rivalLineupPreview,
+  myLineupPreview,
   contractsExpiringSoon,
   nextIncomeTickAt,
   incomeIntervalHours,
@@ -61,6 +62,7 @@ export function HomeDashboard({
   rivalPoints: number;
   rivalEscudo: EscudoConfig | null;
   rivalLineupPreview: RivalLineupPreview | null;
+  myLineupPreview: RivalLineupPreview | null;
   contractsExpiringSoon: number;
   nextIncomeTickAt: string | null;
   incomeIntervalHours: number;
@@ -75,7 +77,7 @@ export function HomeDashboard({
 }) {
   const [now, setNow] = useState<number | null>(null);
   const [rivalOpen, setRivalOpen] = useState(false);
-  const [myPointsOpenRequestId, setMyPointsOpenRequestId] = useState(0);
+  const [myLineupOpen, setMyLineupOpen] = useState(false);
 
   useEffect(() => {
     setNow(Date.now());
@@ -104,7 +106,7 @@ export function HomeDashboard({
     phase as "upcoming" | "live" | "finished"
   );
   const canOpenRival = !!rivalClubId && !!rivalNombre;
-  const canOpenMyPoints = !!gameweekId;
+  const canOpenMyLineup = !!myLineupPreview;
   const pollScores = live || finished;
 
   const { myPoints, rivalPoints: liveRivalPoints } = useLiveGameweekScores({
@@ -141,13 +143,10 @@ export function HomeDashboard({
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <button
               type="button"
-              disabled={!canOpenMyPoints}
-              onClick={() =>
-                canOpenMyPoints &&
-                setMyPointsOpenRequestId((n) => n + 1)
-              }
+              disabled={!canOpenMyLineup}
+              onClick={() => canOpenMyLineup && setMyLineupOpen(true)}
               className="flex flex-col items-center gap-1 rounded-lg p-1 text-center outline-none transition enabled:hover:bg-white/5 enabled:active:scale-[0.98] disabled:cursor-default"
-              aria-label={`Ver puntos de ${clubNombre} en la jornada`}
+              aria-label={`Ver alineación de ${clubNombre} en la jornada`}
             >
               <EscudoRenderer config={escudoConfig} size={36} />
               <p className="max-w-[7rem] truncate text-[10px] font-bold uppercase">
@@ -241,7 +240,6 @@ export function HomeDashboard({
             gameweekRound={gameweekRound}
             gameweekPoints={myPoints}
             escudoConfig={escudoConfig}
-            openRequestId={myPointsOpenRequestId}
           />
         </div>
 
@@ -284,6 +282,11 @@ export function HomeDashboard({
         </div>
       </div>
 
+      <RivalLineupSheet
+        open={myLineupOpen}
+        preview={myLineupPreview}
+        onClose={() => setMyLineupOpen(false)}
+      />
       <RivalLineupSheet
         open={rivalOpen}
         preview={rivalLineupPreview}

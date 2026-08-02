@@ -24,9 +24,21 @@ export async function saveLineupDraft(
   const club = await getUserClub();
   if (!club) return { error: "No tienes club." };
 
-  const gameweek =
+  let gameweek =
     (gameweekId ? await getGameweekById(gameweekId) : null) ??
     (await resolveGameweekForDraftSave());
+
+  // Stale client ids often point at a live GW that still has matches left.
+  // Fall back to the true upcoming editable jornada instead of failing.
+  if (gameweek && computeIsLineupLocked(gameweek, gameweek)) {
+    const open = await resolveGameweekForDraftSave();
+    if (!open || computeIsLineupLocked(open, open)) {
+      return {
+        error: "La jornada ya comenzó. No puedes cambiar la alineación.",
+      };
+    }
+    gameweek = open;
+  }
 
   if (!gameweek) {
     const current = await getCurrentGameweek();
@@ -38,12 +50,6 @@ export async function saveLineupDraft(
     return {
       error:
         "El calendario se está sincronizando. Intenta de nuevo en unos segundos.",
-    };
-  }
-
-  if (computeIsLineupLocked(gameweek, gameweek)) {
-    return {
-      error: "La jornada ya comenzó. No puedes cambiar la alineación.",
     };
   }
 

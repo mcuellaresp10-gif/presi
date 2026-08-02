@@ -211,16 +211,18 @@ export async function getContractsSummary() {
   const club = await getUserClub();
   if (!club) return null;
 
-  await expireRosterContracts(club.id);
-
+  // Read-only — never await expire* on SSR (that blocked Inicio/Plantilla).
   const supabase = await createClient();
   const { data: rows } = await supabase
     .from("club_roster")
-    .select("jornadas_restantes, renovaciones")
+    .select("jornadas_restantes, renovaciones, es_prestamo")
     .eq("club_id", club.id);
 
   const expiringSoon = (rows ?? []).filter(
-    (row) => row.jornadas_restantes <= 1
+    (row) =>
+      !row.es_prestamo &&
+      !isContractExpired(row.jornadas_restantes) &&
+      row.jornadas_restantes <= 1
   ).length;
 
   return {

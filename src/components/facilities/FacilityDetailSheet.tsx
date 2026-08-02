@@ -42,6 +42,9 @@ export function FacilityDetailSheet({
   wildCards = [],
   rosterPlayers = [],
   escudoConfig = null,
+  onScoutingPrepare,
+  onScoutingClaimed,
+  onScoutingRejected,
 }: {
   open: boolean;
   tipo: FacilityType | null;
@@ -61,6 +64,12 @@ export function FacilityDetailSheet({
   wildCards?: WildCardInventoryItem[];
   rosterPlayers?: Player[];
   escudoConfig?: EscudoConfig | null;
+  onScoutingPrepare?: () => void | Promise<void>;
+  onScoutingClaimed?: (payload: {
+    presupuesto?: number;
+    generaEn?: string;
+  }) => void;
+  onScoutingRejected?: (payload: { generaEn?: string }) => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -130,6 +139,10 @@ export function FacilityDetailSheet({
                   isMaxLevel={info?.isMaxLevel ?? false}
                   canAffordUpgrade={info?.canAfford ?? false}
                   upgradeBuildHours={info?.buildHours ?? 24}
+                  autoRefresh={false}
+                  onPrepareNeeded={onScoutingPrepare}
+                  onClaimed={onScoutingClaimed}
+                  onRejected={onScoutingRejected}
                 />
                 {wildCards.length > 0 && (
                   <div className="rounded-xl border border-white/10 bg-white/5 p-3">

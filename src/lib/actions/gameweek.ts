@@ -1,7 +1,7 @@
 "use server";
 
 import { cache } from "react";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { getUserClub } from "@/lib/actions/club";
 import {
   DEFAULT_SEASON,
@@ -9,7 +9,7 @@ import {
 } from "@/lib/api-football/client";
 import {
   ensureOpenGameweek,
-  runPageLoadGameweekTick,
+  runGameweekStatusTick,
   syncCalendarFromApi,
 } from "@/lib/gameweek/sync";
 import { deriveGameweekStatus } from "@/lib/gameweek/status";
@@ -236,16 +236,23 @@ export async function isGameweekEditable(
   return Date.now() < kickoffMs;
 }
 
-export async function getPlantillaLineupState() {
+export const getPlantillaLineupState = cache(async function getPlantillaLineupState() {
   const club = await getUserClub();
   if (!club) return null;
 
-  const currentGameweek = await getCurrentGameweek();
-  const editingGameweek = await getEditableGameweek();
+  const [currentGameweek, editingGameweek] = await Promise.all([
+    getCurrentGameweek(),
+    getEditableGameweek(),
+  ]);
   const isLineupLocked = computeIsLineupLocked(
     editingGameweek,
     currentGameweek
   );
+
+  const effectiveEditing = editingGameweek ?? currentGameweek;
+  const draft = effectiveEditing
+    ? await getLineupDraftForClub(effectiveEditing.id)
+    : null;
 
   if (!editingGameweek) {
     return {
@@ -255,6 +262,7 @@ export async function getPlantillaLineupState() {
       deadlineAt: currentGameweek?.firstKickoffAt ?? null,
       displayRound: currentGameweek?.round ?? null,
       editingRound: currentGameweek?.round ?? null,
+      draft,
     };
   }
 
@@ -265,8 +273,9 @@ export async function getPlantillaLineupState() {
     deadlineAt: editingGameweek.firstKickoffAt,
     displayRound: currentGameweek?.round ?? editingGameweek.round,
     editingRound: editingGameweek.round,
+    draft,
   };
-}
+});
 
 export const getClubGameweekSummary = cache(async function getClubGameweekSummary() {
   // Calendar repair is cron-only (solution #3) — never block home SSR.
@@ -360,6 +369,48 @@ export const getClubGameweekSummary = cache(async function getClubGameweekSummar
   };
 });
 
+/**
+ * Total points each player has contributed to the club this season.
+ * Fast path: club rows only + season filter in memory (no heavy join).
+ */
+export async function getClubPlayerSeasonPoints(
+  season: number = DEFAULT_SEASON
+): Promise<Record<string, number>> {
+  const club = await getUserClub();
+  if (!club) return {};
+
+  const supabase = await createClient();
+  const [{ data: gwRows }, { data: pointRows, error }] = await Promise.all([
+    supabase.from("gameweeks").select("id").eq("season", season),
+    supabase
+      .from("club_gameweek_points")
+      .select("gameweek_id, breakdown")
+      .eq("club_id", club.id),
+  ]);
+
+  if (error) {
+    console.error("getClubPlayerSeasonPoints failed:", error.message);
+    return {};
+  }
+
+  const seasonGwIds = new Set((gwRows ?? []).map((g) => g.id as string));
+  const totals: Record<string, number> = {};
+
+  for (const row of pointRows ?? []) {
+    if (!seasonGwIds.has(row.gameweek_id as string)) continue;
+    const breakdown = row.breakdown;
+    if (!Array.isArray(breakdown)) continue;
+    for (const entry of breakdown as Array<{
+      playerId?: string;
+      points?: number;
+    }>) {
+      if (!entry?.playerId || typeof entry.points !== "number") continue;
+      totals[entry.playerId] = (totals[entry.playerId] ?? 0) + entry.points;
+    }
+  }
+  return totals;
+}
+
 /** Read jornada points for one or more clubs (home VS / live poll). */
 export async function getClubsGameweekPoints(
   gameweekId: string,
@@ -385,12 +436,11 @@ export async function getClubsGameweekPoints(
 export async function triggerGameweekSync() {
   try {
     const supabase = createServiceRoleClient();
-    // Page path: no full calendar sync (cron owns that). Light live tick only.
-    const result = await runPageLoadGameweekTick(supabase);
-    revalidatePath("/inicio");
-    revalidatePath("/ranking");
-    revalidatePath("/calendario");
-    return result;
+    // NEVER run syncLiveStatsFromApi / points from the browser.
+    // Those POSTs were taking 10+ minutes and blocking Plantilla navigation.
+    // Full live scoring → /api/cron/gameweek only.
+    await runGameweekStatusTick(supabase);
+    return { ok: true as const, skipped: false as const, reason: "status_only" };
   } catch (error) {
     console.error("gameweek sync skipped:", error);
     return { ok: false, skipped: true, reason: "error" };

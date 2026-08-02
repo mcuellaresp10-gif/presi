@@ -2,11 +2,18 @@
 
 import { cache } from "react";
 import { getUserClub } from "@/lib/actions/club";
-import { getCurrentGameweek, getEditableGameweek } from "@/lib/actions/gameweek";
+import {
+  getCurrentGameweek,
+  getPointsGameweek,
+  type GameweekPublic,
+} from "@/lib/actions/gameweek";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getWildCardDefinition } from "@/lib/game/wild-cards";
 import type { WildCardType } from "@/lib/game/wild-cards";
 import type { EscudoConfig, Player, Position } from "@/lib/game/types";
+import { validateFormation } from "@/lib/game/formation";
+import { deriveGameweekStatus } from "@/lib/gameweek/status";
+import { getActiveTournamentPhase } from "@/lib/gameweek/tournament";
 
 export type RivalLineupPlayer = {
   id: string;
@@ -17,6 +24,8 @@ export type RivalLineupPlayer = {
   rareza: Player["rareza"];
   isCaptain: boolean;
   role: "starter" | "bench";
+  /** Points scored in the current/preview gameweek (if calculated). */
+  points?: number | null;
 };
 
 export type RivalWildCardPreview = {
@@ -32,17 +41,20 @@ export type RivalLineupPreview = {
   gameweekRound: number | null;
   source: "snapshot" | "draft" | "none";
   locked: boolean;
+  formation: string | null;
   starters: RivalLineupPlayer[];
   bench: RivalLineupPlayer[];
   captainId: string | null;
   wildCards: RivalWildCardPreview[];
 };
 
-export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
-  rivalClubId: string
+export const getClubLineupPreview = cache(async function getClubLineupPreview(
+  clubId: string,
+  /** Prefer the same gameweek as home VS points (pass from page). */
+  gameweekId?: string | null
 ): Promise<RivalLineupPreview | null> {
   const myClub = await getUserClub();
-  if (!myClub || !rivalClubId || rivalClubId === myClub.id) return null;
+  if (!myClub || !clubId) return null;
 
   let admin;
   try {
@@ -51,27 +63,24 @@ export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
     return null;
   }
 
-  const [editable, current] = await Promise.all([
-    getEditableGameweek(),
-    getCurrentGameweek(),
-  ]);
-  const gameweek = current?.status === "live" ? current : (editable ?? current);
+  const gameweek = await resolvePreviewGameweek(admin, gameweekId);
 
-  const { data: rivalClub } = await admin
+  const { data: targetClub } = await admin
     .from("clubs")
     .select("id, nombre, escudo_config, onboarding_completado")
-    .eq("id", rivalClubId)
+    .eq("id", clubId)
     .maybeSingle();
 
-  if (!rivalClub?.onboarding_completado) return null;
+  if (!targetClub?.onboarding_completado) return null;
 
   const empty: RivalLineupPreview = {
-    clubId: rivalClub.id,
-    clubNombre: rivalClub.nombre,
-    escudoConfig: (rivalClub.escudo_config as EscudoConfig) ?? null,
+    clubId: targetClub.id,
+    clubNombre: targetClub.nombre,
+    escudoConfig: (targetClub.escudo_config as EscudoConfig) ?? null,
     gameweekRound: gameweek?.round ?? null,
     source: "none",
     locked: false,
+    formation: null,
     starters: [],
     bench: [],
     captainId: null,
@@ -80,27 +89,51 @@ export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
 
   if (!gameweek) return empty;
 
-  const [{ data: snapshot }, { data: draft }, { data: activeCards }] =
-    await Promise.all([
-      admin
-        .from("lineup_snapshots")
-        .select("starter_ids, bench_ids, captain_id, is_valid")
-        .eq("club_id", rivalClubId)
-        .eq("gameweek_id", gameweek.id)
-        .maybeSingle(),
-      admin
-        .from("lineup_drafts")
-        .select("starter_ids, bench_ids, captain_id")
-        .eq("club_id", rivalClubId)
-        .eq("gameweek_id", gameweek.id)
-        .maybeSingle(),
-      admin
-        .from("club_wild_cards")
-        .select("card_type")
-        .eq("club_id", rivalClubId)
-        .eq("gameweek_id", gameweek.id)
-        .eq("status", "active"),
-    ]);
+  const [
+    { data: snapshot },
+    { data: draft },
+    { data: activeCards },
+    { data: gwPoints },
+  ] = await Promise.all([
+    admin
+      .from("lineup_snapshots")
+      .select("starter_ids, bench_ids, captain_id, formation, is_valid")
+      .eq("club_id", clubId)
+      .eq("gameweek_id", gameweek.id)
+      .maybeSingle(),
+    admin
+      .from("lineup_drafts")
+      .select("starter_ids, bench_ids, captain_id, formation")
+      .eq("club_id", clubId)
+      .eq("gameweek_id", gameweek.id)
+      .maybeSingle(),
+    admin
+      .from("club_wild_cards")
+      .select("card_type")
+      .eq("club_id", clubId)
+      .eq("gameweek_id", gameweek.id)
+      .eq("status", "active"),
+    admin
+      .from("club_gameweek_points")
+      .select("breakdown")
+      .eq("club_id", clubId)
+      .eq("gameweek_id", gameweek.id)
+      .maybeSingle(),
+  ]);
+
+  const pointsByPlayerId = new Map<string, number>();
+  const rawBreakdown = gwPoints?.breakdown;
+  const hasScoringData = gwPoints != null;
+  if (Array.isArray(rawBreakdown)) {
+    for (const row of rawBreakdown as Array<{
+      playerId?: string;
+      points?: number;
+    }>) {
+      if (row.playerId && typeof row.points === "number") {
+        pointsByPlayerId.set(row.playerId, row.points);
+      }
+    }
+  }
 
   const lineup = snapshot ?? draft;
   const source: RivalLineupPreview["source"] = snapshot
@@ -112,6 +145,10 @@ export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
   const starterIds = ((lineup?.starter_ids as string[]) ?? []).filter(Boolean);
   const benchIds = ((lineup?.bench_ids as string[]) ?? []).filter(Boolean);
   const captainId = (lineup?.captain_id as string | null) ?? null;
+  const storedFormation =
+    typeof lineup?.formation === "string" && lineup.formation.length > 0
+      ? lineup.formation
+      : null;
   const allIds = [...starterIds, ...benchIds];
 
   let starters: RivalLineupPlayer[] = [];
@@ -152,6 +189,11 @@ export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
         rareza: p.rareza,
         isCaptain: captainId === id,
         role,
+        points: pointsByPlayerId.has(id)
+          ? pointsByPlayerId.get(id)!
+          : hasScoringData
+            ? 0
+            : null,
       };
     };
 
@@ -172,13 +214,77 @@ export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
     };
   });
 
+  // Prefer formation derived from actual XI so pitch slots match players.
+  let formation = storedFormation;
+  if (starters.length === 11) {
+    const result = validateFormation(
+      starters.map((p) => ({
+        id: p.id,
+        api_football_id: null,
+        nombre: p.nombre,
+        equipo_real: p.equipo_real,
+        posicion: p.posicion,
+        rareza: p.rareza,
+        costo_base: 0,
+        photo_url: p.photo_url,
+      }))
+    );
+    if (result.valid) formation = result.formation;
+  }
+
   return {
     ...empty,
     source,
     locked: !!snapshot,
+    formation: formation ?? "4-4-2",
     starters,
     bench,
     captainId,
     wildCards,
   };
+});
+
+async function resolvePreviewGameweek(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  gameweekId?: string | null
+): Promise<GameweekPublic | null> {
+  if (gameweekId) {
+    const { data: row } = await admin
+      .from("gameweeks")
+      .select(
+        "id, season, round, tournament_phase, first_kickoff_at, last_kickoff_at, status"
+      )
+      .eq("id", gameweekId)
+      .maybeSingle();
+    if (row) {
+      const now = new Date();
+      return {
+        id: row.id,
+        season: row.season,
+        round: row.round,
+        tournamentPhase:
+          row.tournament_phase ?? getActiveTournamentPhase(now),
+        firstKickoffAt: row.first_kickoff_at,
+        lastKickoffAt: row.last_kickoff_at,
+        status: deriveGameweekStatus(
+          row.first_kickoff_at,
+          row.last_kickoff_at,
+          now
+        ),
+      };
+    }
+  }
+
+  // Same jornada as home VS points (live or last finished).
+  return (await getPointsGameweek()) ?? (await getCurrentGameweek());
+}
+
+/** @deprecated Prefer getClubLineupPreview — kept for callers expecting rival-only. */
+export const getRivalLineupPreview = cache(async function getRivalLineupPreview(
+  rivalClubId: string,
+  gameweekId?: string | null
+): Promise<RivalLineupPreview | null> {
+  const myClub = await getUserClub();
+  if (!myClub || !rivalClubId || rivalClubId === myClub.id) return null;
+  return getClubLineupPreview(rivalClubId, gameweekId);
 });

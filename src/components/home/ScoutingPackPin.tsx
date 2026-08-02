@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { formatRemainingTime, getScoutingDurationMs } from "@/lib/game";
 import type { ScoutingUIState } from "@/components/scouting/ScoutingPackCard";
@@ -13,8 +11,17 @@ const STROKE = 2.5;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
-  const router = useRouter();
+export function ScoutingPackPin({
+  state,
+  preparing = false,
+  onOpenReady,
+  onTimerExpired,
+}: {
+  state: ScoutingUIState;
+  preparing?: boolean;
+  onOpenReady?: () => void;
+  onTimerExpired?: () => void;
+}) {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -45,21 +52,23 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
   }, [now, state.generaEn, durationMs, isReady]);
 
   useEffect(() => {
-    if (isReady) return;
+    if (isReady || preparing) return;
     if (remainingMs !== null && remainingMs <= 0 && state.estado === "timer") {
-      router.refresh();
+      onTimerExpired?.();
     }
-  }, [remainingMs, isReady, router, state.estado]);
+  }, [remainingMs, isReady, preparing, state.estado, onTimerExpired]);
 
   const dashOffset = CIRCUMFERENCE * (1 - progress);
 
-  const subtitle = isReady
-    ? isWildCardReady
-      ? "¡Sorpresa especial! Toca para abrir"
-      : "¡Listo! Toca para descubrirlo"
-    : remainingMs !== null
-      ? `En camino · ${formatRemainingTime(remainingMs)}`
-      : "En camino...";
+  const subtitle = preparing
+    ? "Preparando sobre..."
+    : isReady
+      ? isWildCardReady
+        ? "¡Sorpresa especial! Toca para abrir"
+        : "¡Listo! Toca para descubrirlo"
+      : remainingMs !== null
+        ? `En camino · ${formatRemainingTime(remainingMs)}`
+        : "En camino...";
 
   const inner = (
     <div
@@ -118,7 +127,7 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
         <p
           className={cn(
             "mt-0.5 truncate text-[10px] leading-tight",
-            isReady ? "font-medium text-presi-gold" : "text-white/55"
+            isReady || preparing ? "font-medium text-presi-gold" : "text-white/55"
           )}
           suppressHydrationWarning
         >
@@ -146,13 +155,14 @@ export function ScoutingPackPin({ state }: { state: ScoutingUIState }) {
 
   if (isReady) {
     return (
-      <Link
-        href="/instalaciones#scouting"
-        className="block outline-none active:scale-[0.98]"
+      <button
+        type="button"
+        onClick={onOpenReady}
+        className="block w-full outline-none active:scale-[0.98]"
         aria-label="Descubre tu próximo jugador — listo para abrir"
       >
         {inner}
-      </Link>
+      </button>
     );
   }
 

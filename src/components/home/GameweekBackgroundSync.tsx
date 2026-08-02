@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { triggerGameweekSync } from "@/lib/actions/gameweek";
 
-const SYNC_KEY = "presi_gameweek_sync_v4";
-/** Always allow a scoring/catch-up tick at least this often (finished GWs too). */
-const SYNC_INTERVAL_MS = 10 * 60 * 1000;
-/** While live, refresh stats/points more often. */
-const LIVE_SYNC_INTERVAL_MS = 3 * 60 * 1000;
+const SYNC_KEY = "presi_gameweek_sync_v6";
+/** Status-only tick at most this often. Scoring/stats → cron. */
+const SYNC_INTERVAL_MS = 15 * 60 * 1000;
 
 /**
- * Background gameweek sync: live status/stats only.
- * Full calendar + finished catch-up → /api/cron/gameweek (throttled calendar).
+ * Light background status tick only.
+ * Must NEVER call API-Football stats sync from the browser — that blocked
+ * the Next server for 10+ minutes (POST /inicio) and froze Plantilla.
  */
 export function GameweekBackgroundSync({
   live = false,
@@ -20,7 +18,6 @@ export function GameweekBackgroundSync({
   live?: boolean;
 }) {
   const started = useRef(false);
-  const router = useRouter();
 
   useEffect(() => {
     if (started.current) return;
@@ -28,22 +25,12 @@ export function GameweekBackgroundSync({
 
     const last = Number(localStorage.getItem(SYNC_KEY) || 0);
     const due = !last || Date.now() - last >= SYNC_INTERVAL_MS;
-    if (!due && !live) return;
+    // Skip while live too — cron owns live scoring; status tick is enough rarely.
+    if (!due) return;
 
     localStorage.setItem(SYNC_KEY, String(Date.now()));
-    void triggerGameweekSync().then(() => router.refresh());
-  }, [live, router]);
-
-  useEffect(() => {
-    if (!live) return;
-
-    const id = window.setInterval(() => {
-      localStorage.setItem(SYNC_KEY, String(Date.now()));
-      void triggerGameweekSync().then(() => router.refresh());
-    }, LIVE_SYNC_INTERVAL_MS);
-
-    return () => window.clearInterval(id);
-  }, [live, router]);
+    void triggerGameweekSync();
+  }, [live]);
 
   return null;
 }

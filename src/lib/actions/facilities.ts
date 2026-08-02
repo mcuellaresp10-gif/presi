@@ -210,15 +210,22 @@ export async function collectPassiveIncome() {
 
   if (error) return { error: error.message };
 
+  const nextIncomeTickAt = new Date(
+    newLastIncome.getTime() + pending.intervalMs
+  ).toISOString();
+
+  // Soft invalidate only — UI updates wallet locally without full page refresh.
   revalidatePath("/instalaciones");
-  revalidatePath("/inicio");
   revalidatePath("/tienda");
 
   return {
-    success: true,
+    success: true as const,
     amount: pending.amount,
     gems: pendingGems.amount,
     ticks: pending.ticks,
+    presupuesto: newBudget,
+    gemas: newGemas,
+    nextIncomeTickAt,
   };
 }
 

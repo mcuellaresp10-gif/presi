@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { useRouter } from "next/navigation";
 import { Gem } from "lucide-react";
 import { EscudoRenderer } from "@/components/escudo/EscudoRenderer";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -9,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { collectPassiveIncome } from "@/lib/actions/facilities";
 import { formatRemainingTime } from "@/lib/game";
 import type { EscudoConfig } from "@/lib/game/types";
+import { emitWalletUpdate } from "@/lib/wallet-events";
 import { formatCompactMoney } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -34,11 +34,11 @@ export function StadiumIncomePin({
   pendingGems: number;
   pendingTicks: number;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [now, setNow] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [collected, setCollected] = useState(false);
+  const [localNextTick, setLocalNextTick] = useState(nextIncomeTickAt);
 
   useEffect(() => {
     setNow(Date.now());
@@ -47,29 +47,29 @@ export function StadiumIncomePin({
   }, []);
 
   useEffect(() => {
+    setLocalNextTick(nextIncomeTickAt);
     if (pendingAmount <= 0 && pendingGems <= 0) {
       setCollected(false);
     }
-  }, [pendingAmount, pendingGems]);
+  }, [nextIncomeTickAt, pendingAmount, pendingGems]);
 
   const intervalMs = incomeIntervalHours * 60 * 60 * 1000;
   const hasPending = !collected && (pendingAmount > 0 || pendingGems > 0);
 
   const { progress, remainingMs } = useMemo(() => {
-    if (now === null || !nextIncomeTickAt || intervalMs <= 0) {
+    if (now === null || !localNextTick || intervalMs <= 0) {
       return { progress: 0, remainingMs: null as number | null };
     }
     const remaining = Math.max(
       0,
-      new Date(nextIncomeTickAt).getTime() - now
+      new Date(localNextTick).getTime() - now
     );
     const elapsedInTick = intervalMs - remaining;
     const p = hasPending
       ? 1
       : Math.min(1, Math.max(0, elapsedInTick / intervalMs));
     return { progress: p, remainingMs: remaining };
-  }, [now, nextIncomeTickAt, intervalMs, hasPending]);
-
+  }, [now, localNextTick, intervalMs, hasPending]);
 
   async function handleCollect() {
     if (!hasPending || loading) return;
@@ -92,8 +92,11 @@ export function StadiumIncomePin({
         return;
       }
 
-      const { amount, gems } = result;
+      const { amount, gems, presupuesto, gemas, nextIncomeTickAt: nextTick } =
+        result;
       setCollected(true);
+      if (nextTick) setLocalNextTick(nextTick);
+      emitWalletUpdate({ presupuesto, gemas });
       toast({
         title: "Ingresos cobrados",
         description: [
@@ -103,7 +106,6 @@ export function StadiumIncomePin({
           .filter(Boolean)
           .join(" + "),
       });
-      router.refresh();
     } catch {
       toast({
         title: "No se pudo cobrar",

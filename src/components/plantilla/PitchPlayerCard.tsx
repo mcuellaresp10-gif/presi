@@ -4,7 +4,6 @@ import { ClubKitRenderer } from "@/components/escudo/ClubKitRenderer";
 import { cn } from "@/lib/utils";
 import {
   getPlayerRating,
-  getPlayerSurname,
   POSITION_PITCH_COLOR,
   POSITION_SHORT,
 } from "@/lib/game/player-display";
@@ -22,6 +21,9 @@ export function PitchPlayerCard({
   onDragStart,
   onDragEnd,
   isDragging = false,
+  /** When set, shows gameweek points under the card instead of club name. */
+  gameweekPoints,
+  showGameweekPoints = false,
 }: {
   player: RosterPlayer;
   escudoConfig?: EscudoConfig | null;
@@ -32,15 +34,24 @@ export function PitchPlayerCard({
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
   isDragging?: boolean;
+  gameweekPoints?: number | null;
+  showGameweekPoints?: boolean;
 }) {
   const rating = getPlayerRating(player);
-  const surname = getPlayerSurname(player.nombre);
   const pos = player.posicion as Position;
   const jornadas = player.jornadas_restantes ?? 99;
   const expiringSoon = !player.es_prestamo && isContractExpiringSoon(jornadas);
   const loanJornadas = player.prestamo_jornadas_restantes ?? 0;
-  const cardWidth = size === "sm" ? "w-[4.25rem]" : "w-[4.75rem]";
+  const cardWidth = size === "sm" ? "w-[4.5rem]" : "w-[5.25rem]";
   const kitSize = size === "sm" ? 40 : 48;
+
+  const footer = showGameweekPoints
+    ? gameweekPoints != null
+      ? `${gameweekPoints > 0 ? "+" : ""}${gameweekPoints} pts`
+      : "—"
+    : player.es_prestamo
+      ? `Préstamo ${loanJornadas}J`
+      : (player.equipo_real ?? "—").split(" ").slice(0, 2).join(" ");
 
   return (
     <div
@@ -98,8 +109,11 @@ export function PitchPlayerCard({
       </div>
 
       <div className="mt-0.5 w-full overflow-hidden rounded-t-sm bg-black/85 px-1 py-0.5 shadow ring-1 ring-white/10">
-        <p className="truncate text-[9px] font-black uppercase tracking-wide text-white">
-          {surname}
+        <p
+          className="line-clamp-2 text-[8px] font-black leading-tight text-white"
+          title={player.nombre}
+        >
+          {player.nombre}
         </p>
       </div>
       <div
@@ -113,10 +127,19 @@ export function PitchPlayerCard({
         <span>{rating}</span>
       </div>
 
-      <span className="mt-0.5 max-w-full truncate text-[7px] font-semibold uppercase tracking-wide text-white/80">
-        {player.es_prestamo
-          ? `Préstamo ${loanJornadas}J`
-          : (player.equipo_real ?? "—").split(" ").slice(0, 2).join(" ")}
+      <span
+        className={cn(
+          "mt-0.5 max-w-full truncate text-[7px] font-semibold uppercase tracking-wide",
+          showGameweekPoints
+            ? gameweekPoints != null && gameweekPoints > 0
+              ? "font-black text-presi-gold"
+              : gameweekPoints != null && gameweekPoints < 0
+                ? "font-black text-presi-red"
+                : "text-white/55"
+            : "text-white/80"
+        )}
+      >
+        {footer}
       </span>
     </div>
   );
@@ -149,7 +172,7 @@ export function PitchEmptySlot({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        "flex w-[4.75rem] flex-col items-center rounded-lg transition-colors",
+        "flex w-[5.25rem] flex-col items-center rounded-lg transition-colors",
         isDropTarget &&
           isDragOver &&
           isValidDrop &&

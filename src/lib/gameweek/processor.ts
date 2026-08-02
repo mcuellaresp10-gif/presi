@@ -38,6 +38,123 @@ type GameweekRow = {
   status: string;
 };
 
+type RosterLockRow = {
+  player_id: string;
+  squad_role?: string | null;
+  es_titular?: boolean | null;
+  players_master: unknown;
+};
+
+function lineupFromRosterRoles(rosterRows: RosterLockRow[]): {
+  starterIds: string[];
+  benchIds: string[];
+} {
+  const starters = rosterRows
+    .filter(
+      (r) => r.squad_role === "starter" || (!r.squad_role && r.es_titular)
+    )
+    .map((r) => r.player_id);
+  const bench = rosterRows
+    .filter((r) => r.squad_role === "bench")
+    .map((r) => r.player_id);
+  return { starterIds: starters, benchIds: bench };
+}
+
+function resolveLockedLineup(
+  draft: {
+    starter_ids?: unknown;
+    bench_ids?: unknown;
+    captain_id?: unknown;
+    formation?: unknown;
+  } | null,
+  rosterRows: RosterLockRow[],
+  previousSnap: {
+    starter_ids?: unknown;
+    bench_ids?: unknown;
+    captain_id?: unknown;
+    formation?: unknown;
+  } | null
+): {
+  starterIds: string[];
+  benchIds: string[];
+  captainId: string | null;
+  formation: string | null;
+  isValid: boolean;
+} {
+  const rosterPlayers = rosterRows.map(
+    (r) => r.players_master as unknown as Player
+  );
+
+  const candidates: Array<{
+    starterIds: string[];
+    benchIds: string[];
+    captainId: string | null;
+    formation: string | null;
+  }> = [];
+
+  if (draft) {
+    candidates.push({
+      starterIds: (draft.starter_ids as string[]) ?? [],
+      benchIds: (draft.bench_ids as string[]) ?? [],
+      captainId: (draft.captain_id as string | null) ?? null,
+      formation: (draft.formation as string | null) ?? null,
+    });
+  }
+  if (previousSnap) {
+    candidates.push({
+      starterIds: (previousSnap.starter_ids as string[]) ?? [],
+      benchIds: (previousSnap.bench_ids as string[]) ?? [],
+      captainId: (previousSnap.captain_id as string | null) ?? null,
+      formation: (previousSnap.formation as string | null) ?? null,
+    });
+  }
+  const fromRoster = lineupFromRosterRoles(rosterRows);
+  candidates.push({
+    starterIds: fromRoster.starterIds,
+    benchIds: fromRoster.benchIds,
+    captainId: fromRoster.starterIds[0] ?? null,
+    formation: null,
+  });
+
+  for (const candidate of candidates) {
+    if (!candidate.starterIds.length) continue;
+
+    const sanitized = sanitizeLineupDraft(
+      candidate.starterIds,
+      candidate.benchIds,
+      candidate.captainId,
+      rosterPlayers
+    );
+    if (!sanitized.ok) continue;
+
+    const validation = validateLineupDraft(
+      sanitized.starterIds,
+      sanitized.benchIds,
+      rosterPlayers
+    );
+
+    return {
+      starterIds: sanitized.starterIds,
+      benchIds: sanitized.benchIds,
+      captainId:
+        sanitized.captainId ??
+        (sanitized.starterIds.length > 0 ? sanitized.starterIds[0] : null),
+      formation: validation.ok
+        ? validation.formation
+        : sanitized.formation ?? candidate.formation,
+      isValid: validation.ok,
+    };
+  }
+
+  return {
+    starterIds: [],
+    benchIds: [],
+    captainId: null,
+    formation: null,
+    isValid: false,
+  };
+}
+
 export async function lockLineupSnapshots(
   supabase: SupabaseClient,
   gameweek: GameweekRow,
@@ -53,80 +170,79 @@ export async function lockLineupSnapshots(
   for (const club of clubs ?? []) {
     const { data: existing } = await supabase
       .from("lineup_snapshots")
-      .select("club_id")
+      .select("club_id, starter_ids, is_valid")
       .eq("club_id", club.id)
       .eq("gameweek_id", gameweek.id)
       .maybeSingle();
 
-    if (existing) continue;
+    const existingStarters = (existing?.starter_ids as string[] | null) ?? [];
+    // Empty snapshots (common for NPC bots after a new GW) must be repaired.
+    if (existing && existingStarters.length > 0) continue;
 
-    const { data: draft } = await supabase
-      .from("lineup_drafts")
-      .select("*")
-      .eq("club_id", club.id)
-      .eq("gameweek_id", gameweek.id)
-      .maybeSingle();
+    const [{ data: draft }, { data: rosterRows }, { data: prevSnap }] =
+      await Promise.all([
+        supabase
+          .from("lineup_drafts")
+          .select("*")
+          .eq("club_id", club.id)
+          .eq("gameweek_id", gameweek.id)
+          .maybeSingle(),
+        supabase
+          .from("club_roster")
+          .select("player_id, squad_role, es_titular, players_master(*)")
+          .eq("club_id", club.id),
+        supabase
+          .from("lineup_snapshots")
+          .select("starter_ids, bench_ids, captain_id, formation")
+          .eq("club_id", club.id)
+          .neq("gameweek_id", gameweek.id)
+          .order("locked_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-    const { data: rosterRows } = await supabase
-      .from("club_roster")
-      .select("player_id, players_master(*)")
-      .eq("club_id", club.id);
-
-    const rosterPlayers = (rosterRows ?? []).map(
-      (r) => r.players_master as unknown as Player
+    const resolved = resolveLockedLineup(
+      draft,
+      (rosterRows ?? []) as RosterLockRow[],
+      prevSnap
     );
 
-    let isValid = false;
-    let starterIds: string[] = [];
-    let benchIds: string[] = [];
-    let formation: string | null = null;
-    let captainId: string | null = null;
-
-    if (draft) {
-      const sanitized = sanitizeLineupDraft(
-        (draft.starter_ids as string[]) ?? [],
-        (draft.bench_ids as string[]) ?? [],
-        (draft.captain_id as string | null) ?? null,
-        rosterPlayers
-      );
-      if (sanitized.ok) {
-        starterIds = sanitized.starterIds;
-        benchIds = sanitized.benchIds;
-        formation = sanitized.formation;
-
-        // Only keep an explicit captain who is still a starter — no auto-pick on lock.
-        const draftCaptain = (draft.captain_id as string | null) ?? null;
-        captainId =
-          draftCaptain && starterIds.includes(draftCaptain)
-            ? draftCaptain
-            : null;
-
-        const validation = validateLineupDraft(
-          starterIds,
-          benchIds,
-          rosterPlayers
-        );
-        if (validation.ok) {
-          isValid = true;
-          formation = validation.formation;
-          // Complete lineup: ensure there is a captain (fallback to first starter).
-          if (!captainId && starterIds.length > 0) {
-            captainId = starterIds[0];
-          }
-        }
-      }
-    }
-
-    await supabase.from("lineup_snapshots").insert({
+    const payload = {
       club_id: club.id,
       gameweek_id: gameweek.id,
-      starter_ids: starterIds,
-      bench_ids: benchIds,
-      captain_id: captainId,
-      formation,
-      is_valid: isValid,
+      starter_ids: resolved.starterIds,
+      bench_ids: resolved.benchIds,
+      captain_id: resolved.captainId,
+      formation: resolved.formation,
+      is_valid: resolved.isValid,
       locked_at: now.toISOString(),
-    });
+    };
+
+    if (existing) {
+      await supabase
+        .from("lineup_snapshots")
+        .update(payload)
+        .eq("club_id", club.id)
+        .eq("gameweek_id", gameweek.id);
+    } else {
+      await supabase.from("lineup_snapshots").insert(payload);
+    }
+
+    // Persist draft so next GW can carry forward from this lineup.
+    if (resolved.starterIds.length > 0) {
+      await supabase.from("lineup_drafts").upsert(
+        {
+          club_id: club.id,
+          gameweek_id: gameweek.id,
+          starter_ids: resolved.starterIds,
+          bench_ids: resolved.benchIds,
+          captain_id: resolved.captainId,
+          formation: resolved.formation,
+          updated_at: now.toISOString(),
+        },
+        { onConflict: "club_id,gameweek_id" }
+      );
+    }
 
     locked += 1;
   }
